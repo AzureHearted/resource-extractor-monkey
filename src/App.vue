@@ -1,11 +1,6 @@
 <template>
 	<!--s 脚本应用容器 -->
-	<dialog
-		:data-host="host"
-		ref="appDOM"
-		class="web-img-collector__container"
-		@touchstart.stop
-		@touchmove.stop>
+	<dialog :data-host="host" ref="appDOM" class="web-img-collector__container">
 		<!--s 消息通知类信息容器 -->
 		<el-config-provider namespace="el">
 			<div class="web-img-collector__notification-container"></div>
@@ -69,7 +64,6 @@
 
 	// 当前站点host
 	const host = ref(location.host);
-
 
 	onMounted(() => {
 		//s 用户配置信息获取

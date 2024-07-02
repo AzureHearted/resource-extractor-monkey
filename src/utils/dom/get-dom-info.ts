@@ -79,8 +79,6 @@ function getDOMAttribute(dom: HTMLElement, _name: string) {
 		if (name === "src" || name === "href" || name === "srcset") {
 			//! 是否是和链接相关的属性(如：src、href、srcset) 则使用property方式获取
 			temp = getDOMProperty(dom, name);
-		} else {
-			temp = dom.getAttribute(name);
 			//s 判断是否不为空
 			if (!!temp && !!temp.trim().length) {
 				// 对匹配srcset时的特殊处理
@@ -89,6 +87,8 @@ function getDOMAttribute(dom: HTMLElement, _name: string) {
 					temp = getSrcsetMaximumValue(temp);
 				}
 			}
+		} else {
+			temp = dom.getAttribute(name);
 		}
 		if (temp) {
 			value = temp;

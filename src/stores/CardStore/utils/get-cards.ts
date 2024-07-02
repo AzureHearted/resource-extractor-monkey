@@ -91,10 +91,6 @@ export default async function getCard(
 							}
 							if (!meta.ext) {
 								meta.ext = getExtByUrl(value);
-								// if (!meta.ext) {
-								// 	const { subType } = getMIMEinfo(await getContentType(value));
-								// 	meta.ext = subType;
-								// }
 							}
 							return {
 								url: value,
@@ -136,12 +132,6 @@ export default async function getCard(
 									}
 									if (!meta.ext) {
 										meta.ext = getExtByUrl(value);
-										// if (!meta.ext) {
-										// 	const { subType } = getMIMEinfo(
-										// 		await getContentType(value)
-										// 	);
-										// 	meta.ext = subType;
-										// }
 									}
 									// console.log(meta);
 									return {
@@ -180,12 +170,13 @@ export default async function getCard(
 						}
 						if (!preview.meta.ext) {
 							preview.meta.ext = getExtByUrl(preview.url);
-							if (!preview.meta.ext) {
-								const { subType } = getMIMEinfo(
-									await getContentType(preview.url)
-								);
-								preview.meta.ext = subType;
-							}
+							//TODO 这里由于使用油猴的API，在部分IOS的油猴脚本环境中可能无法正常调用(暂时弃用)
+							// if (!preview.meta.ext) {
+							// 	const { subType } = getMIMEinfo(
+							// 		await getContentType(preview.url)
+							// 	);
+							// 	preview.meta.ext = subType;
+							// }
 						}
 					}
 
@@ -660,7 +651,7 @@ async function getMeta(
 			const url = new URL(target);
 			// 如果是一个链接
 			// console.log("通过Url获取元信息(开始)");
-			meta = await getMetaByUrl(url, { type: "html" });
+			meta = await getMetaByUrl(url, { type: "image" });
 			// console.log("通过Url获取元信息(成功)");
 			// console.log("getMetaByUrl 获取结果", target, meta);
 		}
@@ -673,7 +664,7 @@ async function getMeta(
 			// console.log("通过Blob获取元信息");
 		}
 	} else {
-		// s 指定方式
+		//T 指定方式
 		if (
 			method === "byNaturalSize" &&
 			typeof target === "object" &&
@@ -688,7 +679,7 @@ async function getMeta(
 			isUrl(target)
 		) {
 			//s 链接
-			meta = await getMetaByUrl(new URL(target));
+			meta = await getMetaByUrl(new URL(target), { type: "image" });
 		} else if (
 			method === "byBlob" &&
 			typeof target === "object" &&
@@ -724,20 +715,21 @@ async function getMetaByUrl(url: URL, _default: Partial<BaseMeta> = {}) {
 	meta = { ...meta, ..._default };
 	// 先推断链接类型
 	//s 初步推断
-	let type = inferUrlType(url);
+	const type = inferUrlType(url);
 
-	if (type === "html") {
-		//s 如果还是html类型则尝试通过Head请求获取类型
-		const mime = await getContentType(url.href);
-		const { mainType, subType } = getMIMEinfo(mime);
-		if (mainType) {
-			if (mainType !== "text") {
-				type = mainType;
-				meta.ext = subType;
-			}
-		}
-		// console.log("链接类型==>", type, mainType, subType);
-	}
+	//TODO 这里由于使用油猴的API，在部分IOS的油猴脚本环境中可能无法正常调用(暂时弃用)
+	// if (type === "html") {
+	// 	//s 如果还是html类型则尝试通过Head请求获取类型
+	// 	const mime = await getContentType(url.href);
+	// 	const { mainType, subType } = getMIMEinfo(mime);
+	// 	if (mainType) {
+	// 		if (mainType !== "text") {
+	// 			type = mainType;
+	// 			meta.ext = subType;
+	// 		}
+	// 	}
+	// 	console.log("链接类型==>", type, mainType, subType);
+	// }
 
 	if (type === "image") {
 		//s 处理图片类型
@@ -752,12 +744,10 @@ async function getMetaByUrl(url: URL, _default: Partial<BaseMeta> = {}) {
 		//s 处理视频类型
 		meta = { ...meta, ...res };
 	} else {
+		//s 其他类型
 		meta = {
-			valid: true,
-			width: 0,
-			height: 0,
+			...meta,
 			type,
-			ext: false,
 		};
 	}
 
