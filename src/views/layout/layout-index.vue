@@ -2,7 +2,7 @@
 	<dialog
 		class="layout__container"
 		ref="containerDOM"
-		:class="{ open: globalStore.openWindow }">
+		:class="{ open: globalStore.openWindow, close: !globalStore.openWindow }">
 		<AppBar class="layout__app-bar" />
 		<Main class="layout__main" />
 	</dialog>
@@ -82,6 +82,14 @@
 			pointer-events: auto;
 			// top: 0;
 			opacity: 1;
+		}
+		&.close {
+			opacity: 0;
+			// top: -100%;
+			pointer-events: none;
+			:deep(*) {
+				pointer-events: none !important;
+			}
 		}
 	}
 	// .layout__app-bar {
