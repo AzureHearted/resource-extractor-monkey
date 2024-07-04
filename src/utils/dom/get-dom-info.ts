@@ -132,10 +132,14 @@ function getSrcsetMaximumValue(srcsetString: string) {
 			.filter((item) => !!item && !!item.trim().length)
 			.map((item) => {
 				const itemDataInfos = item.split(" ");
+				// console.log(itemDataInfos);
 				if (itemDataInfos.length == 2) {
+					const sizeList = itemDataInfos[1].split(/w|x/i);
+					const size = sizeList ? sizeList[0] : 0;
+					// console.log("size", size);
 					return {
 						url: itemDataInfos[0],
-						resolution: Number(itemDataInfos[1].split(/w|W/)[0]),
+						resolution: size,
 					};
 				} else {
 					return {
