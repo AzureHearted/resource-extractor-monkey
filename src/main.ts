@@ -9,7 +9,7 @@ import App from "./App.vue";
 // import router from "./router";
 
 // Varlet组件库(配置)
-import "@/plugin/varlet";
+// import "@/plugin/varlet";
 
 //naive-ui组件库(相关)
 import "@/plugin/naive-ui";

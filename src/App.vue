@@ -1,6 +1,6 @@
 <template>
 	<!--s 脚本应用容器 -->
-	<dialog :data-host="host" ref="appDOM" class="web-img-collector__container">
+	<div :data-host="host" ref="appDOM" class="web-img-collector__container">
 		<!--s 消息通知类信息容器 -->
 		<el-config-provider namespace="el">
 			<div class="web-img-collector__notification-container"></div>
@@ -24,7 +24,7 @@
 					class="web-img-collector__top-container"></div>
 			</n-config-provider>
 		</el-config-provider>
-	</dialog>
+	</div>
 </template>
 
 <script setup lang="ts">
@@ -70,17 +70,6 @@
 		patternStore.getUserPatternInfo(); // 获取本地方案信息
 		patternStore.setInitPattern(); // 获取初始方案
 	});
-
-	//s 原生dialog相关
-	const appDOM = ref<HTMLDialogElement>();
-	onMounted(() => {
-		if (!appDOM.value) return;
-		appDOM.value.show();
-	});
-	onBeforeUnmount(() => {
-		if (!appDOM.value) return;
-		appDOM.value.close();
-	});
 </script>
 
 <style lang="scss" scoped>
@@ -102,11 +91,11 @@
 		position: fixed;
 		// position: absolute;
 		// overflow: hidden;
-		width: 100% !important;
-		height: 100% !important;
+		inset: 0;
+		// width: 100vw !important;
+		// height: 100vh !important;
 		max-width: unset !important;
 		max-height: unset !important;
-		// inset: 0 !important;
 		text-align: left;
 		padding: unset !important;
 		margin: unset !important;

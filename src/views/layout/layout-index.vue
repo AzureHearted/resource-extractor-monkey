@@ -51,10 +51,13 @@
 <style lang="scss" scoped>
 	// 布局容器样式
 	.layout__container {
-		// position: absolute;
-		position: fixed;
-		width: 100%;
-		height: 100%;
+		position: absolute;
+		// position: fixed;
+		// width: 100vw;
+		// height: 100vh;
+		// width: 100%;
+		// height: 100%;
+		inset: 0;
 		max-width: unset !important;
 		max-height: unset !important;
 		padding: unset !important;

@@ -123,6 +123,7 @@ declare module 'vue' {
     VarFab: typeof import('@varlet/ui')['_FabComponent']
     VarMenu: typeof import('@varlet/ui')['_MenuComponent']
     WaterfallList: typeof import('./../src/components/base/waterfall-list.vue')['default']
+    WaterfallListVirtual: typeof import('./../src/components/base/waterfall-list-virtual.vue')['default']
   }
   export interface ComponentCustomProperties {
     vRipple: typeof import('@varlet/ui')['_RippleComponent']
