@@ -128,7 +128,7 @@
 	});
 
 	// f 数据改变(带防抖)
-	let timer: number | null = null; // 计时器
+	let timer: number; // 计时器
 	let handleTask: Function = () => {}; // 任务
 	// 默认配置项
 	const defaultOptions = {
@@ -144,10 +144,8 @@
 			handleTask = task;
 		}
 		// 如果计时器还没结束就又出触发该函数就清除计时器(重置计时)
-		if (timer) {
-			clearTimeout(timer);
-			timer = null;
-		}
+		clearTimeout(timer);
+
 		// 获取配置参数
 		const { delay } = { ...defaultOptions, ...options };
 		// 设置计时器等待时间到达执行重新布局
