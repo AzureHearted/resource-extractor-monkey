@@ -1,9 +1,6 @@
 <template>
 	<BaseScrollbar show-back-top-button>
-		<WaterFallList
-			ref="waterFallRef"
-			:data="cardList"
-			item-padding="2px">
+		<WaterFallList ref="waterFallRef" :data="cardList" item-padding="2px">
 			<template #default="{ item }">
 				<GalleryCard
 					v-model:data="(item as Card)"

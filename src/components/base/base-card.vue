@@ -1,7 +1,7 @@
 <template>
-	<div class="img-card-container" :style="cardStyle">
+	<div class="base-card__container" :style="cardStyle">
 		<!-- 顶部区域 -->
-		<div class="base-card-header" :data-layout="layout">
+		<div class="base-card__header" :data-layout="layout">
 			<slot name="header" :data="data"></slot>
 		</div>
 		<!-- 图片组件(默认插槽) -->
@@ -14,7 +14,7 @@
 				@error="error" />
 		</slot>
 		<!-- 底部区域 -->
-		<div class="base-card-footer" :data-layout="layout">
+		<div class="base-card__footer" :data-layout="layout">
 			<slot name="footer" :data="data"></slot>
 		</div>
 	</div>
@@ -67,10 +67,10 @@
 
 <style lang="scss" scoped>
 	// 容器基础样式
-	.img-card-container {
+	.base-card__container {
 		box-sizing: border-box;
 		position: relative; // 设置相对定位，以便于其他内容可以定位到图片上。
-		display: flex;
+		// display: flex;
 		flex-flow: column;
 		border: 1px solid #ccc; // 边框样式，根据需要自行调整。
 		box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.5); // 阴影效果，根据需要自行调整。
@@ -81,10 +81,10 @@
 			box-sizing: border-box;
 		}
 	}
-	.img-card-container:hover {
+	.base-card__container:hover {
 		box-shadow: 0 0 10px 0 rgba(0, 0, 0, 1); // 阴影效果，根据需要自行调整。
 	}
-	.base-card-header {
+	.base-card__header {
 		box-sizing: border-box;
 		position: relative;
 		z-index: 1;
@@ -102,7 +102,7 @@
 			right: 0;
 		}
 	}
-	.base-card-footer {
+	.base-card__footer {
 		box-sizing: border-box;
 		overflow: hidden;
 		pointer-events: none;

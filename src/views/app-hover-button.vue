@@ -282,7 +282,7 @@
 				// state.scrollingToUp = false; // 取消显示滚动按钮的加载状态
 				// state.scrollingToDown = false; // 取消显示滚动按钮的加载状态
 				// state.scrolling = false; // 显示滚动按钮的加载状态
-				scrolling = false;
+				// scrolling = false;
 				return;
 			}
 

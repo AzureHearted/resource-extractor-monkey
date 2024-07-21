@@ -14,11 +14,13 @@ declare module 'vue' {
     BaseDragDialog: typeof import('./../src/components/base/base-drag-dialog.vue')['default']
     BaseDragModal: typeof import('./../src/components/base/base-drag-modal.vue')['default']
     BaseImg: typeof import('./../src/components/base/base-img.vue')['default']
+    BaseImgV2: typeof import('./../src/components/base/base-img-v2.vue')['default']
     BaseLineOverflowList: typeof import('./../src/components/base/base-line-overflow-list.vue')['default']
     BaseScrollbar: typeof import('./../src/components/base/base-scrollbar.vue')['default']
     BaseTabPane: typeof import('./../src/components/base/base-tab-pane.vue')['default']
     BaseTabs: typeof import('./../src/components/base/base-tabs.vue')['default']
     BaseVideo: typeof import('./../src/components/base/base-video.vue')['default']
+    copy: typeof import('./../src/components/base/waterfall-list copy.vue')['default']
     ElBadge: typeof import('element-plus/es')['ElBadge']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElButtonGroup: typeof import('element-plus/es')['ElButtonGroup']
@@ -123,6 +125,7 @@ declare module 'vue' {
     VarFab: typeof import('@varlet/ui')['_FabComponent']
     VarMenu: typeof import('@varlet/ui')['_MenuComponent']
     WaterfallList: typeof import('./../src/components/base/waterfall-list.vue')['default']
+    WaterfallListBackup: typeof import('./../src/components/base/waterfall-list-backup.vue')['default']
     WaterfallListVirtual: typeof import('./../src/components/base/waterfall-list-virtual.vue')['default']
   }
   export interface ComponentCustomProperties {

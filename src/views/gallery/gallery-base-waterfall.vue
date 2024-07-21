@@ -3,10 +3,7 @@
 		ref="scrollbarRef"
 		:show-scrollbar="showScrollbar"
 		show-back-top-button>
-		<WaterFallList
-			ref="waterFallRef"
-			:data="cardList"
-			item-padding="2px">
+		<WaterFallList ref="waterFallRef" :data="cardList" item-padding="2px">
 			<template #default="{ item }">
 				<GalleryCard
 					v-model:data="(item as any)"
@@ -29,6 +26,7 @@
 	import BaseDock from "@/components/base/base-dock.vue";
 	import type { returnInfo } from "@/components/base/base-img.vue";
 	import GalleryCard from "./gallery-card.vue";
+	import BaseImg from "@/components/base/base-img.vue";
 	import Card from "@/stores/CardStore/class/Card";
 
 	import { isEqualUrl, isMobile as judgeIsMobile } from "@/utils/common";
