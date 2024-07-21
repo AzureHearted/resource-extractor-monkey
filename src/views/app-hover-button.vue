@@ -106,7 +106,6 @@
 	import useCardStore from "@/stores/CardStore";
 	import useLoadingStore from "@/stores/LoadingStore";
 	import { watch } from "vue";
-	import { stat } from "fs";
 	const globalStore = useGlobalStore();
 	const { openWindow, tab } = storeToRefs(globalStore);
 	const cardStore = useCardStore();

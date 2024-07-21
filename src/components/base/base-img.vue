@@ -10,17 +10,17 @@
 			class="img__wrap"
 			:class="{
 				loading: !state.loaded && show,
-				show: state.show && show,
+				'show-img': state.show && show,
 				error: state.isError,
 			}"
-			:style="{ aspectRatio: aspectRatio }">
+			:style="{ aspectRatio }">
 			<slot>
 				<img
 					v-if="mounted"
 					v-show="show"
 					ref="imgDOM"
 					v-lazy.src="src"
-					:style="{ aspectRatio: aspectRatio }"
+					:style="[imgStyle]"
 					:draggable="draggable" />
 			</slot>
 		</div>
@@ -42,7 +42,7 @@
 		watch,
 		nextTick,
 	} from "vue";
-	import type { Directive } from "vue";
+	import type { Directive, CSSProperties, HTMLAttributes } from "vue";
 	// 导入加载错误时的图片
 	const errorImg =
 		"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxZW0iIGhlaWdodD0iMWVtIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGZpbGw9ImN1cnJlbnRDb2xvciIgZD0iTTIgMmgyMHYxMGgtMlY0SDR2OS41ODZsNS01TDE0LjQxNCAxNEwxMyAxNS40MTRsLTQtNGwtNSA1VjIwaDh2Mkgyem0xMy41NDcgNWExIDEgMCAxIDAgMCAyYTEgMSAwIDAgMCAwLTJtLTMgMWEzIDMgMCAxIDEgNiAwYTMgMyAwIDAgMS02IDBtMy42MjUgNi43NTdMMTkgMTcuNTg2bDIuODI4LTIuODI5bDEuNDE1IDEuNDE1TDIwLjQxNCAxOWwyLjgyOSAyLjgyOGwtMS40MTUgMS40MTVMMTkgMjAuNDE0bC0yLjgyOCAyLjgyOWwtMS40MTUtMS40MTVMMTcuNTg2IDE5bC0yLjgyOS0yLjgyOHoiLz48L3N2Zz4=";
@@ -62,6 +62,8 @@
 			draggable?: boolean; // 是否允许拖拽图片
 			initShow?: boolean;
 			show?: boolean; //是否显示图片
+			objectFit?: CSSProperties["object-fit"];
+			setAspectRatio?: number;
 		}>(),
 		{
 			src: "",
@@ -77,6 +79,7 @@
 			draggable: true, // 默认允许拖拽图片
 			initShow: false,
 			show: true,
+			objectFit: "contain",
 		}
 	);
 
@@ -120,8 +123,10 @@
 		show: ref(props.initShow),
 	});
 
-	//j 宽高比
 	const aspectRatio = computed(() => {
+		if (props.setAspectRatio) {
+			return props.setAspectRatio;
+		}
 		if (state.isError) {
 			return props.initWidth && props.initHeight
 				? props.initWidth / props.initHeight
@@ -129,6 +134,11 @@
 		} else {
 			return state.width && state.height ? state.width / state.height : 1;
 		}
+	});
+
+	//j img样式
+	const imgStyle = computed<HTMLAttributes["style"]>(() => {
+		return { objectFit: props.objectFit };
 	});
 
 	//s 图片DOM
@@ -407,7 +417,7 @@
 		opacity: 0;
 	}
 	// 加载完成且可见的样式
-	.img__wrap.show {
+	.img__wrap.show-img {
 		opacity: 1;
 	}
 	// 加载错误的样式

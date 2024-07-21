@@ -366,19 +366,26 @@ export default defineStore("FavoriteStore", () => {
 		return { all, image, video, audio, zip, html, other };
 	});
 
+	let process: Promise<any> | false = false;
 	//f 刷新仓库数据
 	const refreshStore = async () => {
-		cardList.value = await new Promise<Card[]>((resolve) => {
-			//s 判断仓库是否打开？没打开等待打开后重新调用
-			if (!store.value) {
-				open().then(() => refreshStore());
-				return;
-			}
+		//s 判断仓库是否打开？没打开等待打开后重新调用
+		if (!store.value) {
+			open().then(() => refreshStore());
+			return;
+		}
+		if (process !== false) {
+			process.finally(() => refreshStore());
+			return;
+		}
+		const oldList = [...cardList.value];
+		process = new Promise<Card[]>((resolve) => {
 			const list: Card[] = [];
-			store.value
-				.iterate((value: InstanceType<typeof Card>) => {
+			store
+				.value!.iterate((value: InstanceType<typeof Card>) => {
 					//TODO 如果Card类型增添新的内容这里需要同步修改
 					const { id, source, preview, description, tags } = value;
+					const oldCard = oldList.find((x) => x.id === id);
 					list.push(
 						new Card({
 							id,
@@ -387,13 +394,33 @@ export default defineStore("FavoriteStore", () => {
 							description,
 							tags,
 							isFavorite: true,
+							isLoaded: oldCard ? oldCard.isLoaded : undefined,
+							isSelected: oldCard ? oldCard.isSelected : undefined,
 						})
 					);
+				})
+				.then(() => {
+					resolve(list);
+				})
+				.catch(() => {
+					resolve([]);
 				})
 				.finally(() => {
 					resolve(list);
 				});
 		});
+		process
+			.then((list) => {
+				// console.log("获取成功");
+				cardList.value = list;
+			})
+			.catch(() => {
+				// console.log("获取失败");
+				cardList.value = [];
+			})
+			.finally(() => {
+				process = false;
+			});
 	};
 
 	//f 清空仓库数据
@@ -425,6 +452,8 @@ export default defineStore("FavoriteStore", () => {
 			if (!(await isExist(card))) {
 				const rowCard = card.getRowData();
 				rowCard.isFavorite = true;
+				rowCard.isLoaded = false;
+				rowCard.isSelected = false;
 				await store.value.setItem(card.id, rowCard);
 				console.log("成功收藏卡片", card);
 			} else {
@@ -501,30 +530,39 @@ export default defineStore("FavoriteStore", () => {
 	//f 查找卡片id
 	const findCardId = async (
 		/** 匹配函数 */
-		matchComparator: (currCard: Card) => boolean
+		matchComparator: (currCard: Card) => boolean,
+		refresh: boolean = false
 	): Promise<string | undefined> => {
 		// 先刷新仓库
-		await refreshStore();
+		if (refresh) {
+			await refreshStore();
+		}
 		return cardList.value.find((c) => matchComparator(c))?.id;
 	};
 
 	//f 查找卡片
 	const findCard = async (
 		/** 匹配函数 */
-		matchComparator: (currCard: Card) => boolean
+		matchComparator: (currCard: Card) => boolean,
+		refresh: boolean = false
 	): Promise<Card | undefined> => {
 		// 先刷新仓库
-		await refreshStore();
+		if (refresh) {
+			await refreshStore();
+		}
 		return cardList.value.find((c) => matchComparator(c));
 	};
 
 	//f 查找卡片(通过数据)
 	const findCardByData = async (
 		/** 匹配函数 */
-		cardData: Card
+		cardData: Card,
+		refresh: boolean = false
 	): Promise<Card | undefined> => {
 		// 先刷新仓库
-		await refreshStore();
+		if (refresh) {
+			await refreshStore();
+		}
 		return cardList.value.find(
 			(c) =>
 				isEqualUrl(c.source.url, cardData.source.url, {
@@ -535,24 +573,36 @@ export default defineStore("FavoriteStore", () => {
 	};
 
 	//f 查询卡片(通过id)
-	const findCardById = async (id: string): Promise<Card | undefined> => {
+	const findCardById = async (
+		id: string,
+		refresh: boolean = false
+	): Promise<Card | undefined> => {
 		// 先刷新仓库
-		await refreshStore();
+		if (refresh) {
+			await refreshStore();
+		}
 		return cardList.value.find((c) => c.id === id);
 	};
 
 	//f 查询多张卡片(通过id)
-	const findCardsById = async (ids: string[]): Promise<Card[]> => {
+	const findCardsById = async (
+		ids: string[],
+		refresh: boolean = false
+	): Promise<Card[]> => {
 		// 先刷新仓库
-		await refreshStore();
+		if (refresh) {
+			await refreshStore();
+		}
 		return cardList.value.filter((c) => ids.includes(c.id)) || [];
 	};
 
 	//f 判断卡片是否存在
 	/** 若source.url和preview.url相同则视为同一张卡片 */
-	const isExist = async (card: Card) => {
+	const isExist = async (card: Card, refresh: boolean = false) => {
 		// 先刷新仓库
-		await refreshStore();
+		if (refresh) {
+			await refreshStore();
+		}
 		// 判断是否包含卡片
 		return cardList.value.some(
 			(c) =>

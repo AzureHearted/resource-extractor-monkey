@@ -99,7 +99,7 @@
 	} from "vue";
 	import { storeToRefs } from "pinia";
 	import GalleryToolbar from "./gallery-toolbar.vue";
-	import GalleryBaseWaterfall from "./gallery-base-waterfall.vue";
+	import GalleryBaseWaterfall from "./gallery-base-card-list.vue";
 	import BaseTabs from "@/components/base/base-tabs.vue";
 	import BaseTabPane from "@/components/base/base-tab-pane.vue";
 	import useCardStore from "@/stores/CardStore";

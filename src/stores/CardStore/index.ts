@@ -395,7 +395,9 @@ export default defineStore("CardStore", () => {
 						// console.log(sourceMeta, previewMeta);
 						// 判断该卡片中的链接是否已经存在于集合中，如果存在则不添加到卡片列表中。
 						if (
-							(sourceMeta.valid || previewMeta.valid) &&
+							(sourceMeta.valid ||
+								previewMeta.valid ||
+								sourceMeta.type === "html") &&
 							(!data.urlSet.has(card.source.url) ||
 								!data.urlSet.has(card.preview.url))
 						) {

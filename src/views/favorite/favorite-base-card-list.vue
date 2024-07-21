@@ -1,6 +1,43 @@
 <template>
 	<BaseScrollbar show-back-top-button>
-		<WaterFallList ref="waterFallRef" :data="cardList" item-padding="2px">
+		<!-- f 普通网格布局 -->
+		<GridList v-if="layout === 'Grid'" :data="cardList">
+			<template #default="{ item }">
+				<GalleryCard
+					v-model:data="(item as Card)"
+					img-object-fit="cover"
+					:set-aspect-ratio="1"
+					:is-mobile="isMobile"
+					:show-to-locate-button="false"
+					:show-delete-button="false"
+					:show-download-button="(item as Card).source.meta.type!=='html'"
+					@change:selected="item.isSelected = $event"
+					@change:title="updateCard([item as Card])"
+					@loaded="handleLoaded"
+					@download="handleDownload(item as Card)"
+					@toggle-favorite="handleToggleFavorite(item as Card)"
+					@save:tags="handleTagsSave(item as Card)"
+					@delete="deleteCard([item as Card])">
+					<template #custom-button="{ openUrl }">
+						<el-button
+							type="warning"
+							@click="openUrl((item as Card).source.originUrls![0])"
+							title="打开卡片对应的来源地址"
+							v-ripple>
+							<template #icon>
+								<i-material-symbols-open-in-new-down-rounded />
+							</template>
+						</el-button>
+					</template>
+				</GalleryCard>
+			</template>
+		</GridList>
+		<!-- f 瀑布流布局 -->
+		<WaterFallList
+			v-if="layout === 'WaterFall'"
+			ref="waterFallRef"
+			:data="cardList"
+			item-padding="2px">
 			<template #default="{ item }">
 				<GalleryCard
 					v-model:data="(item as Card)"
@@ -35,8 +72,9 @@
 <script setup lang="ts">
 	import { ref, defineProps, withDefaults, onMounted, onActivated } from "vue";
 	import BaseScrollbar from "@/components/base/base-scrollbar.vue";
-	import WaterFallList from "@/components/base/waterfall-list.vue";
-	import GalleryCard from "../gallery/gallery-card.vue";
+	import GridList from "@/components/utils/grid-card-list.vue";
+	import WaterFallList from "@/components/utils/waterfall-card-list.vue";
+	import GalleryCard from "@/components/utils/gallery-card.vue";
 	import Card from "@/stores/CardStore/class/Card";
 	import type { returnInfo } from "@/components/base/base-img.vue";
 
@@ -59,9 +97,11 @@
 	withDefaults(
 		defineProps<{
 			cardList: Card[];
+			layout?: "Grid" | "WaterFall"; // s 布局模式
 		}>(),
 		{
 			cardList: () => [],
+			layout: "Grid",
 		}
 	);
 

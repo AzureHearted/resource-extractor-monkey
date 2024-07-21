@@ -4,8 +4,7 @@
 			:type="isChecked ? 'success' : 'default'"
 			:color="isChecked ? checkedColor : unCheckedColor"
 			text
-			block
-			v-ripple>
+			block>
 			<template #icon>
 				<transition appear>
 					<slot name="un-checked" v-if="!isChecked">
@@ -15,13 +14,19 @@
 						<i-material-symbols-check-box-rounded />
 					</slot>
 				</transition>
+				<!-- <slot name="un-checked" v-if="!isChecked">
+					<i-material-symbols-check-box-outline-blank />
+				</slot>
+				<slot name="checked" v-else>
+					<i-material-symbols-check-box-rounded />
+				</slot> -->
 			</template>
 		</n-button>
 	</div>
 </template>
 
 <script setup lang="ts">
-	import {  withDefaults, computed, defineEmits } from "vue";
+	import { withDefaults, computed, defineEmits } from "vue";
 
 	const props = withDefaults(
 		defineProps<{
@@ -60,7 +65,7 @@
 	.v-leave-to {
 		position: absolute;
 		opacity: 0;
-		transform: scale(0);
+		// transform: scale(0);
 	}
 
 	// 进入的过程中

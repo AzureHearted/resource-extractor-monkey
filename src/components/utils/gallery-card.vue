@@ -3,6 +3,8 @@
 		class="gallery-card"
 		:data-id="data.id"
 		background-color="transparent"
+		:img-object-fit="imgObjectFit"
+		:set-aspect-ratio="setAspectRatio"
 		style="border: unset"
 		:data-show="isMobile"
 		:data-source-type="data.source.meta.type"
@@ -22,7 +24,7 @@
 							@change="emits('change:selected', $event)" />
 						<!--s 收藏复选框 -->
 						<BaseCheckbox
-							v-if="showFavoriteButton"
+							v-if="showFavoriteButton && data.isLoaded"
 							:checked="data.isFavorite"
 							checked-color="red"
 							@change="emits('toggle-favorite', $event)">
@@ -36,7 +38,7 @@
 					</div>
 				</div>
 				<!--s header右侧 -->
-				<div class="gallery-card-header-right">
+				<div v-if="data.isLoaded" class="gallery-card-header-right">
 					<!--s 卡片按钮组 -->
 					<div class="card-button-group">
 						<!--s 自定义按钮组 -->
@@ -133,19 +135,25 @@
 					<BaseImg
 						v-if="data.source.meta.type === 'image'"
 						:src="data.preview.url"
+						:object-fit="imgObjectFit"
+						:set-aspect-ratio="setAspectRatio"
 						:viewport-selector="viewportSelector"
 						:init-width="data.preview.meta.width"
 						:init-height="data.preview.meta.height"
 						@loaded="emits('loaded', data.id, $event)"
+						@error="emits('error', data.id)"
 						:draggable="false" />
 					<!--s 网页类型(封面图片) -->
 					<BaseImg
 						v-else
 						:src="data.preview.url"
+						:object-fit="imgObjectFit"
+						:set-aspect-ratio="setAspectRatio"
 						:viewport-selector="viewportSelector"
 						:init-width="data.preview.meta.width"
 						:init-height="data.preview.meta.height"
 						@loaded="emits('loaded', data.id, $event)"
+						@error="emits('error', data.id)"
 						:draggable="false" />
 				</template>
 				<template v-else-if="data.preview.meta.type === 'video'">
@@ -165,14 +173,18 @@
 						:viewport-selector="viewportSelector"
 						:init-width="data.preview.meta.width"
 						:init-height="data.preview.meta.height"
-						@loaded="emits('loaded', data.id, $event)" />
+						@loaded="emits('loaded', data.id, $event)"
+						@error="emits('error', data.id)" />
 				</template>
 				<!--s html的其他类型 -->
 				<BaseImg
 					v-else
 					src=""
+					:object-fit="imgObjectFit"
+					:set-aspect-ratio="setAspectRatio"
 					:init-show="true"
 					@loaded="emits('loaded', data.id, $event)"
+					@error="emits('error', data.id)"
 					:draggable="false">
 					<HtmlTypeImg
 						style="width: 100%; height: auto; transform: scale(0.5)" />
@@ -183,7 +195,7 @@
 		<template #footer>
 			<div class="gallery-card-footer" align="center" :size="2">
 				<!--s 额外标签 -->
-				<div class="extra-tag-list">
+				<div v-if="false" class="extra-tag-list">
 					<BaseLineOverFlowList
 						:list="tags"
 						model-to=".web-img-collector__top-container">
@@ -235,47 +247,46 @@
 						</template>
 					</BaseLineOverFlowList>
 				</div>
-				<div style="width: 100%; display: flex; gap: 4px">
+				<!--s 基本信息标签 -->
+				<div v-if="true" class="base-tag-list">
 					<!--s 描述标签 -->
-					<var-chip
+					<el-tag
 						class="title-tag"
-						type="primary"
-						size="mini"
+						type="info"
+						size="small"
 						:title="data.description.title.trim()">
 						{{ data.description.title.trim() }}
-					</var-chip>
+					</el-tag>
 					<!--s 尺寸信息 -->
-					<var-chip
+					<el-tag
 						v-if="data.source.meta.type === 'image'"
-						type="info"
-						size="mini"
+						size="small"
 						:title="`${data.source.meta.width}x${data.source.meta.height}`">
 						{{ data.source.meta.width }}x{{ data.source.meta.height }}
-					</var-chip>
+					</el-tag>
 					<!--s 扩展名信息 -->
-					<var-chip
+					<el-tag
 						v-if="!!data.source.meta.ext"
-						type="default"
-						size="mini"
+						size="small"
 						:title="data.source.meta.ext">
 						{{ data.source.meta.ext }}
-					</var-chip>
+					</el-tag>
 					<!--s 网页标签 -->
-					<var-chip
+					<el-tag
 						v-if="data.source.meta.type === 'html'"
 						type="warning"
-						size="mini"
+						size="small"
 						title="网页">
 						网页
-					</var-chip>
+					</el-tag>
 					<!--s 文件大小信息 -->
-					<var-chip
+					<el-tag
 						v-if="!!data.source.blob && !!data.source.blob.size"
 						type="success"
-						size="mini"
+						size="small"
 						:title="size">
 						{{ size }}
-					</var-chip>
+					</el-tag>
 				</div>
 			</div>
 		</template>
@@ -291,7 +302,7 @@
 		// onActivated,
 		// onDeactivated,
 	} from "vue";
-	import type { ComputedRef } from "vue";
+	import type { ComputedRef, CSSProperties } from "vue";
 	import BaseCard from "@/components/base/base-card.vue";
 	import BaseImg from "@/components/base/base-img.vue";
 	import BaseVideo from "@/components/base/base-video.vue";
@@ -301,7 +312,6 @@
 	import type { returnInfo } from "@/components/base/base-img.vue";
 	import { GM_openInTab } from "$";
 	import { ElMessageBox } from "@/plugin/element-plus";
-	import { useElementVisibility } from "@vueuse/core";
 
 	// 导入公用TS库
 	import {
@@ -333,6 +343,8 @@
 			showFavoriteButton?: boolean;
 			showToLocateButton?: boolean;
 			isMobile?: boolean; //s 移动端标识
+			imgObjectFit?: CSSProperties["object-fit"];
+			setAspectRatio?: number;
 		}>(),
 		{
 			showCheckBox: true,
@@ -358,6 +370,7 @@
 		(e: "change:title", id: string, val: string): Promise<void>; // 标题变化事件
 		(e: "toggle-favorite", val: boolean): Promise<void>; // 卡片收藏事件
 		(e: "loaded", id: string, info: returnInfo): Promise<void>; // 卡片加载成功事件
+		(e: "error", id: string): Promise<void>; // 卡片加载失败事件
 		(e: "download", id: string): Promise<void>; // 下载事件
 		(e: "delete", id: string): Promise<void>; // 删除事件
 		(e: "change:visible", val: boolean): Promise<void>; // 可见性发生变化
@@ -461,13 +474,13 @@
 
 <style lang="scss" scoped>
 	// 卡片顶部
-	:deep(.base-card-header) {
-		overflow: hidden;
-	}
+	// :deep(.base-card-header) {
+	// 	overflow: hidden;
+	// }
 	.gallery-card-header {
 		position: relative;
 		display: flex;
-		padding: 4px;
+		padding: 2px;
 
 		pointer-events: none;
 		* {
@@ -484,6 +497,9 @@
 		}
 	}
 
+	:deep(.base-card__header) {
+		overflow: unset;
+	}
 	// header左侧
 	.gallery-card-header-left {
 		flex: 0;
@@ -503,21 +519,26 @@
 		display: flex;
 		flex-flow: row-reverse;
 		align-items: center;
-
-		transform: translateY(-150%);
-		transition: transform 0.2s;
-	}
-
-	.gallery-card[data-show="true"] .gallery-card-header-right,
-	.gallery-card:hover .gallery-card-header-right {
-		transform: translateY(0);
-		transition: transform 0.2s;
 	}
 
 	.card-button-group {
 		height: fit-content;
 		display: flex;
 		gap: 4px;
+		opacity: 0;
+		pointer-events: none;
+		// transform: translateY(-150%);
+		transform: rotateX(-90deg);
+		transition: transform 0.2s, opacity 0.2s;
+	}
+
+	.gallery-card[data-show="true"] .gallery-card-header-right .card-button-group,
+	.gallery-card:hover .gallery-card-header-right .card-button-group {
+		pointer-events: auto;
+		// transform: translateY(0);
+		transform: rotateX(0deg);
+		opacity: 1;
+		transition: transform 0.2s, opacity 0.2s;
 	}
 
 	.card-checkbox {
@@ -548,14 +569,16 @@
 		}
 
 		//s 标签样式
-		:deep(.var-chip) {
+		:deep(.var-chip),
+		:deep(.wic2-tag) {
 			flex-basis: content;
 			flex-grow: 0;
 			flex-shrink: 0.1;
 			box-sizing: border-box;
 			overflow: hidden;
 			text-overflow: ellipsis;
-
+			line-height: 20px;
+			border: unset;
 			&.title-tag {
 				flex-grow: 0;
 				flex-shrink: 500;
@@ -574,6 +597,11 @@
 		.extra-tag-list {
 			flex: 1;
 			overflow: hidden;
+		}
+		.base-tag-list {
+			width: 100%;
+			display: flex;
+			gap: 4px;
 		}
 	}
 

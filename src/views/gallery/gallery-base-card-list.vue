@@ -3,7 +3,28 @@
 		ref="scrollbarRef"
 		:show-scrollbar="showScrollbar"
 		show-back-top-button>
-		<WaterFallList ref="waterFallRef" :data="cardList" item-padding="2px">
+		<!-- f 普通网格布局 -->
+		<GridList v-if="layout === 'Grid'" :data="cardList">
+			<template #default="{ item }">
+				<GalleryCard
+					v-model:data="(item as any)"
+					:is-mobile="isMobile"
+					img-object-fit="cover"
+					:set-aspect-ratio="1"
+					@change:selected="item.isSelected = $event"
+					@delete="removeCard([$event])"
+					@loaded="handleLoaded"
+					@error="handleError"
+					@download="handleDownload"
+					@toggle-favorite="handleToFavorite(item.id, $event)" />
+			</template>
+		</GridList>
+		<!-- f 瀑布流布局 -->
+		<WaterFallList
+			v-if="layout === 'WaterFall'"
+			ref="waterFallRef"
+			:data="cardList"
+			item-padding="2px">
 			<template #default="{ item }">
 				<GalleryCard
 					v-model:data="(item as any)"
@@ -21,11 +42,12 @@
 
 <script setup lang="ts">
 	import { ref, watch, nextTick, onMounted, onActivated } from "vue";
-	import WaterFallList from "@/components/base/waterfall-list.vue";
+	import WaterFallList from "@/components/utils/waterfall-card-list.vue";
+	import GridList from "@/components/utils/grid-card-list.vue";
 	import BaseScrollbar from "@/components/base/base-scrollbar.vue";
 	import BaseDock from "@/components/base/base-dock.vue";
 	import type { returnInfo } from "@/components/base/base-img.vue";
-	import GalleryCard from "./gallery-card.vue";
+	import GalleryCard from "@/components/utils/gallery-card.vue";
 	import BaseImg from "@/components/base/base-img.vue";
 	import Card from "@/stores/CardStore/class/Card";
 
@@ -35,9 +57,16 @@
 	import useFavoriteStore from "@/stores/FavoriteStore";
 	import useGlobalStore from "@/stores/GlobalStore";
 
-	const props = withDefaults(defineProps<{ cardList: Card[] }>(), {
-		cardList: () => [],
-	});
+	const props = withDefaults(
+		defineProps<{
+			cardList: Card[];
+			layout?: "Grid" | "WaterFall"; // s 布局模式
+		}>(),
+		{
+			cardList: () => [],
+			layout: "Grid",
+		}
+	);
 	//s 全局仓库
 	const globalStore = useGlobalStore();
 	//s 卡片仓库
@@ -104,6 +133,12 @@
 		// await refreshFavoriteStore();
 		//s 卡片加载完成后手动刷新一次瀑布流
 		// waterFallRef.value?.handleResetPosition();
+	};
+	const handleError = async (id: string) => {
+		//s 仓库找到对应的数据
+		const card = findCard(id);
+		if (!card) return; //* 如果卡片不存在也不在向下执行
+		card.isLoaded = true;
 	};
 
 	//f 处理下载事件

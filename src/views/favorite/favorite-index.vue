@@ -166,7 +166,7 @@
 	import { NEllipsis, NTag, NBadge, NFlex } from "naive-ui";
 	import BaseTabs from "@/components/base/base-tabs.vue";
 	import BaseTabPane from "@/components/base/base-tab-pane.vue";
-	import BaseCardList from "./favorite-base-waterfall.vue";
+	import BaseCardList from "./favorite-base-card-list.vue";
 
 	import { storeToRefs } from "pinia";
 	import useFavoriteStore from "@/stores/FavoriteStore";
@@ -199,7 +199,7 @@
 		},
 	});
 
-	//f 刷新函数
+	//f 刷新
 	const reFresh = async () => {
 		await refreshStore();
 		filters.size.width[1] = sizeRange.value.width[1];
@@ -208,11 +208,13 @@
 		storeFilters.value.size.height[1] = sizeRange.value.height[1];
 	};
 	//* 挂载和激活时都进行一次filter刷新
+	const mounted = ref(false);
 	onMounted(() => {
 		nextTick(() => {
 			reFresh();
 		});
 	});
+
 	onActivated(() => {
 		nextTick(() => {
 			reFresh();

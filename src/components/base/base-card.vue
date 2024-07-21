@@ -1,5 +1,5 @@
 <template>
-	<div class="base-card__container" :style="cardStyle">
+	<div class="base-card__container" 		:data-img-object-fit="imgObjectFit">
 		<!-- 顶部区域 -->
 		<div class="base-card__header" :data-layout="layout">
 			<slot name="header" :data="data"></slot>
@@ -10,6 +10,8 @@
 				:src="imgUrl"
 				:thumb="imgThumb"
 				:use-thumb="useThumb"
+				:object-fit="imgObjectFit"
+				:set-aspect-ratio="setAspectRatio"
 				@loaded="loaded"
 				@error="error" />
 		</slot>
@@ -38,6 +40,8 @@
 			imgThumb?: string; // 图片缩略图地址，可选参数，用于预加载图片
 			backgroundColor?: string; // 卡片背景颜色，可选参数，默认白色
 			layout?: "absolute" | "default";
+			imgObjectFit?: CSSProperties["object-fit"];
+			setAspectRatio?: number;
 		}>(),
 		{
 			data: {},
@@ -48,11 +52,6 @@
 			layout: "absolute",
 		}
 	);
-
-	// 卡片样式
-	const cardStyle = computed(() => {
-		return { backgroundColor: props.backgroundColor } as CSSProperties;
-	});
 
 	// 图片加载完成后的回调
 	function loaded(...args: any[]) {
@@ -75,6 +74,8 @@
 		border: 1px solid #ccc; // 边框样式，根据需要自行调整。
 		box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.5); // 阴影效果，根据需要自行调整。
 		transition: box-shadow 0.5s; // 过渡效果，使阴影效果更平滑。
+
+		background: v-bind("props.backgroundColor");
 
 		box-sizing: border-box; // 盒子模型，确保边框不会影响内容的大小。
 		* {
