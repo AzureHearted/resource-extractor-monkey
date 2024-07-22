@@ -255,7 +255,7 @@ export default defineStore("CardStore", () => {
 				(filters.extension.length > 0
 					? filters.extension.includes(String(sExt))
 					: true) &&
-				(sType === "image" || sType === "video"
+				((sType === "image" || sType === "video") && !isLoaded
 					? sWidth! >= filters.size.width[0] &&
 					  sHeight! >= filters.size.height[0]
 					: true);

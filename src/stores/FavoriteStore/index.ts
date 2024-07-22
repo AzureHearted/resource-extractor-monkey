@@ -370,18 +370,26 @@ export default defineStore("FavoriteStore", () => {
 		filterCardList.value.all.forEach((card) => {
 			const { tags } = card;
 			const { title } = card.description;
-			card.isMatch =
-				title
+			card.isMatch =isKeywordsMatch(title) || isKeywordsMatch(tags)
+				
+		});
+	}
+
+	//f 匹配判断函数
+	function isKeywordsMatch(str: string | string[]) {
+		if (str instanceof Object) {
+			return str.some((tag) => {
+				return tag
 					.trim()
 					.toLocaleLowerCase()
-					.includes(filterKeyword.value.trim().toLocaleLowerCase()) ||
-				tags.some((tag) => {
-					return tag
-						.trim()
-						.toLocaleLowerCase()
-						.includes(filterKeyword.value.trim().toLocaleLowerCase());
-				});
-		});
+					.includes(filterKeyword.value.trim().toLocaleLowerCase());
+			});
+		} else {
+			return str
+				.trim()
+				.toLocaleLowerCase()
+				.includes(filterKeyword.value.trim().toLocaleLowerCase());
+		}
 	}
 
 	let process: Promise<any> | false = false;
