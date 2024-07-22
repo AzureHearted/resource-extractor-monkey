@@ -64,7 +64,9 @@
 
 	//f 刷新数据
 	function updateData(rowList: Card[]) {
-		dataInfo.list = rowList;
+		nextTick(() => {
+			dataInfo.list = rowList;
+		});
 	}
 
 	//j 列表信息
@@ -82,9 +84,8 @@
 	watch(
 		() => props.data,
 		(newList) => {
-			nextTick(() => {
-				updateData(newList);
-			});
+			// console.log("newList", newList);
+			updateData(newList);
 		}
 	);
 
@@ -96,9 +97,7 @@
 		if (!mounted.value) return;
 		// console.log("组件==>被激活");
 		freeze.value = false;
-		nextTick(() => {
-			updateData(props.data);
-		});
+		updateData(props.data);
 	});
 
 	//* 当组件冻结之前执行(记录每张卡片的位置)
@@ -106,13 +105,6 @@
 		freeze.value = true;
 		// console.log("组件==>被冻结");
 	});
-
-	function handleEnter(item: Card & { isHover: boolean }) {
-		item.isHover = true;
-	}
-	function handleLeave(item: Card & { isHover: boolean }) {
-		item.isHover = false;
-	}
 </script>
 
 <style scoped lang="scss">

@@ -476,6 +476,7 @@ export default defineStore("CardStore", () => {
 					onFinished() {
 						// 记录当前数量
 						amount = data.cardList.length;
+						updateMatchStatus();
 					},
 				}
 			);
