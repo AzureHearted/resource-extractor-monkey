@@ -182,7 +182,7 @@
 		<!--s 过滤控制器 -->
 		<div class="control-group">
 			<!--s 扩展名过滤器 -->
-			<div class="ext-select">
+			<div class="ext-select" v-if="nowType !== 'html'">
 				<n-select
 					v-model:value="storeFilters.extension"
 					placeholder="扩展名过滤"
@@ -198,7 +198,7 @@
 			<n-badge
 				:offset="[-4, 2]"
 				class="keyword-filter-input"
-				:value="filterCardList.all.length"
+				:value="filterCardList.all.filter((x) => x.isMatch).length"
 				:max="999"
 				type="info">
 				<n-input
@@ -206,6 +206,7 @@
 					v-model:value="filters.keyword"
 					placeholder="输入检索关键词"
 					clearable
+					@update:value="handleKeywordFilter()"
 					@clear="handleKeywordFilter('')"
 					@keydown.enter="handleKeywordFilter()" />
 			</n-badge>
@@ -291,6 +292,7 @@
 		filters: storeFilters,
 		nowType,
 	} = storeToRefs(cardStore);
+	const { updateMatchStatus } = cardStore;
 	const favoriteStore = useFavoriteStore();
 	const loadingStore = useLoadingStore();
 	const patternStore = usePatternStore();
@@ -484,11 +486,12 @@
 		storeFilters.value.size[key] = value; // 更新仓库过滤器
 	}
 
-	//f 处理关键词过滤(回车或点击搜索按钮触发)
+	//f 处理关键词过滤
 	const handleKeywordFilter = (value?: string) => {
 		const keyword = value !== undefined ? value : filters.keyword;
 		console.log("触发关键词过滤", keyword);
 		storeFilters.value.keyword = keyword;
+		updateMatchStatus();
 	};
 
 	//f 全选

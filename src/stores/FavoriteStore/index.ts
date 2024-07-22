@@ -9,7 +9,6 @@ import useCardStore from "@/stores/CardStore";
 
 export default defineStore("FavoriteStore", () => {
 	const cardStore = useCardStore();
-	const { downloadCards } = cardStore;
 	//s 基础信息
 	const info = reactive({
 		dbName: "WebImgCollector2",
@@ -366,6 +365,25 @@ export default defineStore("FavoriteStore", () => {
 		return { all, image, video, audio, zip, html, other };
 	});
 
+	//f 更新匹配状态
+	function updateMatchStatus() {
+		filterCardList.value.all.forEach((card) => {
+			const { tags } = card;
+			const { title } = card.description;
+			card.isMatch =
+				title
+					.trim()
+					.toLocaleLowerCase()
+					.includes(filterKeyword.value.trim().toLocaleLowerCase()) ||
+				tags.some((tag) => {
+					return tag
+						.trim()
+						.toLocaleLowerCase()
+						.includes(filterKeyword.value.trim().toLocaleLowerCase());
+				});
+		});
+	}
+
 	let process: Promise<any> | false = false;
 	//f 刷新仓库数据
 	const refreshStore = async () => {
@@ -378,6 +396,7 @@ export default defineStore("FavoriteStore", () => {
 			process.finally(() => refreshStore());
 			return;
 		}
+		// 记录旧卡数据
 		const oldList = [...cardList.value];
 		process = new Promise<Card[]>((resolve) => {
 			const list: Card[] = [];
@@ -394,6 +413,7 @@ export default defineStore("FavoriteStore", () => {
 							description,
 							tags,
 							isFavorite: true,
+							isMatch: oldCard ? oldCard.isMatch : true,
 							isLoaded: oldCard ? oldCard.isLoaded : undefined,
 							isSelected: oldCard ? oldCard.isSelected : undefined,
 						})
@@ -581,6 +601,7 @@ export default defineStore("FavoriteStore", () => {
 		if (refresh) {
 			await refreshStore();
 		}
+		// console.log("查找", id);
 		return cardList.value.find((c) => c.id === id);
 	};
 
@@ -637,6 +658,7 @@ export default defineStore("FavoriteStore", () => {
 		findCardById,
 		findCardsById,
 		isExist,
-		downloadCards,
+		downloadCards: cardStore.downloadCards,
+		updateMatchStatus,
 	};
 });

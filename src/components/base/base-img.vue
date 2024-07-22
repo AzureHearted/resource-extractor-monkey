@@ -410,6 +410,7 @@
 	}
 	.img__wrap {
 		opacity: 0; //默认不显示
+		// aspect-ratio: v-bind("aspectRatio");
 		transition: 0.5s ease-out; // 添加过渡效果
 	}
 	// 加载中的样式

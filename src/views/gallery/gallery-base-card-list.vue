@@ -7,7 +7,7 @@
 		<GridList v-if="layout === 'Grid'" :data="cardList">
 			<template #default="{ item }">
 				<GalleryCard
-					v-model:data="(item as any)"
+					v-model:data="(item as Card)"
 					:is-mobile="isMobile"
 					img-object-fit="cover"
 					:set-aspect-ratio="1"
@@ -23,11 +23,11 @@
 		<WaterFallList
 			v-if="layout === 'WaterFall'"
 			ref="waterFallRef"
-			:data="cardList"
+			:data="cardList.filter(x=>x.isMatch)"
 			item-padding="2px">
 			<template #default="{ item }">
 				<GalleryCard
-					v-model:data="(item as any)"
+					v-model:data="(item as Card)"
 					:is-mobile="isMobile"
 					@change:selected="item.isSelected = $event"
 					@delete="removeCard([$event])"

@@ -1,7 +1,8 @@
 <template>
 	<div class="grid__container">
 		<div
-			v-for="(item, index) in dataInfo.list"
+			v-for="(item, index) in list"
+			v-show="item.isMatch"
 			:key="item.id"
 			class="grid__item">
 			<slot :item="item" :index="index">
@@ -48,7 +49,6 @@
 		}>(),
 		{
 			data: () => [] as any[], // 默认值为空数组。
-			keyProp: "id", // 默认值为"id"。
 			itemPadding: "2px", // 默认值为
 			itemBaseWidth: 220, // 默认值为220。
 			disenableTransition: true, // 默认不禁用过渡
@@ -62,10 +62,29 @@
 		list: [] as Card[],
 	});
 
+	//f 刷新数据
+	function updateData(rowList: Card[]) {
+		dataInfo.list = rowList;
+	}
+
+	//j 列表信息
+	const list = computed(() => {
+		return dataInfo.list;
+	});
+
+	const mounted = ref(false);
+
+	onMounted(() => {
+		mounted.value = true;
+		updateData(props.data);
+	});
+
 	watch(
 		() => props.data,
-		(newList, oldList) => {
-			dataInfo.list = newList;
+		(newList) => {
+			nextTick(() => {
+				updateData(newList);
+			});
 		}
 	);
 
@@ -74,10 +93,11 @@
 
 	//* 当组件被激活时执行
 	onActivated(() => {
+		if (!mounted.value) return;
 		// console.log("组件==>被激活");
 		freeze.value = false;
 		nextTick(() => {
-			dataInfo.list = props.data;
+			updateData(props.data);
 		});
 	});
 
@@ -86,6 +106,13 @@
 		freeze.value = true;
 		// console.log("组件==>被冻结");
 	});
+
+	function handleEnter(item: Card & { isHover: boolean }) {
+		item.isHover = true;
+	}
+	function handleLeave(item: Card & { isHover: boolean }) {
+		item.isHover = false;
+	}
 </script>
 
 <style scoped lang="scss">
@@ -98,17 +125,23 @@
 		@media screen and (min-width: 0px) {
 			grid-template-columns: repeat(1, 1fr);
 		}
-		@media screen and (min-width: 380px) {
+		@media screen and (min-width: 320px) {
 			grid-template-columns: repeat(2, 1fr);
 		}
-		@media screen and (min-width: 720px) {
+		@media screen and (min-width: 480px) {
 			grid-template-columns: repeat(3, 1fr);
 		}
-		@media screen and (min-width: 1100px) {
+		@media screen and (min-width: 768px) {
 			grid-template-columns: repeat(4, 1fr);
 		}
-		@media screen and (min-width: 1280px) {
+		@media screen and (min-width: 1024px) {
 			grid-template-columns: repeat(5, 1fr);
+		}
+		@media screen and (min-width: 1200px) {
+			grid-template-columns: repeat(6, 1fr);
+		}
+		@media screen and (min-width: 1440px) {
+			grid-template-columns: repeat(7, 1fr);
 		}
 		grid-template-rows: 1fr;
 		gap: 4px;
@@ -121,11 +154,6 @@
 	.grid__item :deep(.img__wrap img) {
 		height: 100%;
 	}
-	// .grid__item :deep(.base-card__container),
-	// .grid__item :deep(.base-card__container .img__wrap),
-	// .grid__item :deep(.base-card__container .img__container) {
-	// 	height: 100%;
-	// }
 	.grid__item :deep(.img__wrap) {
 		aspect-ratio: 1 !important;
 	}

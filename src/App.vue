@@ -149,6 +149,11 @@
 	dialog {
 		padding: unset;
 	}
+
+	:deep(input) {
+		background: unset;
+		box-shadow: unset;
+	}
 </style>
 
 <style lang="scss">

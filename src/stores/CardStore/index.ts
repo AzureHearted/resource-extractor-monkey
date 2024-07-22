@@ -251,16 +251,6 @@ export default defineStore("CardStore", () => {
 			const { title } = x.description;
 			//* 暂时取消最大尺寸限制的过滤
 			const isMatch =
-				(title
-					.trim()
-					.toLocaleLowerCase()
-					.includes(filters.keyword.trim().toLocaleLowerCase()) ||
-					tags.some((tag) => {
-						return tag
-							.trim()
-							.toLocaleLowerCase()
-							.includes(filters.keyword.trim().toLocaleLowerCase());
-					})) &&
 				!data.excludeIdSet.has(id) && // 过滤被排除的项
 				(filters.extension.length > 0
 					? filters.extension.includes(String(sExt))
@@ -297,6 +287,32 @@ export default defineStore("CardStore", () => {
 
 		return { all, image, video, zip, audio, html, other };
 	});
+
+	//f 更新匹配状态
+	function updateMatchStatus() {
+		filterCardList.value.all.forEach((card) => {
+			const { tags } = card;
+			const { title } = card.description;
+			card.isMatch = isKeywordsMatch(title) || isKeywordsMatch(tags);
+		});
+	}
+
+	//f 匹配判断函数
+	function isKeywordsMatch(str: string | string[]) {
+		if (str instanceof Object) {
+			return str.some((tag) => {
+				return tag
+					.trim()
+					.toLocaleLowerCase()
+					.includes(filters.keyword.trim().toLocaleLowerCase());
+			});
+		} else {
+			return str
+				.trim()
+				.toLocaleLowerCase()
+				.includes(filters.keyword.trim().toLocaleLowerCase());
+		}
+	}
 
 	//j 选中的卡片
 	const selectionCardList = computed<{
@@ -436,7 +452,7 @@ export default defineStore("CardStore", () => {
 								data.urlBlobMap.set(card.source.url, card.source.blob);
 							}
 							// data.cardList.push(card); // 添加到卡片列表中。
-							data.cardList[startIndex + index] = card; // 添加到卡片列表中。
+							data.cardList[startIndex + index] = card; //f 添加到卡片列表中。
 							// updateMaxSize(sourceMeta.width, sourceMeta.height); // 更新最大宽高。
 							nextTick(async () => {
 								// s  判断卡片是否被收藏
@@ -448,6 +464,10 @@ export default defineStore("CardStore", () => {
 									if (!target) return;
 									card.tags = target.tags;
 								}
+
+								card.isMatch =
+									isKeywordsMatch(card.description.title) ||
+									isKeywordsMatch(card.tags);
 							});
 							await addCard(); //执行回调函数
 						}
@@ -462,8 +482,8 @@ export default defineStore("CardStore", () => {
 		}
 
 		nextTick(() => {
-			console.log("data.cardList", data.cardList.length);
-			console.log("validCardList.value.length", validCardList.value.length);
+			// console.log("data.cardList", data.cardList.length);
+			// console.log("validCardList.value.length", validCardList.value.length);
 			if (!validCardList.value.length) {
 				ElNotification({
 					title: "提示",
@@ -517,6 +537,8 @@ export default defineStore("CardStore", () => {
 
 	//f 下载卡片
 	async function downloadCards(cards: Card[]) {
+		console.log("下载卡片", cards);
+
 		if (!cards.length) return;
 		if (cards.length === 1) {
 			const card = cards[0];
@@ -715,5 +737,6 @@ export default defineStore("CardStore", () => {
 		findCards,
 		downloadCards,
 		resetFilters,
+		updateMatchStatus,
 	};
 });

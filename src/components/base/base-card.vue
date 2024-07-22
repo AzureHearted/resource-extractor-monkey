@@ -1,5 +1,5 @@
 <template>
-	<div class="base-card__container" 		:data-img-object-fit="imgObjectFit">
+	<div class="base-card__container">
 		<!-- 顶部区域 -->
 		<div class="base-card__header" :data-layout="layout">
 			<slot name="header" :data="data"></slot>

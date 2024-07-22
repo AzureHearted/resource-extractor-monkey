@@ -195,7 +195,7 @@
 		<template #footer>
 			<div class="gallery-card-footer" align="center" :size="2">
 				<!--s 额外标签 -->
-				<div v-if="false" class="extra-tag-list">
+				<div v-if="data.isLoaded" class="extra-tag-list">
 					<BaseLineOverFlowList
 						:list="tags"
 						model-to=".web-img-collector__top-container">
@@ -248,7 +248,7 @@
 					</BaseLineOverFlowList>
 				</div>
 				<!--s 基本信息标签 -->
-				<div v-if="true" class="base-tag-list">
+				<div class="base-tag-list">
 					<!--s 描述标签 -->
 					<el-tag
 						class="title-tag"
@@ -259,14 +259,14 @@
 					</el-tag>
 					<!--s 尺寸信息 -->
 					<el-tag
-						v-if="data.source.meta.type === 'image'"
+						v-if="data.source.meta.type === 'image' && data.isLoaded"
 						size="small"
 						:title="`${data.source.meta.width}x${data.source.meta.height}`">
 						{{ data.source.meta.width }}x{{ data.source.meta.height }}
 					</el-tag>
 					<!--s 扩展名信息 -->
 					<el-tag
-						v-if="!!data.source.meta.ext"
+						v-if="!!data.source.meta.ext && data.isLoaded"
 						size="small"
 						:title="data.source.meta.ext">
 						{{ data.source.meta.ext }}
@@ -281,7 +281,9 @@
 					</el-tag>
 					<!--s 文件大小信息 -->
 					<el-tag
-						v-if="!!data.source.blob && !!data.source.blob.size"
+						v-if="
+							!!data.source.blob && !!data.source.blob.size && data.isLoaded
+						"
 						type="success"
 						size="small"
 						:title="size">
@@ -332,7 +334,11 @@
 	//s 图片可见性
 	// const isVisible = useElementVisibility(imgWrapRef);
 
-	const data = defineModel("data", { type: Card, default: () => new Card() });
+	const data = defineModel<Card>("data", {
+		required: true,
+		default: () => new Card(),
+	});
+
 	withDefaults(
 		defineProps<{
 			// data: Card;
@@ -578,10 +584,11 @@
 			overflow: hidden;
 			text-overflow: ellipsis;
 			line-height: 20px;
+			padding: 0 4px;
 			border: unset;
 			&.title-tag {
 				flex-grow: 0;
-				flex-shrink: 500;
+				flex-shrink: 1000;
 				min-width: 40px;
 			}
 			& > span {

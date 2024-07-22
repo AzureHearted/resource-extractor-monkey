@@ -14,7 +14,7 @@
 					@change:selected="item.isSelected = $event"
 					@change:title="updateCard([item as Card])"
 					@loaded="handleLoaded"
-					@download="handleDownload(item as Card)"
+					@download="handleDownload"
 					@toggle-favorite="handleToggleFavorite(item as Card)"
 					@save:tags="handleTagsSave(item as Card)"
 					@delete="deleteCard([item as Card])">
@@ -36,7 +36,7 @@
 		<WaterFallList
 			v-if="layout === 'WaterFall'"
 			ref="waterFallRef"
-			:data="cardList"
+			:data="cardList.filter((x) => x.isMatch)"
 			item-padding="2px">
 			<template #default="{ item }">
 				<GalleryCard
@@ -48,7 +48,7 @@
 					@change:selected="item.isSelected = $event"
 					@change:title="updateCard([item as Card])"
 					@loaded="handleLoaded"
-					@download="handleDownload(item as Card)"
+					@download="handleDownload"
 					@toggle-favorite="handleToggleFavorite(item as Card)"
 					@save:tags="handleTagsSave(item as Card)"
 					@delete="deleteCard([item as Card])">
@@ -78,21 +78,18 @@
 	import Card from "@/stores/CardStore/class/Card";
 	import type { returnInfo } from "@/components/base/base-img.vue";
 
+	import useCardStore from "@/stores/CardStore";
 	import useFavoriteStore from "@/stores/FavoriteStore";
 	import useGlobalStore from "@/stores/GlobalStore";
 	import { isEqualUrl, isMobile as judgeIsMobile } from "@/utils/common";
 
+	const cardStore = useCardStore();
 	const favoriteStore = useFavoriteStore();
 	const globalStore = useGlobalStore();
 
-	const {
-		updateCard,
-		deleteCard,
-		unFavoriteCard,
-		downloadCards,
-		refreshStore,
-		findCardById,
-	} = favoriteStore;
+	const { updateCard, deleteCard, unFavoriteCard, refreshStore, findCardById } =
+		favoriteStore;
+	const { downloadCards } = cardStore;
 
 	withDefaults(
 		defineProps<{
@@ -123,7 +120,11 @@
 	});
 
 	//f 处理卡片下载
-	const handleDownload = async (card: Card) => {
+	const handleDownload = async (id: string) => {
+		// console.log("下载", id);
+		const card = await findCardById(id);
+		if (!card) return;
+		// console.log("找到card", card);
 		await downloadCards([card]);
 		// 更新卡片
 		updateCard([card]);

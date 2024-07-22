@@ -11,6 +11,7 @@
 				:options="sortInfo.groups" />
 			<!-- s扩展名过滤器 -->
 			<n-select
+				v-if="nowType !== 'html'"
 				class="ext-select"
 				v-model:value="storeFilters.extension"
 				placeholder="扩展名过滤"
@@ -22,13 +23,19 @@
 				:options="extensionOptions"
 				max-tag-count="responsive" />
 			<!-- s关键词过滤 -->
-			<n-badge :value="filterCardList.all.length" :max="999" type="info">
+			<n-badge
+				:value="filterCardList.all.filter((x) => x.isMatch).length"
+				:max="999"
+				type="info">
 				<n-input
 					style="width: 180px"
 					v-model:value="filterKeyword"
 					type="text"
 					placeholder="输入检索关键词"
-					clearable />
+					clearable
+					@update:value="handleKeywordFilter()"
+					@keydown.enter="handleKeywordFilter()"
+					@clear="handleKeywordFilter('')" />
 			</n-badge>
 			<!--s 尺寸过滤器 -->
 			<div
@@ -183,7 +190,7 @@
 		allTags,
 	} = storeToRefs(favoriteStore);
 
-	const { refreshStore } = favoriteStore;
+	const { refreshStore, updateMatchStatus } = favoriteStore;
 
 	//s 过滤器定义(组件内过滤器)
 	const filters = reactive({
@@ -270,6 +277,14 @@
 		console.log("过滤器变化", key, value);
 		storeFilters.value.size[key] = value; // 更新仓库过滤器
 	}
+
+	//f 处理关键词过滤
+	const handleKeywordFilter = (value?: string) => {
+		const keyword = value !== undefined ? value : filterKeyword.value;
+		console.log("触发关键词过滤", keyword);
+		filterKeyword.value = keyword;
+		updateMatchStatus();
+	};
 
 	const containerDOM = ref<InstanceType<typeof NFlex> | null>(null);
 	//* 导入Fancybox和相关配置

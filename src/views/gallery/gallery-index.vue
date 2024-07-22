@@ -14,7 +14,7 @@
 						<n-flex :size="4" align="center" :wrap="false">
 							图片
 							<n-badge
-								:value="filterCardList.image.length"
+								:value="filterCardList.image.filter((x) => x.isMatch).length"
 								:max="999"
 								type="default">
 							</n-badge>
@@ -30,7 +30,7 @@
 						<n-flex :size="4" align="center" :wrap="false">
 							视频
 							<n-badge
-								:value="filterCardList.video.length"
+								:value="filterCardList.video.filter((x) => x.isMatch).length"
 								:max="999"
 								type="default">
 							</n-badge>
@@ -46,7 +46,7 @@
 						<n-flex :size="4" align="center" :wrap="false">
 							压缩包
 							<n-badge
-								:value="filterCardList.zip.length"
+								:value="filterCardList.zip.filter((x) => x.isMatch).length"
 								:max="999"
 								type="default">
 							</n-badge>
@@ -60,7 +60,7 @@
 						<n-flex :size="4" align="center" :wrap="false">
 							网页
 							<n-badge
-								:value="filterCardList.html.length"
+								:value="filterCardList.html.filter((x) => x.isMatch).length"
 								:max="999"
 								type="default">
 							</n-badge>
@@ -74,7 +74,7 @@
 						<n-flex :size="4" align="center" :wrap="false">
 							其他
 							<n-badge
-								:value="filterCardList.other.length"
+								:value="filterCardList.other.filter((x) => x.isMatch).length"
 								:max="999"
 								type="default">
 							</n-badge>
@@ -144,10 +144,6 @@
 		display: flex;
 		flex-flow: column;
 		overflow: hidden;
-	}
-	:deep(input) {
-		background: unset;
-		box-shadow: unset;
 	}
 
 	// 瀑布流容器样式

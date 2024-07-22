@@ -64,6 +64,7 @@
 	import type { VNode, HTMLAttributes } from "vue";
 	import BaseTabPane from "./base-tab-pane.vue";
 	import { buildUUID } from "@/utils/common";
+	import { onUpdated } from "vue";
 
 	withDefaults(
 		defineProps<{
@@ -142,6 +143,7 @@
 		if (tabs.value.length) {
 			active.value = tabs.value[0].id;
 		}
+		updateActiveBar();
 	});
 
 	//s tabs的容器DOM
@@ -168,22 +170,20 @@
 		function createObserver() {
 			let stopFuncList: Function[] = [];
 			function set() {
+				const { stop } = useMutationObserver(
+					tabsWrapDOM.value,
+					() => {
+						updateActiveBar();
+					},
+					{
+						attributes: true,
+						// characterData: true,
+						subtree: true,
+					}
+				);
+				//f 记录监听器
+				stopFuncList.push(stop);
 				// console.log("创建监听器");
-				if (tabDOMs.value) {
-					tabDOMs.value.forEach((dom) => {
-						const { stop } = useMutationObserver(
-							dom,
-							() => {
-								updateActiveBar();
-							},
-							{
-								attributes: true,
-							}
-						);
-						//f 记录监听器
-						stopFuncList.push(stop);
-					});
-				}
 			}
 			function reset() {
 				// console.log("重新设置监听器");
@@ -207,6 +207,9 @@
 			width: `${width}px`,
 			left: `${left - wrapLeft}px`,
 		};
+		nextTick(() => {
+			updateHoverBar();
+		});
 	};
 
 	//j 浮动条样式
@@ -214,28 +217,26 @@
 
 	onMounted(() => {
 		//s 挂载(激活)时将激活条的样式赋值给悬浮条
-		nextTick(() => {
-			hoverBarStyle.value = activeBarStyle.value;
-		});
+		updateHoverBar();
 		onActivated(() => {
-			nextTick(() => {
-				hoverBarStyle.value = activeBarStyle.value;
-			});
+			updateHoverBar();
 		});
 	});
+
 	watch(activeBarStyle, (value) => {
 		hoverBarStyle.value = value;
 	});
+
 	//f 更新浮动条样式
-	const updateHoverBar = (e: MouseEvent) => {
-		if (!tabDOMs.value || !tabsWrapDOM.value) return;
-		// 选寻找被悬浮的元素
-		const hoverTabDOM = e.target as HTMLElement;
-		const hoverTabLabelDOM = hoverTabDOM.children[0];
-		const targetDOM = hoverTabLabelDOM || hoverTabLabelDOM;
+	const updateHoverBar = (e?: MouseEvent) => {
+		if (!tabDOMs.value || !tabsWrapDOM.value || !activeTabDOM.value) return;
 		// console.log(hoverTabDOM.children);
 		const { left: wrapLeft } = tabsWrapDOM.value.getBoundingClientRect();
-		if (e.type === "mouseenter") {
+		if (e && e.type === "mouseenter") {
+			// 选寻找被悬浮的元素
+			const hoverTabDOM = e.target as HTMLElement;
+			const hoverTabLabelDOM = hoverTabDOM.children[0];
+			const targetDOM = hoverTabLabelDOM || hoverTabLabelDOM;
 			const { width, left } = targetDOM.getBoundingClientRect();
 			hoverBarStyle.value = {
 				width: `${width}px`,
@@ -323,7 +324,7 @@
 		position: absolute;
 		pointer-events: none;
 		left: 0;
-		top: 0;
+		bottom: 2px;
 		height: 100%;
 		border-bottom: 2px solid $active-color;
 		transition: 0.3s ease-in-out;
