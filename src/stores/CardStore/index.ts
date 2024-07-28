@@ -14,7 +14,7 @@ import {
 	getExtByBlob,
 	getNameByUrl,
 	legalizationPathString,
-	mixSort,
+	naturalCompare,
 } from "@/utils/common";
 // 导入网络工具请求
 import { getBlobByUrlAuto } from "@/utils/http";
@@ -220,10 +220,14 @@ export default defineStore("CardStore", () => {
 		//s 先排序
 		switch (sort.method) {
 			case "name-asc":
-				all.sort((a, b) => mixSort(a.description.title, b.description.title));
+				all.sort((a, b) =>
+					naturalCompare(a.description.title, b.description.title)
+				);
 				break;
 			case "name-desc":
-				all.sort((a, b) => mixSort(b.description.title, a.description.title));
+				all.sort((a, b) =>
+					naturalCompare(b.description.title, a.description.title)
+				);
 				break;
 			case "width-asc":
 				all.sort((a, b) => a.source.meta.width - b.source.meta.width);
@@ -241,24 +245,29 @@ export default defineStore("CardStore", () => {
 
 		//s 再过滤
 		all = all.filter((x) => {
-			const { id, tags, isLoaded } = x;
+			const { id, isLoaded } = x;
 			const {
 				type: sType,
 				width: sWidth,
 				height: sHeight,
 				ext: sExt,
 			} = x.source.meta;
-			const { title } = x.description;
 			//* 暂时取消最大尺寸限制的过滤
-			const isMatch =
-				!data.excludeIdSet.has(id) && // 过滤被排除的项
-				(filters.extension.length > 0
+			//s 是否未被排除
+			const isNotExclude = !data.excludeIdSet.has(id);
+			//s 是否扩展名是否匹配
+			const isExtensionMatch =
+				filters.extension.length > 0
 					? filters.extension.includes(String(sExt))
-					: true) &&
-				((sType === "image" || sType === "video") && !isLoaded
+					: true;
+			//s 判断是否是图片或者视频，如果是并且已经加载则判断是否符合尺寸过滤器
+			const isSizeMatch =
+				(sType === "image" || sType === "video") && isLoaded
 					? sWidth! >= filters.size.width[0] &&
 					  sHeight! >= filters.size.height[0]
-					: true);
+					: true;
+			//s 判断是否所有条件都匹配
+			const isMatch = isNotExclude && isExtensionMatch && isSizeMatch;
 			if (!isMatch) x.isSelected = false; // 如果不匹配的需要将选中状态设置为false
 			if (isMatch) {
 				switch (sType) {

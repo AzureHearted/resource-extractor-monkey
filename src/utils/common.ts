@@ -41,6 +41,11 @@ export function mixSort(_a: string, _b: string) {
 	}
 }
 
+//f 自然排序函数
+export function naturalCompare(a: string, b: string): number {
+	return a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
+}
+
 //f 通过blob获取文件的ext扩展名
 export function getExtByBlob(blob: Blob) {
 	let ext = "";

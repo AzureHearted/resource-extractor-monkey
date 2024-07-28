@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { computed, reactive, ref } from "vue";
 import Card from "@/stores/CardStore/class/Card";
 import type { BaseMeta } from "@/stores/CardStore/interface";
-import { isEqualUrl, mixSort } from "@/utils/common";
+import { isEqualUrl, naturalCompare } from "@/utils/common";
 import type { ExcludeType } from "@/types/tools";
 import localforage from "localforage";
 import useCardStore from "@/stores/CardStore";
@@ -279,17 +279,21 @@ export default defineStore("FavoriteStore", () => {
 		switch (sortInfo.method) {
 			case "#":
 				all.sort((a, b) =>
-					mixSort(
+					naturalCompare(
 						a.source.originUrls ? a.source.originUrls[0] : "",
 						b.source.originUrls ? b.source.originUrls[0] : ""
 					)
 				);
 				break;
 			case "name-asc":
-				all.sort((a, b) => mixSort(a.description.title, b.description.title));
+				all.sort((a, b) =>
+					naturalCompare(a.description.title, b.description.title)
+				);
 				break;
 			case "name-desc":
-				all.sort((a, b) => mixSort(b.description.title, a.description.title));
+				all.sort((a, b) =>
+					naturalCompare(b.description.title, a.description.title)
+				);
 				break;
 			case "width-asc":
 				all.sort((a, b) => a.source.meta.width - b.source.meta.width);
@@ -307,34 +311,27 @@ export default defineStore("FavoriteStore", () => {
 		//s 再过滤
 		all = all.filter((c) => {
 			// console.log(c.source.meta.width, filters.size.width[1]);
-			const { tags } = c;
 			const {
 				type: sType,
 				width: sWidth,
 				height: sHeight,
 				ext: sExt,
 			} = c.source.meta;
-			const { title } = c.description;
-			const isMatch =
-				(title
-					.trim()
-					.toLocaleLowerCase()
-					.includes(filterKeyword.value.trim().toLocaleLowerCase()) ||
-					tags.some((tag) => {
-						return tag
-							.trim()
-							.toLocaleLowerCase()
-							.includes(filterKeyword.value.trim().toLocaleLowerCase());
-					})) &&
-				(filters.extension.length > 0
+			//s 是否扩展名是否匹配
+			const isExtensionMatch =
+				filters.extension.length > 0
 					? filters.extension.includes(String(sExt))
-					: true) &&
-				(sType === "image" || sType === "video"
+					: true;
+			//s 判断是否是图片或者视频，如果是并且已经加载则判断是否符合尺寸过滤器
+			const isSizeMatch =
+				sType === "image" || sType === "video"
 					? sWidth >= filters.size.width[0] &&
 					  sWidth <= filters.size.width[1] &&
 					  sHeight <= filters.size.height[1] &&
 					  sHeight >= filters.size.height[0]
-					: true);
+					: true;
+			//s 判断是否所有条件都匹配
+			const isMatch = isExtensionMatch && isSizeMatch;
 			if (!isMatch) c.isSelected = false; // 如果不匹配的需要将选中状态设置为false
 			if (isMatch) {
 				switch (sType) {
@@ -370,8 +367,7 @@ export default defineStore("FavoriteStore", () => {
 		filterCardList.value.all.forEach((card) => {
 			const { tags } = card;
 			const { title } = card.description;
-			card.isMatch =isKeywordsMatch(title) || isKeywordsMatch(tags)
-				
+			card.isMatch = isKeywordsMatch(title) || isKeywordsMatch(tags);
 		});
 	}
 
