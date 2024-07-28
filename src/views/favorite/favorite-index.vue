@@ -291,20 +291,24 @@
 	import { Fancybox, configFancybox } from "@/plugin/fancyapps-ui";
 	import toolbarConfig from "@/plugin/fancyapps-ui/toolbar";
 	import type { ToolbarOptionsType } from "@fancyapps/ui/types/Fancybox/plugins";
-	onMounted(() => FancyboxBind(containerDOM.value?.$el, "[data-fancybox]"));
-	onActivated(() => FancyboxBind(containerDOM.value?.$el, "[data-fancybox]"));
+	onMounted(() =>
+		FancyboxBind(containerDOM.value?.$el, "[data-fancybox=web-img-collector]")
+	);
+	onActivated(() =>
+		FancyboxBind(containerDOM.value?.$el, "[data-fancybox=web-img-collector]")
+	);
 	onUnmounted(() => Fancybox.destroy());
 	onDeactivated(() => Fancybox.destroy());
 	onUpdated(() => {
 		Fancybox.unbind(containerDOM.value?.$el);
 		Fancybox.close();
-		FancyboxBind(containerDOM.value?.$el, "[data-fancybox]");
+		FancyboxBind(containerDOM.value?.$el, "[data-fancybox=web-img-collector]");
 	});
 
 	//f 执行FancyBox绑定
 	function FancyboxBind(
 		listContainerDOM: HTMLElement | null,
-		itemSelector: string = "[data-fancybox]",
+		itemSelector: string = "[data-fancybox=web-img-collector]",
 		teleportToDOMs?: HTMLElement
 	) {
 		Fancybox.bind(listContainerDOM, itemSelector, {

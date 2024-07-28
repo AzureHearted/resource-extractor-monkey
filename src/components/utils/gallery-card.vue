@@ -121,7 +121,7 @@
 		<template #default>
 			<div
 				ref="imgWrapRef"
-				data-fancybox="web-img-collector"
+				:data-fancybox="data.isMatch ? `web-img-collector` : undefined"
 				:data-id="data.id"
 				:href="data.source.url"
 				:data-type="showType"
