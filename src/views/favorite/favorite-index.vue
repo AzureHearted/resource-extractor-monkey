@@ -88,7 +88,7 @@
 							</n-badge>
 						</n-flex>
 					</template>
-					<BaseCardList :card-list="filterCardList.image" />
+					<BaseCardList :card-list="filterCardList.image" :search-keywords="filterKeyword"  />
 				</BaseTabPane>
 				<!--s 视频类 -->
 				<BaseTabPane name="video">
@@ -102,7 +102,7 @@
 							</n-badge>
 						</n-flex>
 					</template>
-					<BaseCardList :card-list="filterCardList.video" />
+					<BaseCardList :card-list="filterCardList.video" :search-keywords="filterKeyword" />
 				</BaseTabPane>
 				<!--s 压缩包类 -->
 				<BaseTabPane name="zip">
@@ -117,7 +117,7 @@
 							</n-badge>
 						</n-flex>
 					</template>
-					<BaseCardList :card-list="filterCardList.zip" />
+					<BaseCardList :card-list="filterCardList.zip" :search-keywords="filterKeyword" />
 				</BaseTabPane>
 				<!--s 网页类 -->
 				<BaseTabPane name="html">
@@ -132,7 +132,7 @@
 							</n-badge>
 						</n-flex>
 					</template>
-					<BaseCardList :card-list="filterCardList.html" />
+					<BaseCardList :card-list="filterCardList.html" :search-keywords="filterKeyword" />
 				</BaseTabPane>
 				<!--s 其他类 -->
 				<BaseTabPane name="other">
@@ -147,7 +147,7 @@
 							</n-badge>
 						</n-flex>
 					</template>
-					<BaseCardList :card-list="filterCardList.other" />
+					<BaseCardList :card-list="filterCardList.other" :search-keywords="filterKeyword" />
 				</BaseTabPane>
 			</BaseTabs>
 		</n-flex>

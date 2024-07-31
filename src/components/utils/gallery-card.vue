@@ -255,7 +255,8 @@
 						type="info"
 						size="small"
 						:title="data.description.title.trim()">
-						{{ data.description.title.trim() }}
+						<!-- {{ data.description.title.trim() }} -->
+						<span v-html="description"></span>
 					</el-tag>
 					<!--s 尺寸信息 -->
 					<el-tag
@@ -339,7 +340,7 @@
 		default: () => new Card(),
 	});
 
-	withDefaults(
+	const props = withDefaults(
 		defineProps<{
 			// data: Card;
 			viewportSelector?: string;
@@ -351,6 +352,7 @@
 			isMobile?: boolean; //s 移动端标识
 			imgObjectFit?: CSSProperties["object-fit"];
 			setAspectRatio?: number;
+			highlightKey?: string; //s 高亮关键词
 		}>(),
 		{
 			showCheckBox: true,
@@ -405,6 +407,25 @@
 				label: t,
 			};
 		});
+	});
+
+	//j 描述标签
+	const description = computed<string>(() => {
+		const row = data.value.description.title.trim();
+		const key = props.highlightKey?.trim();
+		let reg: RegExp | undefined;
+		if (key && row.includes(key)) {
+			reg = new RegExp(key, "gi");
+		}
+		if (reg) {
+			return row.replace(reg, function (k) {
+				return /*html*/ `
+					<span class="highlight-keywords" >${k}</span>
+				`;
+			});
+		} else {
+			return row;
+		}
 	});
 
 	// 定义Fancybox的默认类型
@@ -609,6 +630,11 @@
 			width: 100%;
 			display: flex;
 			gap: 4px;
+		}
+
+		//s 高亮文本样式
+		:deep(.highlight-keywords) {
+			background-color: yellow;
 		}
 	}
 

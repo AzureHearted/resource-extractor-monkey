@@ -5,6 +5,7 @@
 			<template #default="{ item }">
 				<GalleryCard
 					v-model:data="(item as Card)"
+					:highlight-key="searchKeywords"
 					img-object-fit="cover"
 					:set-aspect-ratio="1"
 					:is-mobile="isMobile"
@@ -41,6 +42,7 @@
 			<template #default="{ item }">
 				<GalleryCard
 					v-model:data="(item as Card)"
+					:highlight-key="searchKeywords"
 					:is-mobile="isMobile"
 					:show-to-locate-button="false"
 					:show-delete-button="false"
@@ -80,12 +82,10 @@
 
 	import useCardStore from "@/stores/CardStore";
 	import useFavoriteStore from "@/stores/FavoriteStore";
-	import useGlobalStore from "@/stores/GlobalStore";
 	import { isEqualUrl, isMobile as judgeIsMobile } from "@/utils/common";
 
 	const cardStore = useCardStore();
 	const favoriteStore = useFavoriteStore();
-	const globalStore = useGlobalStore();
 
 	const { updateCard, deleteCard, unFavoriteCard, refreshStore, findCardById } =
 		favoriteStore;
@@ -95,6 +95,7 @@
 		defineProps<{
 			cardList: Card[];
 			layout?: "Grid" | "WaterFall"; // s 布局模式
+			searchKeywords?: string; // s 检索关键词
 		}>(),
 		{
 			cardList: () => [],

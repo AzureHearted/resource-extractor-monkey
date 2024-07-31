@@ -21,7 +21,9 @@
 						</n-flex>
 					</template>
 					<keep-alive>
-						<GalleryBaseWaterfall :card-list="filterCardList.image" />
+						<GalleryBaseWaterfall
+							:card-list="filterCardList.image"
+							:search-keywords="filters.keyword" />
 					</keep-alive>
 				</BaseTabPane>
 				<!--s 视频类 -->
@@ -37,7 +39,9 @@
 						</n-flex>
 					</template>
 					<keep-alive>
-						<GalleryBaseWaterfall :card-list="filterCardList.video" />
+						<GalleryBaseWaterfall
+							:card-list="filterCardList.video"
+							:search-keywords="filters.keyword" />
 					</keep-alive>
 				</BaseTabPane>
 				<!--s 压缩包类 -->
@@ -52,7 +56,9 @@
 							</n-badge>
 						</n-flex>
 					</template>
-					<GalleryBaseWaterfall :card-list="filterCardList.zip" />
+					<GalleryBaseWaterfall
+						:card-list="filterCardList.zip"
+						:search-keywords="filters.keyword" />
 				</BaseTabPane>
 				<!--s 网页类 -->
 				<BaseTabPane name="html">
@@ -66,7 +72,9 @@
 							</n-badge>
 						</n-flex>
 					</template>
-					<GalleryBaseWaterfall :card-list="filterCardList.html" />
+					<GalleryBaseWaterfall
+						:card-list="filterCardList.html"
+						:search-keywords="filters.keyword" />
 				</BaseTabPane>
 				<!--s 其他类 -->
 				<BaseTabPane name="other">
@@ -80,7 +88,9 @@
 							</n-badge>
 						</n-flex>
 					</template>
-					<GalleryBaseWaterfall :card-list="filterCardList.other" />
+					<GalleryBaseWaterfall
+						:card-list="filterCardList.other"
+						:search-keywords="filters.keyword" />
 				</BaseTabPane>
 			</BaseTabs>
 		</n-flex>
@@ -105,7 +115,7 @@
 	import useCardStore from "@/stores/CardStore";
 
 	const cardStore = useCardStore();
-	const { filterCardList, nowType } = storeToRefs(cardStore);
+	const { filterCardList, nowType, filters } = storeToRefs(cardStore);
 
 	const containerDOM = ref<HTMLElement | null>(null);
 	//* 导入Fancybox和相关配置

@@ -8,6 +8,7 @@
 			<template #default="{ item }">
 				<GalleryCard
 					v-model:data="(item as Card)"
+					:highlight-key="searchKeywords"
 					:is-mobile="isMobile"
 					img-object-fit="cover"
 					:set-aspect-ratio="1"
@@ -23,11 +24,12 @@
 		<WaterFallList
 			v-if="layout === 'WaterFall'"
 			ref="waterFallRef"
-			:data="cardList.filter(x=>x.isMatch)"
+			:data="cardList.filter((x) => x.isMatch)"
 			item-padding="2px">
 			<template #default="{ item }">
 				<GalleryCard
 					v-model:data="(item as Card)"
+					:highlight-key="searchKeywords"
 					:is-mobile="isMobile"
 					@change:selected="item.isSelected = $event"
 					@delete="removeCard([$event])"
@@ -48,27 +50,24 @@
 	import BaseDock from "@/components/base/base-dock.vue";
 	import type { returnInfo } from "@/components/base/base-img.vue";
 	import GalleryCard from "@/components/utils/gallery-card.vue";
-	import BaseImg from "@/components/base/base-img.vue";
 	import Card from "@/stores/CardStore/class/Card";
 
 	import { isEqualUrl, isMobile as judgeIsMobile } from "@/utils/common";
 	//i 导入仓库
 	import useCardStore from "@/stores/CardStore";
 	import useFavoriteStore from "@/stores/FavoriteStore";
-	import useGlobalStore from "@/stores/GlobalStore";
 
 	const props = withDefaults(
 		defineProps<{
 			cardList: Card[];
 			layout?: "Grid" | "WaterFall"; // s 布局模式
+			searchKeywords?: string; // s 检索关键词
 		}>(),
 		{
 			cardList: () => [],
 			layout: "Grid",
 		}
 	);
-	//s 全局仓库
-	const globalStore = useGlobalStore();
 	//s 卡片仓库
 	const cardStore = useCardStore();
 	const { findCard, removeCard, downloadCards } = cardStore;
