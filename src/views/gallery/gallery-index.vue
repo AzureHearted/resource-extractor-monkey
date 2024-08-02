@@ -12,6 +12,9 @@
 				<BaseTabPane name="image">
 					<template #tab>
 						<n-flex :size="4" align="center" :wrap="false">
+							<n-icon>
+								<i-mdi-images />
+							</n-icon>
 							图片
 							<n-badge
 								:value="filterCardList.image.filter((x) => x.isMatch).length"
@@ -30,6 +33,9 @@
 				<BaseTabPane name="video">
 					<template #tab>
 						<n-flex :size="4" align="center" :wrap="false">
+							<n-icon>
+								<i-material-symbols-animated-images-rounded />
+							</n-icon>
 							视频
 							<n-badge
 								:value="filterCardList.video.filter((x) => x.isMatch).length"
@@ -48,6 +54,9 @@
 				<BaseTabPane name="zip">
 					<template #tab>
 						<n-flex :size="4" align="center" :wrap="false">
+							<n-icon>
+								<i-ant-design-file-zip-filled />
+							</n-icon>
 							压缩包
 							<n-badge
 								:value="filterCardList.zip.filter((x) => x.isMatch).length"
@@ -64,6 +73,9 @@
 				<BaseTabPane name="html">
 					<template #tab>
 						<n-flex :size="4" align="center" :wrap="false">
+							<n-icon>
+								<i-material-symbols-dataset-linked />
+							</n-icon>
 							网页
 							<n-badge
 								:value="filterCardList.html.filter((x) => x.isMatch).length"
@@ -80,6 +92,9 @@
 				<BaseTabPane name="other">
 					<template #tab>
 						<n-flex :size="4" align="center" :wrap="false">
+							<n-icon>
+								<i-material-symbols-other-admission-outline />
+							</n-icon>
 							其他
 							<n-badge
 								:value="filterCardList.other.filter((x) => x.isMatch).length"
