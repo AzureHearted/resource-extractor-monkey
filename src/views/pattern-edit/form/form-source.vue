@@ -30,6 +30,7 @@
 				placeholder="请输入要匹配的属性值名称 (仅在“属性”类型下生效)"
 				clearable></el-input>
 		</el-form-item>
+		<!-- 修正方案 -->
 		<FixFrom :rule="rule" :disable="rule.id.includes('#')" type="source" />
 	</el-form>
 </template>

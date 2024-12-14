@@ -17,7 +17,7 @@ export interface PatternRowData {
 export interface BaseMainInfo {
 	name: string; //s 规则名称
 	host: string; //s 域名
-	matchHost:string[]; //s 匹配域名列表
+	matchHost: string[]; //s 匹配域名列表
 	// 路径过滤器
 	filter: Pick<BaseRegex, "expression" | "flags">;
 	icon: string; //s 站点图标链接
@@ -101,9 +101,16 @@ interface BaseMatchRegExtract extends Omit<BaseRegex, "replaceTo"> {
 interface BaseMatchRegReplace extends BaseRegex {
 	type: "regex-replace";
 }
+//s 获取页面并提取内容
+interface BaseMatchFetchPageAndExtractContent extends Omit<BaseMatch, "fix"> {
+	type: "fetch-page-and-extract-content";
+}
 
 //s 正则修正类型
-export type BaseFix = BaseMatchRegExtract | BaseMatchRegReplace;
+export type BaseFix =
+	| BaseMatchRegExtract
+	| BaseMatchRegReplace
+	| BaseMatchFetchPageAndExtractContent;
 
 //s 匹配过滤器
 export interface BaseFilter {

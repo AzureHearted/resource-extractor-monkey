@@ -1,7 +1,7 @@
 import { getHostByUrl, isUrl } from "../common";
 import { GMRequest } from "./GMRequest";
 
-// 通过链接获取blob
+//f 通过链接获取blob
 export function getBlobByUrl(
 	url: string,
 	mode: "Fetch" | "GM" = "Fetch",
@@ -59,7 +59,7 @@ export function getBlobByUrl(
 	}
 }
 
-// 通过链接获取blob(自动)
+//f 通过链接获取blob(自动)
 export async function getBlobByUrlAuto(url: string): Promise<Blob | null> {
 	// console.log("请求", url);
 	//s 链接为空直接返回空blob
@@ -84,7 +84,7 @@ export async function getBlobByUrlAuto(url: string): Promise<Blob | null> {
 	return blob;
 }
 
-// 尝试获取Blob(通过传入的请求队列一次请求blob,一旦成功就直接返回结果)
+//f 尝试获取Blob(通过传入的请求队列一次请求blob,一旦成功就直接返回结果)
 async function tryGetBlob(
 	url: string,
 	// 尝试队列
@@ -130,4 +130,19 @@ async function tryGetBlob(
 	// console.log("请求结果blob:", blob);
 
 	return blob;
+}
+
+//f 获取链接对应的HTML对象
+export function getHTMLDocumentFromUrl(url: string): Promise<Document | null> {
+	return new Promise((resolve) => {
+		GMRequest({ url, responseType: "document" })
+			.then((res) => {
+				// console.log("获取链接对应的HTML对象：", res);
+				resolve(res);
+			})
+			.catch((err) => {
+				// console.log("获取链接对应的HTML对象(出错)", err);
+				resolve(null);
+			});
+	});
 }

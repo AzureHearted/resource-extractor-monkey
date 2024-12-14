@@ -1,5 +1,5 @@
 <template>
-	<div>
+	<div v-show="!disable">
 		<el-divider content-position="left">结果修正</el-divider>
 		<el-form>
 			<transition-group name="list-complete" appear>
@@ -10,9 +10,7 @@
 								<div class="form-card-header-left">
 									<span>
 										<span v-if="fixList.length > 1"> {{ index + 1 }} - </span>
-										{{
-											item.type === "regex-extract" ? "正则提取" : "正则替换"
-										}}
+										{{ typeName(item.type) }}
 									</span>
 								</div>
 								<div class="form-card-header-right">
@@ -56,7 +54,12 @@
 								</div>
 							</div>
 						</template>
-						<el-form label-position="left">
+						<!-- 正则类修正配置表单 -->
+						<el-form
+							label-position="left"
+							v-if="
+								item.type === 'regex-replace' || item.type === 'regex-extract'
+							">
 							<el-form-item
 								:label="
 									item.type === 'regex-extract' ? '提取表达式' : '匹配表达式'
@@ -99,6 +102,36 @@
 								<el-input
 									v-model="item.replaceTo"
 									placeholder="输入正则替换表达式" />
+							</el-form-item>
+						</el-form>
+						<!-- 抓取页面并提取内容 -->
+						<el-form
+							label-position="left"
+							v-if="item.type === 'fetch-page-and-extract-content'">
+							<el-form-item label="选择器" label-width="54px">
+								<el-input
+									v-model="item.selector"
+									placeholder="请输入css选择器"
+									clearable>
+								</el-input>
+							</el-form-item>
+							<el-form-item label="类型" label-width="54px">
+								<el-select
+									v-model="item.infoType"
+									placeholder="选择要提取的类型">
+									<el-option value="value" label="值" />
+									<el-option value="attribute" label="Attribute属性" />
+									<el-option value="property" label="Property属性" />
+									<el-option value="innerText" label="innerText 内部文本" />
+									<el-option value="innerHTML" label="innerHTML 内部HTML" />
+									<el-option value="outerHTML" label="outerHTML 全部HTML" />
+								</el-select>
+							</el-form-item>
+							<el-form-item label="属性名" label-width="54px">
+								<el-input
+									v-model="item.name"
+									placeholder="请输入要匹配的属性值名称 (仅在“属性”类型下生效)"
+									clearable></el-input>
 							</el-form-item>
 						</el-form>
 					</el-card>
@@ -147,24 +180,42 @@
 			label: "正则替换",
 			key: "regex-replace",
 		},
+		{
+			label: "抓取页面并提取内容",
+			key: "fetch-page-and-extract-content",
+		},
 	];
 
-	// 选项事件
-	function handleSelect(type: BaseFix["type"]) {
-		rule.value.addFixItem(props.type, type);
-	}
-
-	// 修正项
+	//j 修正项
 	const fixList = computed(() => {
 		return rule.value[props.type].fix;
 	});
 
-	// 上移
+	//j 类型名称
+	function typeName(type: BaseFix["type"]) {
+		switch (type) {
+			case "regex-extract":
+				return "正则提取";
+			case "regex-replace":
+				return "正则替换";
+			case "fetch-page-and-extract-content":
+				return "抓取页面并提取内容";
+			default:
+				return "";
+		}
+	}
+
+	//f 选项点击事件
+	function handleSelect(type: BaseFix["type"]) {
+		rule.value.addFixItem(props.type, type);
+	}
+
+	//f 上移修正规则
 	function upItem(index: number) {
 		// const fixList = rule.value[props.type].fix;
 		fixList.value.splice(index - 1, 0, fixList.value.splice(index, 1)[0]);
 	}
-	// 下移
+	//f 下移修正规则
 	function downItem(index: number) {
 		// const fixList = rule.value[props.type].fix;
 		fixList.value.splice(index, 0, fixList.value.splice(index + 1, 1)[0]);

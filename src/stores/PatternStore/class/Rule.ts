@@ -154,25 +154,36 @@ export class Rule implements BaseRule {
 		}
 	}
 
-	// 添加修正方法
+	// 新增修正方法
 	public addFixItem(
 		matchItem: "source" | "preview" | "description",
 		type: BaseFix["type"]
 	) {
 		let fixItem: BaseFix;
-		if (type === "regex-extract") {
-			fixItem = {
-				type,
-				expression: "",
-				flags: [],
-			};
-		} else {
-			fixItem = {
-				type,
-				expression: "",
-				flags: [],
-				replaceTo: "",
-			};
+		switch (type) {
+			case "regex-extract":
+				fixItem = {
+					type,
+					expression: "",
+					flags: [],
+				};
+				break;
+			case "regex-replace":
+				fixItem = {
+					type,
+					expression: "",
+					flags: [],
+					replaceTo: "",
+				};
+				break;
+			case "fetch-page-and-extract-content":
+				fixItem = {
+					type,
+					selector: "",
+					infoType: "property",
+					name: "",
+				};
+				break;
 		}
 		this[matchItem].fix.push(fixItem);
 	}

@@ -252,6 +252,40 @@
 					</div>
 				</div>
 			</template>
+			<!-- 路径正则过滤器 -->
+			<!-- <el-form-item label="过滤器">
+				<el-input
+					v-model="editingRule.filter"
+					placeholder="输入正则表达式">
+					<template #prefix> / </template>
+					<template #suffix> / </template>
+					<template #append>
+						<el-select
+							style="width: 120px"
+							multiple
+							collapse-tags
+							collapse-tags-tooltip
+							clearable
+							v-model="editingPattern.mainInfo.filter.flags"
+							placeholder="修饰符">
+							<el-tooltip
+								:show-after="500"
+								effect="dark"
+								content="ignore - 不区分大小写"
+								placement="top">
+								<el-option :value="'i'" label="i" />
+							</el-tooltip>
+							<el-tooltip
+								:show-after="500"
+								effect="dark"
+								content="特殊字符圆点 . 中包含换行符 \n"
+								placement="top">
+								<el-option :value="'s'" label="s" />
+							</el-tooltip>
+						</el-select>
+					</template>
+				</el-input>
+			</el-form-item> -->
 			<!-- 表单Tabs -->
 			<FormTabs />
 		</el-card>

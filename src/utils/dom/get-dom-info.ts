@@ -61,14 +61,16 @@ const valueElements = [
 ];
 
 // 获取元素的值
-function getDOMValue(dom: HTMLElement) {
+function getDOMValue(dom: HTMLElement | null) {
+	if (!dom) return "";
 	// 判断DOM类型
 	return valueElements.includes(dom.constructor as any)
 		? (dom as any).value
 		: "";
 }
 // 获取元素的attribute属性值
-function getDOMAttribute(dom: HTMLElement, _name: string) {
+function getDOMAttribute(dom: HTMLElement | null, _name: string) {
+	if (!dom) return "";
 	let value = "";
 	// 拆分name判断是否有多个值
 	const names = _name.split("|");
@@ -99,7 +101,8 @@ function getDOMAttribute(dom: HTMLElement, _name: string) {
 }
 
 // 获取元素的property属性值
-function getDOMProperty(dom: HTMLElement, _name: string) {
+function getDOMProperty(dom: HTMLElement | null, _name: string) {
+	if (!dom) return "";
 	let value = "";
 	// 拆分name判断是否有多个值
 	const names = _name.split("|");

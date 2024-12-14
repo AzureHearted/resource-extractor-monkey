@@ -15,7 +15,7 @@ import Card from "../class/Card";
 import { getExtByUrl, getNameByUrl, isUrl } from "@/utils/common";
 import { TaskQueue } from "@/utils/taskQueue";
 import type { Task } from "@/utils/taskQueue";
-import { getContentType } from "@/utils/http/GMRequest";
+import { getHTMLDocumentFromUrl } from "@/utils/http";
 
 // 配置接口
 interface Options {
@@ -82,8 +82,6 @@ export default async function getCard(
 						regionDOM,
 						callback: async (value, dom) => {
 							dom = dom || regionDOM;
-							// 先修正内容
-							value = await fixResult(value, rule.source.fix);
 							// 元信息获取
 							let meta = await getMeta(dom, { url: value }); // 获取元信息(通过dom)
 							if (!meta.valid) {
@@ -528,6 +526,7 @@ async function handleRegionGetInfo<T>(options: {
 
 	// 获取结果修正
 	value = await fixResult(value, rule.fix);
+	// console.log(`修正结果`, value);
 
 	// 调用其回调函数将结果以对象形式返回
 	return await callback(value, targetDOM);
@@ -537,29 +536,45 @@ async function handleRegionGetInfo<T>(options: {
 async function fixResult(value: string, fixRules: BaseFix[]): Promise<string> {
 	for (let i = 0; i < fixRules.length; i++) {
 		const fixRule = fixRules[i];
-		// 尝试合成正则表达式
-		const { type: fixType, expression } = fixRule;
-		if (!expression.trim().length) continue; //如果表达式为空则跳过该规则
-		const flags = [...new Set(["g", ...fixRule.flags])].join("");
-		let regex: RegExp;
-		try {
-			regex = new RegExp(expression, flags);
-		} catch (e) {
-			console.error(e);
-			continue; //如果失败则直接跳过该修正规则
-		}
-		//s 正则提取类型的修正
-		if (fixType === "regex-extract") {
-			const match = value.match(regex);
-			// console.log("正则提取", value, regex, match);
-			if (match) {
-				value = match[0];
+		const { type: fixType } = fixRule;
+		if (fixType === "regex-replace" || fixType === "regex-extract") {
+			// 尝试合成正则表达式
+			const { expression } = fixRule;
+			if (!expression.trim().length) continue; //如果表达式为空则跳过该规则
+			const flags = [...new Set(["g", ...fixRule.flags])].join("");
+			let regex: RegExp;
+			try {
+				regex = new RegExp(expression, flags);
+			} catch (e) {
+				console.error(e);
+				continue; //如果失败则直接跳过该修正规则
 			}
-		}
-		//s 正则替换类型的修正
-		if (fixType === "regex-replace") {
-			// console.log("正则替换", value, regex, fixRule.replaceTo);
-			value = value.replace(regex, fixRule.replaceTo);
+			//s 正则提取类型的修正
+			if (fixType === "regex-extract") {
+				const match = value.match(regex);
+				// console.log("正则提取", value, regex, match);
+				if (match) {
+					value = match[0];
+				}
+			}
+			//s 正则替换类型的修正
+			if (fixType === "regex-replace") {
+				// console.log("正则替换", value, regex, fixRule.replaceTo);
+				value = value.replace(regex, fixRule.replaceTo);
+			}
+		} else if (fixType === "fetch-page-and-extract-content") {
+			const { selector, infoType, name } = fixRule;
+			//s 抓取页面并提取内容
+			const doc = await getHTMLDocumentFromUrl(value);
+			if (doc) {
+				// console.log(`url:${value}\n获取到的Document对象`, doc.documentElement);
+				const dom = getDOM(selector, {
+					mode: "first",
+					regionDOM: doc.documentElement,
+				}) as HTMLElement;
+				value = await getDOMInfo(dom, infoType, name);
+				// console.log(`抓取页面并提取内容`, dom, value);
+			}
 		}
 	}
 	return value;
