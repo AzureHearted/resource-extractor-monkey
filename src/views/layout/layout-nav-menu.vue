@@ -52,7 +52,11 @@
 			key: "Setting",
 			icon: renderIcon("ant-design:setting-twotone"),
 		},
-
+		{
+			label: "自动翻页设置",
+			key: "AutoPage",
+			icon: renderIcon("material-symbols:two-pager"),
+		},
 		{
 			label: "测试页面",
 			key: "Test",
