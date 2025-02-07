@@ -1,3 +1,12 @@
+## [1.4.42] - 2025-02-07
+
+### 修复
+
+- 修复 decodeURI 解析错误导致的 URIError
+  - [x] 解决了 decodeURI 解析非法 URI 时抛出的 "URI malformed" 异常
+  - [x] 增加 try...catch 处理异常，避免程序崩溃
+  - [x] 添加 URI 合法性检测，确保 decodeURI 只解析正确的 URL 编码
+
 ## [1.4.41] - 2025-02-06
 
 ### 修复

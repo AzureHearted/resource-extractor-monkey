@@ -12,7 +12,7 @@ import type {
 } from "../interface";
 import Card from "../class/Card";
 // 导入请求工具
-import { getExtByUrl, getNameByUrl, isBase64Img, isUrl } from "@/utils/common";
+import { getExtByUrl, getNameByUrl, isBase64Img, isUrl, safeDecodeURI } from "@/utils/common";
 import { TaskQueue } from "@/utils/taskQueue";
 import type { Task } from "@/utils/taskQueue";
 import { getHTMLDocumentFromUrl } from "@/utils/http";
@@ -208,7 +208,7 @@ export default async function getCard(
                 if (isUrl(value)) {
                   value = getNameByUrl(value);
                 }
-                value = decodeURI(value);
+                value = safeDecodeURI(value);
                 return {
                   title: value,
                   dom,
@@ -231,7 +231,7 @@ export default async function getCard(
             if (isUrl(description.title)) {
               description.title = getNameByUrl(description.title);
             }
-            description.title = decodeURI(description.title);
+            description.title = safeDecodeURI(description.title);
           }
 
           //s 设置卡片来源
@@ -428,7 +428,7 @@ export default async function getCard(
           if (isUrl(description.title)) {
             description.title = getNameByUrl(description.title);
           }
-          description.title = decodeURI(description.title);
+          description.title = safeDecodeURI(description.title);
 
           //s 设置卡片来源
           source.host = location.host;

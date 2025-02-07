@@ -473,3 +473,16 @@ export function getDOMBoxValue(
   const computedStyle = window.getComputedStyle(element);
   return parseInt(computedStyle.getPropertyValue(property as string), 10);
 }
+
+//f 安全的解码URI
+export function safeDecodeURI(str: string): string {
+  try {
+    return decodeURI(str);
+  } catch {
+    try {
+      return decodeURIComponent(str);
+    } catch {
+      return str; // 如果都失败，就返回原字符串
+    }
+  }
+}
