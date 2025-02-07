@@ -15,6 +15,7 @@ import {
   getNameByUrl,
   legalizationPathString,
   naturalCompare,
+  safeDecodeURI,
 } from "@/utils/common";
 // 导入网络工具请求
 import { getBlobByUrlAuto } from "@/utils/http";
@@ -655,7 +656,7 @@ export default defineStore("CardStore", () => {
           if (titles.length) {
             initZipName = titles[0]; // 如果标题获取成功就使用首个标题
           } else {
-            initZipName = getNameByUrl(decodeURI(location.href)); // 如果标题获取失败就直接使用href提取标题
+            initZipName = getNameByUrl(safeDecodeURI(location.href)); // 如果标题获取失败就直接使用href提取标题
           }
 
           //s 下载完成后让用户进行文件名确认
