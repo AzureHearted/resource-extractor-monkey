@@ -309,23 +309,23 @@
 	const { editingPattern, editingRule } = storeToRefs(patternStore);
 	const { saveUserPatternInfo } = patternStore;
 
-	//j 是否禁用
+	// j 是否禁用
 	const disabled = computed(() => {
 		return editingPattern.value?.id.includes("#");
 	});
 
-	//f 保存结果
+	// f 保存结果
 	function save() {
 		// console.log(editingPattern.value?.getJson());
 		editingPattern.value?.backupData(); //先进行备份
 		saveUserPatternInfo(); // 备份后进行数据存储
 	}
-	//f 重置表单
+	// f 重置表单
 	function reset() {
 		editingPattern.value?.recoveryData();
 	}
 
-	//f 拷贝方案(或规则)至剪贴板
+	// f 拷贝方案(或规则)至剪贴板
 	function copyToClipboard(obj: Pattern | Rule) {
 		const { copy } = useClipboard();
 		const rowData = JSON.stringify(
@@ -358,7 +358,7 @@
 			});
 	}
 
-	//f 保存方案(或规则)至本地文件
+	// f 保存方案(或规则)至本地文件
 	function saveToFile(obj: Pattern | Rule) {
 		const rowData = JSON.stringify(
 			obj.getRowData({ includeId: true }),
@@ -374,7 +374,7 @@
 		}
 	}
 
-	//f 打开对应网站
+	// f 打开对应网站
 	function open(url: string) {
 		if (!url.trim()) return;
 		url = "https://" + url.trim();
@@ -383,7 +383,7 @@
 		});
 	}
 
-	//f 粘贴规则
+	// f 粘贴规则
 	function pasteRule() {
 		navigator.clipboard
 			.readText()

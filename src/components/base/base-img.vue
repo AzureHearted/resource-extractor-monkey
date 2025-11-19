@@ -91,9 +91,9 @@
 		});
 	});
 
-	//s 组件容器DOM
+	// s 组件容器DOM
 	const containerDOM = ref<HTMLElement | null>(null);
-	//j 视口容器DOM
+	// j 视口容器DOM
 	const viewportDom = computed<IntersectionObserverInit["root"]>(() => {
 		if (props.viewportSelector.trim()) {
 			return document.querySelector(props.viewportSelector);
@@ -102,7 +102,7 @@
 		}
 	});
 
-	//w 监听传入的src变化,变化时立即重新加载
+	// w 监听传入的src变化,变化时立即重新加载
 	watch(
 		() => props.src,
 		(newSrc) => {
@@ -113,7 +113,7 @@
 		}
 	);
 
-	//s 定义状态
+	// s 定义状态
 	const state = reactive({
 		errorImg: errorImg,
 		width: props.initWidth,
@@ -136,15 +136,15 @@
 		}
 	});
 
-	//j img样式
+	// j img样式
 	const imgStyle = computed<HTMLAttributes["style"]>(() => {
 		return { objectFit: props.objectFit };
 	});
 
-	//s 图片DOM
+	// s 图片DOM
 	const imgDOM = ref<HTMLImageElement | null>(null);
 
-	//t 返回值类型定义
+	// t 返回值类型定义
 	export type returnInfo = {
 		meta: {
 			valid: boolean;
@@ -163,7 +163,7 @@
 		(e: "error"): void;
 	}>();
 
-	//f 加载图片
+	// f 加载图片
 	const loadImage = async (src: string) => {
 		// console.log("src", src);
 		const img = new Image();
@@ -333,7 +333,7 @@
 			// console.log("图片挂载", el.src, el);
 			// 将任务放入宏队列(防止有些时候交叉检测失败的bug)
 			if (imgDOM.value) {
-				imgDOM.value.src = ""; //s 先去除原先的src
+				imgDOM.value.src = ""; // s 先去除原先的src
 			}
 			setTimeout(() => {
 				let src: string = props.src; // 默认使用原图

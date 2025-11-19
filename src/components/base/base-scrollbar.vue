@@ -102,18 +102,18 @@
 		onDeactivated,
 	} from "vue";
 	import type { ComputedRef, CSSProperties, TeleportProps } from "vue";
-	import type { Property } from "csstype"; //s 引入css类型接口(方便开发)
+	import type { Property } from "csstype"; // s 引入css类型接口(方便开发)
 
 	import { useScroll, useElementBounding, useDraggable } from "@vueuse/core";
 
 	// 定义props
 	const props = withDefaults(
 		defineProps<{
-			showScrollbar?: boolean; //s 显示滚动条？
-			showBackTopButton?: boolean; //s 显示回到顶部按钮？
-			barWidth?: Property.Width; //s 宽度 (滚动条)
-			barHoverWidth?: Property.Width; //s 宽度 (滚动条 & 悬浮)
-			offset?: [number, number]; //s 滚动条偏移量 [垂直滚动条的横向偏移,水平滚动条的纵向偏移]
+			showScrollbar?: boolean; // s 显示滚动条？
+			showBackTopButton?: boolean; // s 显示回到顶部按钮？
+			barWidth?: Property.Width; // s 宽度 (滚动条)
+			barHoverWidth?: Property.Width; // s 宽度 (滚动条 & 悬浮)
+			offset?: [number, number]; // s 滚动条偏移量 [垂直滚动条的横向偏移,水平滚动条的纵向偏移]
 			teleportTo?: TeleportProps["to"] | false;
 		}>(),
 		{
@@ -202,7 +202,7 @@
 		},
 	});
 
-	//s 标记组件是否被冻结
+	// s 标记组件是否被冻结
 	const freeze = ref(false);
 
 	//* 组件被解冻时
@@ -220,9 +220,9 @@
 		freeze.value = true;
 	});
 
-	//s 滚动对象
+	// s 滚动对象
 	const { x: wrapperX, y: wrapperY, isScrolling } = useScroll(wrapDOM);
-	//w 监听wrapper滚动
+	// w 监听wrapper滚动
 	watch([wrapperX, wrapperY], ([x, y]) => {
 		// console.log("wrapper滚动", x, y);
 		if (!scrollbar.vertical.isDragging) {
@@ -231,7 +231,7 @@
 		}
 	});
 
-	//s 滚动条DOM(垂直)
+	// s 滚动条DOM(垂直)
 	const verticalBar = ref<HTMLElement | null>(null);
 	onMounted(() => {
 		useDraggable(verticalBar, {
@@ -260,7 +260,7 @@
 		}
 	);
 
-	//f 设置垂直滚动条位置
+	// f 设置垂直滚动条位置
 	const calcVerticalBarPosition = async (y: number) => {
 		if (!wrapDOM.value) return;
 		scrollbar.vertical.top = y; // 更新滚动条位置
@@ -276,7 +276,7 @@
 		});
 	};
 
-	//j 滚动条样式(垂直)
+	// j 滚动条样式(垂直)
 	const verticalStyle: ComputedRef<CSSProperties> = computed(() => {
 		return {
 			// 根据滚动条长度决定是否显示滚动条
@@ -285,7 +285,7 @@
 		};
 	});
 
-	//j 垂直滚动条可见性
+	// j 垂直滚动条可见性
 	const verticalScrollbarVisible = computed<boolean>(() => {
 		return (
 			((scrollbar.show && scrollbar.vertical.length > 0) ||
@@ -294,7 +294,7 @@
 		);
 	});
 
-	//s 滚动条DOM(水平)
+	// s 滚动条DOM(水平)
 	const horizontalBar = ref<HTMLElement | null>(null);
 	onMounted(() => {
 		const { x } = useDraggable(horizontalBar, {
@@ -322,7 +322,7 @@
 		}
 	);
 
-	//f 设置水平滚动条位置
+	// f 设置水平滚动条位置
 	const calcHorizontalBarPosition = async (x: number) => {
 		if (!wrapDOM.value) return;
 		scrollbar.horizontal.left = x; // 更新滚动条位置
@@ -338,7 +338,7 @@
 		});
 	};
 
-	//j 滚动条样式(水平)
+	// j 滚动条样式(水平)
 	const horizontalStyle: ComputedRef<CSSProperties> = computed(() => {
 		return {
 			// 根据滚动条长度决定是否显示滚动条
@@ -347,7 +347,7 @@
 		};
 	});
 
-	//j 水平滚动条可见性
+	// j 水平滚动条可见性
 	const horizontalScrollbarVisible = computed<boolean>(() => {
 		return (
 			((scrollbar.show && scrollbar.horizontal.length > 0) ||
@@ -356,7 +356,7 @@
 		);
 	});
 
-	//t (算法)由当前视口高度计算滚动条高度
+	// t (算法)由当前视口高度计算滚动条高度
 	const calcBarLength = (
 		channelHeightOrWidth: number, // 滚动条轨道高度(或宽度)
 		scrollHeightOrWidth: number, // 滚动区域总高度(或宽度)
@@ -365,7 +365,7 @@
 		return channelHeightOrWidth * (contentHeightOrWidth / scrollHeightOrWidth);
 	};
 
-	//f 计算滚动条尺寸
+	// f 计算滚动条尺寸
 	async function calculateScrollbarSize() {
 		if (!wrapDOM.value || !containerDOM.value) return;
 		const { width: channelWidth, height: channelHeight } = containerInfo; // 提取滚动容器视口宽高
@@ -383,7 +383,7 @@
 				: -1;
 	}
 
-	//f 设置滚动条位置
+	// f 设置滚动条位置
 	async function setScrollbarPosition() {
 		if (!wrapDOM.value) return;
 		const { width: channelWidth, height: channelHeight } = containerInfo; // 提取滚动容器视口宽高
@@ -399,7 +399,7 @@
 		// console.log("滚动事件", scrollTop);
 	}
 
-	//f 设置wrapper的滚动位置
+	// f 设置wrapper的滚动位置
 	async function updateScrollPosition(options: {
 		x?: number;
 		y?: number;
@@ -421,12 +421,12 @@
 		}
 	}
 
-	//f backTop 回到顶部按钮
+	// f backTop 回到顶部按钮
 	const bakctopShow = computed<Boolean>(() => {
 		return scrollbar.vertical.top > 20;
 	});
 
-	//f 执行回到顶部
+	// f 执行回到顶部
 	async function backToTop() {
 		updateScrollPosition({ y: 0 });
 	}
@@ -544,7 +544,7 @@
 		transition: 1s;
 	}
 
-	//s 返回顶部按钮样式
+	// s 返回顶部按钮样式
 	.base-scrollbar__back-top {
 		position: absolute;
 		width: 40px;

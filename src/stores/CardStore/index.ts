@@ -34,7 +34,7 @@ export default defineStore("CardStore", () => {
   const favoriteStore = useFavoriteStore();
   const { isExist: isFavorite } = favoriteStore;
 
-  //s 数据定义
+  // s 数据定义
   const data = reactive({
     cardList: [] as (Card | undefined)[],
     // 所有匹配到的链接集合
@@ -51,7 +51,7 @@ export default defineStore("CardStore", () => {
     urlBlobMap: new Map<string, Blob>(),
   });
 
-  //j 有效的卡片
+  // j 有效的卡片
   const validCardList = computed<Card[]>(() => {
     return data.cardList.filter((x) => !!x && x !== undefined) as Card[];
   });
@@ -60,7 +60,7 @@ export default defineStore("CardStore", () => {
   data.typeMap.set("image", 0);
   data.typeMap.set("html", 0);
 
-  //j 仓库尺寸范围
+  // j 仓库尺寸范围
   const sizeRange = computed<{
     width: [number, number];
     height: [number, number];
@@ -87,7 +87,7 @@ export default defineStore("CardStore", () => {
     );
   });
 
-  //w 监听仓库尺寸范围变化
+  // w 监听仓库尺寸范围变化
   watch(
     [() => sizeRange.value.width[1], () => sizeRange.value.height[1]],
     ([maxW, maxH]) => {
@@ -97,11 +97,11 @@ export default defineStore("CardStore", () => {
     }
   );
 
-  //t 卡片类型(类型)
+  // t 卡片类型(类型)
   type CardType = ExcludeType<"all" | BaseMeta["type"], false>;
-  //s 当前类型
+  // s 当前类型
   const nowType = ref<CardType>("image");
-  //s 过滤器
+  // s 过滤器
   const filters = reactive({
     keyword: "",
     size: {
@@ -164,7 +164,7 @@ export default defineStore("CardStore", () => {
     type: [] as string[], //类型过滤器
     extension: [] as string[], //扩展名过滤器
   });
-  //s 排序相关
+  // s 排序相关
   const sortOptions = [
     { value: "#", label: "默认排序", group: "#" },
     { value: "name-asc", label: "名称-升序", group: "名称" },
@@ -180,7 +180,7 @@ export default defineStore("CardStore", () => {
     key: string;
     children: ((typeof sortOptions)[number] & { key: string })[];
   };
-  //s 排序对象
+  // s 排序对象
   const sort = reactive({
     method: "#" as (typeof sortOptions)[number]["value"],
     options: sortOptions,
@@ -206,7 +206,7 @@ export default defineStore("CardStore", () => {
     },
   });
 
-  //j 过滤后的卡片
+  // j 过滤后的卡片
   const filterCardList = computed<{
     [key in CardType]: Card[];
   }>(() => {
@@ -218,7 +218,7 @@ export default defineStore("CardStore", () => {
       other = [] as Card[];
     let all = [...validCardList.value];
 
-    //s 先排序
+    // s 先排序
     switch (sort.method) {
       case "name-asc":
         all.sort((a, b) =>
@@ -244,7 +244,7 @@ export default defineStore("CardStore", () => {
         break;
     }
 
-    //s 再过滤
+    // s 再过滤
     all = all.filter((x) => {
       const { id, isLoaded } = x;
       const {
@@ -254,20 +254,20 @@ export default defineStore("CardStore", () => {
         ext: sExt,
       } = x.source.meta;
       //* 暂时取消最大尺寸限制的过滤
-      //s 是否未被排除
+      // s 是否未被排除
       const isNotExclude = !data.excludeIdSet.has(id);
-      //s 是否扩展名是否匹配
+      // s 是否扩展名是否匹配
       const isExtensionMatch =
         filters.extension.length > 0
           ? filters.extension.includes(String(sExt))
           : true;
-      //s 判断是否是图片或者视频，如果是并且已经加载则判断是否符合尺寸过滤器
+      // s 判断是否是图片或者视频，如果是并且已经加载则判断是否符合尺寸过滤器
       const isSizeMatch =
         (sType === "image" || sType === "video") && isLoaded
           ? sWidth! >= filters.size.width[0] &&
             sHeight! >= filters.size.height[0]
           : true;
-      //s 判断是否所有条件都匹配
+      // s 判断是否所有条件都匹配
       const isMatch = isNotExclude && isExtensionMatch && isSizeMatch;
       if (!isMatch) x.isSelected = false; // 如果不匹配的需要将选中状态设置为false
       if (isMatch) {
@@ -298,7 +298,7 @@ export default defineStore("CardStore", () => {
     return { all, image, video, zip, audio, html, other };
   });
 
-  //f 更新匹配状态
+  // f 更新匹配状态
   function updateMatchStatus() {
     filterCardList.value.all.forEach((card) => {
       const { tags } = card;
@@ -307,7 +307,7 @@ export default defineStore("CardStore", () => {
     });
   }
 
-  //f 匹配判断函数
+  // f 匹配判断函数
   function isKeywordsMatch(str: string | string[]) {
     if (str instanceof Object) {
       return str.some((tag) => {
@@ -324,7 +324,7 @@ export default defineStore("CardStore", () => {
     }
   }
 
-  //j 选中的卡片
+  // j 选中的卡片
   const selectionCardList = computed<{
     [key in CardType]: Card[];
   }>(() => {
@@ -339,7 +339,7 @@ export default defineStore("CardStore", () => {
     };
   });
 
-  //j 类型列表
+  // j 类型列表
   const typeOptions = computed(() => {
     const typeNameMap = new Map<string, string>([
       ["image", "图片"],
@@ -363,7 +363,7 @@ export default defineStore("CardStore", () => {
     return options;
   });
 
-  //j 扩展名列表
+  // j 扩展名列表
   const extensionOptions = computed(() => {
     return [...data.extensionMap.keys()]
       .sort((a, b) => {
@@ -379,7 +379,7 @@ export default defineStore("CardStore", () => {
       });
   });
 
-  //f 获取页面资源
+  // f 获取页面资源
   async function getPageCard() {
     const patternId = patternStore.used.id;
     const patternNow =
@@ -395,7 +395,7 @@ export default defineStore("CardStore", () => {
       return;
     }
     loadingStore.start();
-    //s 依次执行每个规则
+    // s 依次执行每个规则
     let amount = 0; // 累计数量(用于统计每次匹配过程中的结果数量)
     for (let i = 0; i < patternNow.rules.length; i++) {
       const rule = patternNow.rules[i];
@@ -462,14 +462,14 @@ export default defineStore("CardStore", () => {
                 data.urlBlobMap.set(card.source.url, card.source.blob);
               }
               // data.cardList.push(card); // 添加到卡片列表中。
-              data.cardList[startIndex + index] = card; //f 添加到卡片列表中。
+              data.cardList[startIndex + index] = card; // f 添加到卡片列表中。
               // updateMaxSize(sourceMeta.width, sourceMeta.height); // 更新最大宽高。
               nextTick(async () => {
                 // s  判断卡片是否被收藏
                 // s 然后判断该card是否被收藏
                 card.isFavorite = await isFavorite(card);
                 if (card.isFavorite) {
-                  //s 如果卡片已经被收藏了则从仓库获取该卡片对应的tags信息
+                  // s 如果卡片已经被收藏了则从仓库获取该卡片对应的tags信息
                   const target = await favoriteStore.findCardByData(card);
                   if (!target) return;
                   card.tags = target.tags;
@@ -509,7 +509,7 @@ export default defineStore("CardStore", () => {
     loadingStore.end();
   }
 
-  //f 重置过滤器
+  // f 重置过滤器
   function resetFilters() {
     filters.size.width = [250, sizeRange.value.width[1]];
     filters.size.height = [250, sizeRange.value.height[1]];
@@ -517,7 +517,7 @@ export default defineStore("CardStore", () => {
     filters.type = [];
   }
 
-  //f 清空卡片
+  // f 清空卡片
   async function clearCardList() {
     data.urlSet.clear(); // 清空链接集合
     data.domSet.clear(); // 清空DOM集合
@@ -529,7 +529,7 @@ export default defineStore("CardStore", () => {
     // resetFilters();
   }
 
-  //f 移除卡片
+  // f 移除卡片
   function removeCard(ids: string[]) {
     for (let i = 0; i < ids.length; i++) {
       const id = ids[i];
@@ -537,17 +537,17 @@ export default defineStore("CardStore", () => {
     }
   }
 
-  //f 查询卡片
+  // f 查询卡片
   function findCard(id: string): Card | undefined {
     return validCardList.value.find((c) => c.id === id);
   }
 
-  //f 查询多张卡片
+  // f 查询多张卡片
   function findCards(ids: string[]): Card[] {
     return validCardList.value.filter((c) => ids.includes(c.id)) || [];
   }
 
-  //f 下载卡片
+  // f 下载卡片
   async function downloadCards(cards: Card[]) {
     console.log("下载卡片", cards);
 
@@ -626,7 +626,7 @@ export default defineStore("CardStore", () => {
 
           // console.log("全部处理完成", zipContainer);
           loadingStore.update(0, zipContainer.length);
-          //s 生成压缩包
+          // s 生成压缩包
           // console.log("准备生成压缩包", zipContainer);
           const zip: Blob = await zipContainer.generateAsync(
             {
@@ -659,7 +659,7 @@ export default defineStore("CardStore", () => {
             initZipName = getNameByUrl(safeDecodeURI(location.href)); // 如果标题获取失败就直接使用href提取标题
           }
 
-          //s 下载完成后让用户进行文件名确认
+          // s 下载完成后让用户进行文件名确认
           ElMessageBox.prompt("压缩包已准备完成,请确认文件名", "提示", {
             appendTo: ".web-img-collector__notification-container",
             confirmButtonText: "确认",

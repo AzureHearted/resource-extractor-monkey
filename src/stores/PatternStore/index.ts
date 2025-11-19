@@ -10,9 +10,9 @@ import {
 import { ElNotification } from "@/plugin/element-plus";
 
 export default defineStore("PatternStore", () => {
-	//s 方案列表
+	// s 方案列表
 	const list = ref<Pattern[]>([defaultPattern]);
-	//f 获取用户方案信息
+	// f 获取用户方案信息
 	function getUserPatternInfo() {
 		list.value = [defaultPattern];
 		// 用户方案数据
@@ -26,9 +26,9 @@ export default defineStore("PatternStore", () => {
 		);
 		list.value.push(...userPatternList);
 	}
-	//f 保存(设置)用户方案信息
+	// f 保存(设置)用户方案信息
 	function saveUserPatternInfo() {
-		//s 使用备份数据进行存储
+		// s 使用备份数据进行存储
 		const rowDataList = list.value
 			.slice(1)
 			.map((p) => p.getRowData({ type: "backup" }));
@@ -47,19 +47,19 @@ export default defineStore("PatternStore", () => {
 		id: "#",
 	});
 
-	//f 获取初始方案id
+	// f 获取初始方案id
 	function setInitPattern() {
 		let targetPattern: Pattern | null = null;
 
 		const matchedPatterns: Pattern[] = list.value.filter((p) => {
 			if (p.id.includes("#")) return false;
-			//s 先过滤域名
+			// s 先过滤域名
 			return p.mainInfo.matchHost.some((host) => {
 				return new RegExp(`${host}`).test(location.origin);
 			});
 		});
 		if (matchedPatterns.length) {
-			//s 在路径过滤
+			// s 在路径过滤
 			for (let i = 0; i < matchedPatterns.length; i++) {
 				const pattern = matchedPatterns[i];
 
@@ -111,18 +111,18 @@ export default defineStore("PatternStore", () => {
 			//? 初始化filter
 			// initFilter(targetPattern);
 		} else {
-			//s 没有匹配到则使用默认规则
+			// s 没有匹配到则使用默认规则
 			used.id = "#";
 			// return "#";
 		}
 	}
 
-	//s 当前方案信息
+	// s 当前方案信息
 	const current = reactive({
 		id: "#",
 	});
 
-	//s 当前编辑中的方案信息
+	// s 当前编辑中的方案信息
 	const editing = reactive({
 		pid: "#", // 方案id
 		rid: "", // 规则id (默认为空)

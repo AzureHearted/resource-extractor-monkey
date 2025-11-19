@@ -20,7 +20,7 @@ interface GmResponseTypeMap {
 	stream: ReadableStream<Uint8Array>;
 }
 
-//f GM_xmlhttpRequest的二次封装
+// f GM_xmlhttpRequest的二次封装
 // 功能实现
 // 函数重载，允许调用GMRequest时强制指定responseType
 export function GMRequest<ResponseType extends keyof GmResponseTypeMap>(
@@ -94,7 +94,7 @@ export function GMRequest(options: IGMRequestOptions): Promise<any | null> {
 	});
 }
 
-//f 获取链接对应的内容类型
+// f 获取链接对应的内容类型
 export function getContentType(url: string): Promise<string> {
 	console.count("getContentType");
 	return new Promise((resolve, reject) => {

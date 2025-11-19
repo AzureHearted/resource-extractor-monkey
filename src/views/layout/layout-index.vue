@@ -28,13 +28,13 @@
 			() => globalStore.openWindow,
 			(isOpen) => {
 				if (isOpen) {
-					//s 页面滚动元素进行滚动
+					// s 页面滚动元素进行滚动
 					// start();
 					if (!containerDOM.value) return;
 					containerDOM.value.show();
 					containerDOM.value.focus();
 				} else {
-					//s 取消页面元素的滚动阻止事件
+					// s 取消页面元素的滚动阻止事件
 					// stop();
 					if (!containerDOM.value) return;
 					containerDOM.value.close();

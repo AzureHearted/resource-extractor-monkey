@@ -31,7 +31,7 @@ export class Pattern implements BasePattern {
 
 	public backup: BasePattern["backup"] | null = null;
 
-	//s 构造
+	// s 构造
 	constructor(options?: Partial<BasePattern>) {
 		this.id = options?.id || buildUUID(); // 为规则生成(拷贝)id
 		this.mainInfo = {

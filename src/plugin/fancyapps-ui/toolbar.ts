@@ -20,7 +20,7 @@ export default {
 	},
 	// 自定义的按钮
 	items: {
-		//f 打开按钮
+		// f 打开按钮
 		open: {
 			tpl: /*html*/ `
       <button class="f-button" title="{{NEW_TAB_OPENS}}"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -40,7 +40,7 @@ export default {
 				}
 			},
 		},
-		//f 下载按钮
+		// f 下载按钮
 		download: {
 			tpl: /*html*/ `
       <button class="f-button" title="{{DOWNLOAD}}">
@@ -75,7 +75,7 @@ export default {
 				}
 			},
 		},
-		//f 定位按钮
+		// f 定位按钮
 		toLocate: {
 			tpl: /*html*/ `
       <button class="f-button" title="{{TO_LOCATE}}">

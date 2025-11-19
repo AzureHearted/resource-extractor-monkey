@@ -1,6 +1,6 @@
 import { GM_getValue, GM_setValue } from "$";
 
-//f [功能封装]生成uuid
+// f [功能封装]生成uuid
 export function buildUUID(): string {
   const hexList: string[] = [];
   for (let i = 0; i <= 15; i++) {
@@ -41,12 +41,12 @@ export function mixSort(_a: string, _b: string) {
   }
 }
 
-//f 自然排序函数
+// f 自然排序函数
 export function naturalCompare(a: string, b: string): number {
   return a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
 }
 
-//f 通过blob获取文件的ext扩展名
+// f 通过blob获取文件的ext扩展名
 export function getExtByBlob(blob: Blob) {
   let ext = "";
   if (blob) {
@@ -60,10 +60,10 @@ export function getExtByBlob(blob: Blob) {
   return ext;
 }
 
-//f 获取站点Favicon图标
+// f 获取站点Favicon图标
 export function getFavicon(): string {
   let iconUrl: string;
-  //s [1]通过link标签查找
+  // s [1]通过link标签查找
   const urls = (
     [...document.querySelectorAll("link[rel=icon]")] as HTMLLinkElement[]
   )
@@ -73,7 +73,7 @@ export function getFavicon(): string {
   if (urls.length > 0) {
     iconUrl = urls[0];
   } else {
-    //s [2]若没找到直接使用域名拼接
+    // s [2]若没找到直接使用域名拼接
     iconUrl = `${location.origin}/favicon.ico`;
   }
   return iconUrl;
@@ -153,7 +153,7 @@ export async function getPicMetaByBlob(blob: Blob) {
             height: image.height,
             aspectRatio: image.width / image.height,
           };
-          //s 释放内存
+          // s 释放内存
           URL.revokeObjectURL((reader.result as string) || "");
           resolve(meta);
         };
@@ -163,7 +163,7 @@ export async function getPicMetaByBlob(blob: Blob) {
             width: 0,
             height: 0,
           };
-          //s 释放内存
+          // s 释放内存
           URL.revokeObjectURL((reader.result as string) || "");
           reject(meta);
         };
@@ -174,7 +174,7 @@ export async function getPicMetaByBlob(blob: Blob) {
         width: 0,
         height: 0,
       };
-      //s 释放内存
+      // s 释放内存
       URL.revokeObjectURL((reader.result as string) || "");
       reject(meta);
     }
@@ -182,7 +182,7 @@ export async function getPicMetaByBlob(blob: Blob) {
   return meta;
 }
 
-//f [功能封装]通过Image对象获取图片meta
+// f [功能封装]通过Image对象获取图片meta
 export async function getPicMetaByImage(url: string) {
   type Meta = {
     isOk: boolean;
@@ -229,7 +229,7 @@ export async function getPicMetaByImage(url: string) {
   });
 }
 
-//f 文本自动填充
+// f 文本自动填充
 export function strAutofill(
   str: string,
   fillContent: string | number,
@@ -245,7 +245,7 @@ export function strAutofill(
   }
 }
 
-//f 判断是否是移动端设备
+// f 判断是否是移动端设备
 export function isMobile(): boolean {
   const sUserAgent = navigator.userAgent.toLowerCase();
   const regex =
@@ -253,7 +253,7 @@ export function isMobile(): boolean {
   return regex.test(sUserAgent);
 }
 
-//f blob类型判断
+// f blob类型判断
 export function getBlobType(blob: Blob): "image" | "video" | "html" | "audio" {
   const blobTypeRegex = {
     isImg: /^image/i,
@@ -277,7 +277,7 @@ export function getBlobType(blob: Blob): "image" | "video" | "html" | "audio" {
   return blobType;
 }
 
-//f 获取剪切板文本
+// f 获取剪切板文本
 export async function getClipBoardText() {
   const text = await navigator.clipboard
     .readText()
@@ -360,7 +360,7 @@ export function GM_storage(
   }
 }
 
-//f 合法化路径字符串
+// f 合法化路径字符串
 export function legalizationPathString(str: string) {
   return safeDecodeURI(str)
     .replace("*", "×")
@@ -376,7 +376,7 @@ export function legalizationPathString(str: string) {
     .replace("$", "＄");
 }
 
-//f 判断两个URL字符串是否相等(可选择是否包含search查询部分)
+// f 判断两个URL字符串是否相等(可选择是否包含search查询部分)
 export function isEqualUrl(
   url1: string,
   url2: string,
@@ -386,10 +386,10 @@ export function isEqualUrl(
   }
 ) {
   const { excludeSearch: includeSearch } = {
-    ...({ includeSearch: false } as { includeSearch: boolean }), //s 默认配置对象
-    ...option, //s 用户传入的配置对象
+    ...({ includeSearch: false } as { includeSearch: boolean }), // s 默认配置对象
+    ...option, // s 用户传入的配置对象
   };
-  //s 判断是否需要判断查询字符串
+  // s 判断是否需要判断查询字符串
   if (includeSearch) {
     let oURL1: URL | false = false,
       oURL2: URL | false = false;
@@ -420,7 +420,7 @@ export function isEqualUrl(
   }
 }
 
-//f 防抖函数
+// f 防抖函数
 export function debounce(func: Function, delay = 500) {
   // 声明全局变量timeout
   let timeout: number;
@@ -436,7 +436,7 @@ export function debounce(func: Function, delay = 500) {
   };
 }
 
-//f 节流函数
+// f 节流函数
 export function throttle(func: Function, wait = 500) {
   // 声明全局变量timeout
   let timeout: number | null;
@@ -453,7 +453,7 @@ export function throttle(func: Function, wait = 500) {
   };
 }
 
-//f 元素盒模型相关尺寸获取
+// f 元素盒模型相关尺寸获取
 export function getDOMBoxValue(
   element: HTMLElement,
   property:
@@ -474,7 +474,7 @@ export function getDOMBoxValue(
   return parseInt(computedStyle.getPropertyValue(property as string), 10);
 }
 
-//f 安全的解码URI
+// f 安全的解码URI
 export function safeDecodeURI(str: string): string {
   try {
     return decodeURI(str);

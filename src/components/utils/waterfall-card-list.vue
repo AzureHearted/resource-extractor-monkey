@@ -71,7 +71,7 @@
 	const containerDom = ref<HTMLElement | null>(null);
 
 	let masonry: Masonry;
-	//t 瀑布流配置对象
+	// t 瀑布流配置对象
 	const masonryOptions: Masonry.Options = {
 		itemSelector: ".waterfall__item__container", //将以此选择器对应的元素作为瀑布流内容元素
 		columnWidth: ".waterfall__container .waterfall__item__container", //将以此选择器对应的元素宽度作为瀑布流的列宽
@@ -96,7 +96,7 @@
 		}
 	});
 
-	//s 判断组件是否被冻结
+	// s 判断组件是否被冻结
 	const freeze = ref(false);
 
 	//* 当组件被激活时执行

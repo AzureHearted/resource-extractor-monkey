@@ -94,9 +94,9 @@
 
 	const slots = useSlots();
 
-	//s 是否展示更多
+	// s 是否展示更多
 	const showMore = defineModel("showMore", { type: Boolean, default: false });
-	//f  打开显示更多窗口
+	// f  打开显示更多窗口
 	const openShowMore = () => {
 		showMore.value = true;
 	};
@@ -129,7 +129,7 @@
 		}
 	}
 
-	//s 溢出元素样式
+	// s 溢出元素样式
 	.line-overflow-list__wrap > :deep(.overflow) {
 		position: relative;
 		mask: linear-gradient(to right, rgb(255, 255, 255), transparent 50%);
@@ -138,7 +138,7 @@
 		}
 	}
 
-	//s 按钮样式
+	// s 按钮样式
 	.line-overflow-list__button {
 		height: 100%;
 		aspect-ratio: 1;
@@ -156,7 +156,7 @@
 	.line-overflow-list__button:hover {
 		background: rgba(135, 207, 235, 1);
 	}
-	//s 溢出按钮样式
+	// s 溢出按钮样式
 	.overflow-button {
 		position: sticky;
 		right: 0;
@@ -176,7 +176,7 @@
 			mask: linear-gradient(to right, rgb(255, 255, 255), transparent 50%);
 		}
 	}
-	//s 空状态按钮样式
+	// s 空状态按钮样式
 	.void-button {
 		position: absolute;
 		top: 50%;

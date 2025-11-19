@@ -207,7 +207,7 @@
 
 	const { refreshStore, updateMatchStatus } = favoriteStore;
 
-	//s 过滤器定义(组件内过滤器)
+	// s 过滤器定义(组件内过滤器)
 	const filters = reactive({
 		size: {
 			width: [
@@ -221,7 +221,7 @@
 		},
 	});
 
-	//f 刷新
+	// f 刷新
 	const reFresh = async () => {
 		await refreshStore();
 		filters.size.width[1] = sizeRange.value.width[1];
@@ -244,7 +244,7 @@
 	});
 	// onActivated(() => console.log("激活"));
 
-	//f 选择器多选Tag渲染函数
+	// f 选择器多选Tag渲染函数
 	const renderTag: SelectRenderTag = ({ option, handleClose }) => {
 		return h(
 			NTag,
@@ -263,7 +263,7 @@
 		);
 	};
 
-	//f 带数量的选项标签渲染函数
+	// f 带数量的选项标签渲染函数
 	const renderOptionLabelWithCount = (option: SelectOption): VNodeChild => {
 		return h(
 			"div",
@@ -287,13 +287,13 @@
 		);
 	};
 
-	//f 过滤器改变
+	// f 过滤器改变
 	function filterChange(key: "width" | "height", value: [number, number]) {
 		console.log("过滤器变化", key, value);
 		storeFilters.value.size[key] = value; // 更新仓库过滤器
 	}
 
-	//f 处理关键词过滤
+	// f 处理关键词过滤
 	const handleKeywordFilter = (value?: string) => {
 		const keyword = value !== undefined ? value : filterKeyword.value;
 		console.log("触发关键词过滤", keyword);
@@ -320,7 +320,7 @@
 		FancyboxBind(containerDOM.value?.$el, "[data-fancybox=web-img-collector]");
 	});
 
-	//f 执行FancyBox绑定
+	// f 执行FancyBox绑定
 	function FancyboxBind(
 		listContainerDOM: HTMLElement | null,
 		itemSelector: string = "[data-fancybox=web-img-collector]",

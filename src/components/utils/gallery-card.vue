@@ -332,7 +332,7 @@
 	const globalStore = useGlobalStore();
 
 	const imgWrapRef = ref<HTMLElement | null>(null);
-	//s 图片可见性
+	// s 图片可见性
 	// const isVisible = useElementVisibility(imgWrapRef);
 
 	const data = defineModel<Card>("data", {
@@ -349,10 +349,10 @@
 			showDownloadButton?: boolean;
 			showFavoriteButton?: boolean;
 			showToLocateButton?: boolean;
-			isMobile?: boolean; //s 移动端标识
+			isMobile?: boolean; // s 移动端标识
 			imgObjectFit?: CSSProperties["object-fit"];
 			setAspectRatio?: number;
-			highlightKey?: string; //s 高亮关键词
+			highlightKey?: string; // s 高亮关键词
 		}>(),
 		{
 			showCheckBox: true,
@@ -385,7 +385,7 @@
 		(e: "save:tags", id: string, newTags: string[]): Promise<void>; // 卡片tags保存事件
 	}>();
 
-	//j 大小
+	// j 大小
 	const size: ComputedRef<string> = computed(() => {
 		const byteSize = data.value.source.blob?.size;
 		if (byteSize) {
@@ -399,7 +399,7 @@
 		id: string;
 		label: string;
 	}
-	//j 标签
+	// j 标签
 	const tags = computed<Tag[]>(() => {
 		return data.value.tags.map((t) => {
 			return {
@@ -409,7 +409,7 @@
 		});
 	});
 
-	//j 描述标签
+	// j 描述标签
 	const description = computed<string>(() => {
 		const row = data.value.description.title.trim();
 		const key = props.highlightKey?.trim();
@@ -437,7 +437,7 @@
 		| "ajax"
 		| "html5video"
 		| false;
-	//j 计算默认类型
+	// j 计算默认类型
 	const showType: ComputedRef<FancyboxType> = computed(() => {
 		const { type: metaType } = data.value.source.meta;
 		let type: FancyboxType = "image";
@@ -450,7 +450,7 @@
 		return type;
 	});
 
-	//f 页面定位元素
+	// f 页面定位元素
 	function toLocate(item: Card) {
 		const dom = item.source.dom;
 		if (!dom) return;
@@ -462,7 +462,7 @@
 		}); // 滚动到指定元素位置，平滑滚动，并居中显示。
 		globalStore.openWindow = false;
 	}
-	//f 重命名
+	// f 重命名
 	function rename(item: Card) {
 		// 删除卡片数据模型中的卡片。
 		ElMessageBox.prompt(`重命名卡片"${item.description.title}"为……`, "重命名", {
@@ -484,14 +484,14 @@
 			});
 	}
 
-	//f 打开网址
+	// f 打开网址
 	async function openUrl(url: string) {
 		GM_openInTab(url, { active: true, insert: true, setParent: true });
 	}
 
-	//f 处理卡片标签变化
+	// f 处理卡片标签变化
 	const handleTagsSave = (newTags: string[]) => {
-		newTags = [...new Set(newTags)]; //s 去重
+		newTags = [...new Set(newTags)]; // s 去重
 		data.value.tags.splice(0);
 		data.value.tags.push(...newTags);
 		console.log("newTags", data.value.tags, newTags);
@@ -595,7 +595,7 @@
 			pointer-events: auto;
 		}
 
-		//s 标签样式
+		// s 标签样式
 		:deep(.var-chip),
 		:deep(.wic2-tag) {
 			flex-basis: content;
@@ -621,7 +621,7 @@
 			}
 		}
 
-		//s 额外标签
+		// s 额外标签
 		.extra-tag-list {
 			flex: 1;
 			overflow: hidden;
@@ -632,7 +632,7 @@
 			gap: 4px;
 		}
 
-		//s 高亮文本样式
+		// s 高亮文本样式
 		:deep(.highlight-keywords) {
 			background-color: yellow;
 		}

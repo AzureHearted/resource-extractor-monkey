@@ -79,7 +79,7 @@
 
 	const slots = useSlots();
 
-	//j 获取传入默认插槽中的tab-pane组件
+	// j 获取传入默认插槽中的tab-pane组件
 	const tabPanes = computed(() => {
 		return slots.default
 			? slots
@@ -104,7 +104,7 @@
 		customTab: Function | undefined;
 	}
 
-	//j tabs选项
+	// j tabs选项
 	const tabs = computed<Tab[]>(() => {
 		return tabPanes.value.map((vnode) => {
 			const { props, children } = vnode;
@@ -121,7 +121,7 @@
 		});
 	});
 
-	//s 当前激活的tab
+	// s 当前激活的tab
 	const active = ref("");
 
 	function handleActive(tab: Tab) {
@@ -146,27 +146,27 @@
 		updateActiveBar();
 	});
 
-	//s tabs的容器DOM
+	// s tabs的容器DOM
 	const tabsWrapDOM = ref<HTMLElement | null>(null);
-	//s tabsDOM列表
+	// s tabsDOM列表
 	const tabDOMs = ref<HTMLElement[] | null>(null);
 
-	//j 被激活的tabDOM
+	// j 被激活的tabDOM
 	const activeTabDOM = computed<HTMLElement | undefined>(() => {
 		if (!tabDOMs.value) return;
 		const index = tabs.value.findIndex((x) => x.id === active.value);
 		return tabDOMs.value[index];
 	});
-	//j 激活条样式
+	// j 激活条样式
 	const activeBarStyle = ref<HTMLAttributes["style"]>();
 
 	onMounted(() => {
 		updateActiveBar(); // 挂载时立即刷新
 		onUnmounted(() => observer.stop()); // 卸载时停止监听器
 		onActivated(() => observer.reset()); // 当组件被激活时刷新
-		//s 创建监听器
+		// s 创建监听器
 		const observer = createObserver();
-		//f 设置监听器
+		// f 设置监听器
 		function createObserver() {
 			let stopFuncList: Function[] = [];
 			function set() {
@@ -181,7 +181,7 @@
 						subtree: true,
 					}
 				);
-				//f 记录监听器
+				// f 记录监听器
 				stopFuncList.push(stop);
 				// console.log("创建监听器");
 			}
@@ -198,7 +198,7 @@
 		}
 	});
 
-	//f 更新激活条样式
+	// f 更新激活条样式
 	const updateActiveBar = () => {
 		if (!activeTabDOM.value || !tabsWrapDOM.value) return;
 		const { left: wrapLeft } = tabsWrapDOM.value.getBoundingClientRect();
@@ -212,11 +212,11 @@
 		});
 	};
 
-	//j 浮动条样式
+	// j 浮动条样式
 	const hoverBarStyle = ref<HTMLAttributes["style"]>();
 
 	onMounted(() => {
-		//s 挂载(激活)时将激活条的样式赋值给悬浮条
+		// s 挂载(激活)时将激活条的样式赋值给悬浮条
 		updateHoverBar();
 		onActivated(() => {
 			updateHoverBar();
@@ -227,7 +227,7 @@
 		hoverBarStyle.value = value;
 	});
 
-	//f 更新浮动条样式
+	// f 更新浮动条样式
 	const updateHoverBar = (e?: MouseEvent) => {
 		if (!tabDOMs.value || !tabsWrapDOM.value || !activeTabDOM.value) return;
 		// console.log(hoverTabDOM.children);
@@ -264,17 +264,17 @@
 		display: flex;
 		flex-flow: column nowrap;
 	}
-	//s tabs容器样式
+	// s tabs容器样式
 	.base-tabs__tabs {
 		position: sticky;
 		top: 0;
 	}
-	//s tabs包裹容器
+	// s tabs包裹容器
 	.base-tabs__tabs-wrap {
 		display: flex;
 		flex-flow: row;
 	}
-	//s tab容器样式
+	// s tab容器样式
 	.base-tabs__tab {
 		padding: 2px 8px;
 		z-index: 1;
@@ -295,7 +295,7 @@
 			}
 		}
 
-		//s tab标签样式
+		// s tab标签样式
 		.base-tabs__tab__label {
 			// border-bottom: 1px solid black;
 			font-size: 14px;
@@ -305,12 +305,12 @@
 		}
 	}
 
-	//s 辅助条包裹容器
+	// s 辅助条包裹容器
 	.base-tabs__other-bar-wrap {
 		z-index: -1;
 	}
 
-	//s 激活条样式
+	// s 激活条样式
 	.base-tabs__active-bar {
 		position: absolute;
 		pointer-events: none;
@@ -319,7 +319,7 @@
 		transition: 0.3s ease-in-out;
 	}
 
-	//s 浮动条样式
+	// s 浮动条样式
 	.base-tabs__hover-bar {
 		position: absolute;
 		pointer-events: none;
@@ -331,7 +331,7 @@
 		z-index: 1;
 	}
 
-	//s 主要内容区
+	// s 主要内容区
 	.base-tabs__content-wrap {
 		flex: 1; // 填满剩余空间
 		display: flex;

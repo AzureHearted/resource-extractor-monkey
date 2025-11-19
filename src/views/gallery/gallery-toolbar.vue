@@ -297,7 +297,7 @@
 	const loadingStore = useLoadingStore();
 	const patternStore = usePatternStore();
 
-	//s 移动端标识符
+	// s 移动端标识符
 	const isMobile = ref(false);
 	onMounted(() => {
 		isMobile.value = judgeIsMobile();
@@ -306,7 +306,7 @@
 		isMobile.value = judgeIsMobile();
 	});
 
-	//s 过滤器定义
+	// s 过滤器定义
 	const filters = reactive({
 		keyword: "",
 		size: {
@@ -376,7 +376,7 @@
 		});
 	});
 
-	//f 方案选项标签渲染函数
+	// f 方案选项标签渲染函数
 	const renderPatternSelectOptionsLabel = (
 		option: SelectOption
 	): VNodeChild => {
@@ -397,7 +397,7 @@
 					{
 						style: {
 							userSelect: "none",
-							//s 这里如果判断选项对应的方案与当前站点匹配则字体显示为红色
+							// s 这里如果判断选项对应的方案与当前站点匹配则字体显示为红色
 							color:
 								!(option.rowData as Pattern).id.includes("#") &&
 								(option.rowData as Pattern).mainInfo.matchHost.some((host) => {
@@ -414,7 +414,7 @@
 		);
 	};
 
-	//f 选择器多选Tag渲染函数
+	// f 选择器多选Tag渲染函数
 	const renderTag: SelectRenderTag = ({ option, handleClose }) => {
 		return h(
 			NTag,
@@ -433,7 +433,7 @@
 		);
 	};
 
-	//f 带数量的选项标签渲染函数
+	// f 带数量的选项标签渲染函数
 	const renderOptionLabelWithCount = (option: SelectOption): VNodeChild => {
 		return h(
 			"div",
@@ -462,31 +462,31 @@
 		);
 	};
 
-	//f 获取卡片
+	// f 获取卡片
 	async function getCards() {
 		await cardStore.getPageCard();
 	}
 
-	//f 重新加载
+	// f 重新加载
 	async function reload() {
 		await clear(); // 先清空
 		await getCards(); // 后重载
 	}
 
-	//f 清空
+	// f 清空
 	async function clear() {
 		await cardStore.clearCardList();
 		filters.size.width = storeFilters.value.size.width;
 		filters.size.height = storeFilters.value.size.height;
 	}
 
-	//f 过滤器改变
+	// f 过滤器改变
 	function filterChange(key: "width" | "height", value: [number, number]) {
 		// console.log("过滤器变化", key, value);
 		storeFilters.value.size[key] = value; // 更新仓库过滤器
 	}
 
-	//f 处理关键词过滤
+	// f 处理关键词过滤
 	const handleKeywordFilter = (value?: string) => {
 		const keyword = value !== undefined ? value : filters.keyword;
 		console.log("触发关键词过滤", keyword);
@@ -494,44 +494,44 @@
 		updateMatchStatus();
 	};
 
-	//f 全选
+	// f 全选
 	function checkAll() {
 		filterCardList.value[nowType.value].forEach((c) => (c.isSelected = true));
 	}
 
-	//f 反选
+	// f 反选
 	function inverseAll() {
 		filterCardList.value[nowType.value].forEach(
 			(c) => (c.isSelected = !c.isSelected)
 		);
 	}
 
-	//f 取消
+	// f 取消
 	function cancel() {
 		filterCardList.value[nowType.value].forEach((c) => (c.isSelected = false));
 	}
 
-	//f 重置过滤器
+	// f 重置过滤器
 	function resetFilters() {
 		cardStore.resetFilters();
 		filters.size.width = storeFilters.value.size.width;
 		filters.size.height = storeFilters.value.size.height;
 	}
 
-	//f 下载选中项
+	// f 下载选中项
 	function downloadSelected() {
 		const cards =
 			filterCardList.value[nowType.value].filter((x) => x.isSelected) || [];
 		cardStore.downloadCards(cards);
 	}
 
-	//f 下载全部
+	// f 下载全部
 	function downloadAll() {
 		const cards = filterCardList.value[nowType.value] || [];
 		cardStore.downloadCards(cards);
 	}
 
-	//f 删除选中项
+	// f 删除选中项
 	function deleteSelected() {
 		const ids = filterCardList.value[nowType.value]
 			.filter((x) => x.isSelected)
@@ -539,7 +539,7 @@
 		cardStore.removeCard(ids);
 	}
 
-	//f 收藏选中项
+	// f 收藏选中项
 	function favoriteSelected() {
 		favoriteStore.addCard(selectionCardList.value[nowType.value]); // 添加卡片到Favorite仓库
 		selectionCardList.value[nowType.value].forEach(
@@ -549,7 +549,7 @@
 
 	//TODO 等待实现  批量添加标签
 	const showTagEdit = ref(false);
-	//f 批量添加标签
+	// f 批量添加标签
 	const batchAddTag = (tags: string[]) => {
 		console.log("批量添加标签,等待实现……", tags);
 		selectionCardList.value[nowType.value].forEach((c) => {

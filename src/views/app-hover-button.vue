@@ -113,7 +113,7 @@
 	const loadingStore = useLoadingStore();
 	const { loading } = storeToRefs(loadingStore);
 
-	const active = ref(false); //s 控制悬浮按钮的显示状态
+	const active = ref(false); // s 控制悬浮按钮的显示状态
 
 	// 定义Props
 	withDefaults(
@@ -127,13 +127,13 @@
 		}
 	);
 
-	//s 移动端标识符
+	// s 移动端标识符
 	const isMobile = ref(false);
 	onMounted(() => {
 		isMobile.value = judgeIsMobile();
 	});
 
-	//s Fab配置信息
+	// s Fab配置信息
 	const FabDragConfig = ref<FabProps["drag"]>({
 		boundary: {
 			top: "20px",
@@ -143,7 +143,7 @@
 		},
 	});
 
-	//s 状态信息
+	// s 状态信息
 	const state = reactive({
 		scrolling: false,
 		scrollingToDown: false,
@@ -197,7 +197,7 @@
 		percentY: number; // 垂直方向百分比(0~1)
 		percentX: number; // 水平方向百分比(0~1)
 	}
-	//f 计算位置
+	// f 计算位置
 	function calcPos(options: Partial<CalcPosOption>): Position {
 		const defaultOptions: CalcPosOption = {
 			width: 0,
@@ -216,11 +216,11 @@
 		return { x, y };
 	}
 
-	//f 修正位置&尺寸
+	// f 修正位置&尺寸
 	function handleFixPosSize() {
 		if (!hoverButtonDOM.value) return;
 		const hoverButtonBounding = useElementBounding(hoverButtonDOM.value);
-		//s 水平方向纠正
+		// s 水平方向纠正
 		if (hoverButtonBounding.right.value > winSize.width.value) {
 			position.value.x = winSize.width.value - hoverButtonBounding.width.value;
 		}
@@ -228,7 +228,7 @@
 			position.value.x = 0;
 		}
 
-		//s 垂直方向纠正
+		// s 垂直方向纠正
 		if (hoverButtonBounding.bottom.value > winSize.height.value) {
 			position.value.y =
 				winSize.height.value - hoverButtonBounding.height.value;
@@ -238,7 +238,7 @@
 		}
 	}
 
-	//f 切换窗口显示
+	// f 切换窗口显示
 	function toggleWindow(name?: string) {
 		active.value = false;
 		if (name) {
@@ -251,7 +251,7 @@
 	}
 
 	const { toUp, toDown } = useScroll();
-	//f 滚动容器到底部
+	// f 滚动容器到底部
 	interface DefaultOptions {
 		el: HTMLElement; // 滚动元素
 		interval: number; // 滚动间隔
@@ -266,7 +266,7 @@
 		let scrollInterval: number | null = null;
 		let scrolling = false;
 
-		//f 执行一次滚动操作
+		// f 执行一次滚动操作
 		function scrollOnce(direction: "up" | "down"): void {
 			if (scrolling) return;
 
@@ -303,7 +303,7 @@
 			scrolling = false;
 		});
 
-		//f 开始执行滚动操作的定时器
+		// f 开始执行滚动操作的定时器
 		function startScrollInterval(direction: "up" | "down"): void {
 			if (scrollInterval) {
 				clearInterval(scrollInterval);
@@ -333,7 +333,7 @@
 			window.addEventListener("touchmove", stopScrollInterval);
 		}
 
-		//f 停止执行滚动操作的定时器
+		// f 停止执行滚动操作的定时器
 		function stopScrollInterval(): void {
 			// console.log("滚动停止");
 			if (scrollInterval) {

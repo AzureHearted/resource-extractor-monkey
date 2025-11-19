@@ -20,7 +20,7 @@ import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
 import IconsResolver from "unplugin-icons/resolver";
 import Icons from "unplugin-icons/vite";
 
-//s 用于在vue项目中使用svg文件
+// s 用于在vue项目中使用svg文件
 import svgLoader from "vite-svg-loader";
 
 // s打包分析插件
@@ -28,7 +28,7 @@ import { visualizer } from "rollup-plugin-visualizer";
 
 // import vuetify from "vite-plugin-vuetify";
 
-//s NaiveUi配置
+// s NaiveUi配置
 import { NaiveUiResolver } from "unplugin-vue-components/resolvers";
 
 // https://vitejs.dev/config/
@@ -36,9 +36,9 @@ export default defineConfig({
 	plugins: [
 		vue(),
 		// VueDevTools(),
-		//s 用于在vue项目中使用svg文件
+		// s 用于在vue项目中使用svg文件
 		svgLoader(),
-		//s 自动导入
+		// s 自动导入
 		autoImport({
 			resolvers: [
 				VarletImportResolver({ autoImport: true }),
@@ -59,7 +59,7 @@ export default defineConfig({
 			],
 			dts: "./types/auto-imports.d.ts",
 		}),
-		//s 组件自动导入
+		// s 组件自动导入
 		components({
 			resolvers: [
 				VarletImportResolver(),
@@ -75,7 +75,7 @@ export default defineConfig({
 			],
 			dts: "./types/components.d.ts",
 		}),
-		//s 打包体积分析
+		// s 打包体积分析
 		Icons({
 			autoInstall: true,
 		}),
@@ -85,20 +85,20 @@ export default defineConfig({
 		// 		// labs: true,
 		// 	},
 		// }),
-		//s 打包体积分析
+		// s 打包体积分析
 		visualizer({
 			open: true, //注意这里要设置为true，否则无效
 			// gzipSize: true,
 			// brotliSize: true,
 		}),
-		//s 油猴配置
+		// s 油猴配置
 		monkey(monkeyConfig),
 	],
 	css: {
 		// 预处理器配置项
 		preprocessorOptions: {
 			scss: {
-				//s element-plus的自定义前缀设置导入
+				// s element-plus的自定义前缀设置导入
 				additionalData: `@use "@/styles/element/index.scss" as *;`,
 			},
 			less: {
@@ -107,23 +107,23 @@ export default defineConfig({
 		},
 	},
 	resolve: {
-		//s 路径别名设置
+		// s 路径别名设置
 		alias: {
 			"@": fileURLToPath(new URL("./src", import.meta.url)),
 			"@svg": fileURLToPath(new URL("./src/assets/svg", import.meta.url)),
 		},
 	},
 	server: {
-		open: false, //s 项目运行时不自动打开浏览器
+		open: false, // s 项目运行时不自动打开浏览器
 	},
-	//s 打包配置
+	// s 打包配置
 	build: {
 		target: "es2015",
 		// 使用terser进行压缩混淆
 		minify: "terser",
 		terserOptions: {
 			compress: {
-				drop_console: true, //s 删除所有 console
+				drop_console: true, // s 删除所有 console
 			},
 		},
 	},

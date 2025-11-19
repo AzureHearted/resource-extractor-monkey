@@ -67,7 +67,7 @@
 		box-sizing: border-box;
 	}
 
-	//s 拖拽条
+	// s 拖拽条
 	.base-dock__drag-bar {
 		position: relative;
 		width: 100%;

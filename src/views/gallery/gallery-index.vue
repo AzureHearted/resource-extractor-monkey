@@ -150,7 +150,7 @@
 		FancyboxBind(containerDOM.value, "[data-fancybox=web-img-collector]");
 	});
 
-	//f 执行FancyBox绑定
+	// f 执行FancyBox绑定
 	function FancyboxBind(
 		listContainerDOM: HTMLElement | null,
 		itemSelector: string = "[data-fancybox=web-img-collector]",

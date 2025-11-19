@@ -13,27 +13,27 @@ export default defineStore("LoadingStore", () => {
 		return (current.value / total.value) * 100;
 	});
 
-	//f 开始
+	// f 开始
 	function start(_total: number = 1) {
 		current.value = 0;
 		total.value = _total;
 		loading.value = true;
 	}
-	//f 更新
+	// f 更新
 	function update(_current: number, _total?: number) {
 		current.value = _current;
 		if (_total) {
 			total.value = _total;
 		}
 	}
-	//f 更新(百分比)
+	// f 更新(百分比)
 	function updatePercent(percent: number, _total?: number) {
 		if (_total) {
 			total.value = _total;
 		}
 		current.value = percent * total.value;
 	}
-	//f 停止
+	// f 停止
 	function end() {
 		loading.value = false;
 		current.value = total.value;

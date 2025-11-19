@@ -186,12 +186,12 @@
 		},
 	];
 
-	//j 修正项
+	// j 修正项
 	const fixList = computed(() => {
 		return rule.value[props.type].fix;
 	});
 
-	//j 类型名称
+	// j 类型名称
 	function typeName(type: BaseFix["type"]) {
 		switch (type) {
 			case "regex-extract":
@@ -205,17 +205,17 @@
 		}
 	}
 
-	//f 选项点击事件
+	// f 选项点击事件
 	function handleSelect(type: BaseFix["type"]) {
 		rule.value.addFixItem(props.type, type);
 	}
 
-	//f 上移修正规则
+	// f 上移修正规则
 	function upItem(index: number) {
 		// const fixList = rule.value[props.type].fix;
 		fixList.value.splice(index - 1, 0, fixList.value.splice(index, 1)[0]);
 	}
-	//f 下移修正规则
+	// f 下移修正规则
 	function downItem(index: number) {
 		// const fixList = rule.value[props.type].fix;
 		fixList.value.splice(index, 0, fixList.value.splice(index + 1, 1)[0]);

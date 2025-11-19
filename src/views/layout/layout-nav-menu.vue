@@ -20,7 +20,7 @@
 		(e: "select", key: string): void;
 	}>();
 
-	//f 菜单选项变化时的回调
+	// f 菜单选项变化时的回调
 	const select: MenuProps["onSelect"] = (key) => {
 		emits("select", key);
 	};

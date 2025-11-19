@@ -66,7 +66,7 @@
 	const host = ref(location.host);
 
 	onMounted(() => {
-		//s 用户配置信息获取
+		// s 用户配置信息获取
 		patternStore.getUserPatternInfo(); // 获取本地方案信息
 		patternStore.setInitPattern(); // 获取初始方案
 	});

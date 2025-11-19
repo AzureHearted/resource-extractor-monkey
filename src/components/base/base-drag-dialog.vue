@@ -206,26 +206,26 @@
 
 	const props = withDefaults(
 		defineProps<{
-			closeResetState?: boolean; //s 关闭后重置状态？
+			closeResetState?: boolean; // s 关闭后重置状态？
 			initFullscreen?: boolean; // s 初始全屏？
-			initPercentY?: number; //s 初始垂直位置百分比(相对窗口)
-			initPercentX?: number; //s 初始水平位置百分比(相对窗口)
-			initSize?: { width: number; height: number } | "auto"; //s 初始尺寸
+			initPercentY?: number; // s 初始垂直位置百分比(相对窗口)
+			initPercentX?: number; // s 初始水平位置百分比(相对窗口)
+			initSize?: { width: number; height: number } | "auto"; // s 初始尺寸
 			minWidth?: number; // 最小宽度
 			minHeight?: number; // 最小高度
 			dialogStyle?: HTMLAttributes["style"]; // dialog整体样式
 			headerStyle?: HTMLAttributes["style"]; // header部分样式
 			footerStyle?: HTMLAttributes["style"]; // footer部分样式
 			bodyStyle?: HTMLAttributes["style"]; // body部分样式
-			allowResize?: boolean | "vertical" | "horizontal"; //s 可更改尺寸大小?
-			allowFullScreen?: boolean; //s 允许全屏?
-			teleportTo?: string; //s 将组件传送到指定位置？
-			boundary?: string; //s 限定边界的css选择器(默认使用window)
-			clickOutsideClose?: boolean; //s 是否在点击dialog外部元素时关闭dialog?
+			allowResize?: boolean | "vertical" | "horizontal"; // s 可更改尺寸大小?
+			allowFullScreen?: boolean; // s 允许全屏?
+			teleportTo?: string; // s 将组件传送到指定位置？
+			boundary?: string; // s 限定边界的css选择器(默认使用window)
+			clickOutsideClose?: boolean; // s 是否在点击dialog外部元素时关闭dialog?
 			title?: string;
 		}>(),
 		{
-			//s 初始尺寸默认值
+			// s 初始尺寸默认值
 			initSize: () => {
 				return { width: 350, height: 250 };
 				// return "auto";
@@ -254,33 +254,33 @@
 	]);
 	const slots = useSlots();
 
-	//s dialog容器DOM
+	// s dialog容器DOM
 	const dialogDOM = ref<HTMLDialogElement | null>(null);
-	//s dialog位置
+	// s dialog位置
 	let position: UseDraggableReturn["position"];
-	//j dialog位置样式
+	// j dialog位置样式
 	let positionStyle: ComputedRef<HTMLAttributes["style"]>;
-	//s dialog容器边界信息
+	// s dialog容器边界信息
 	const dialogBounding = useElementBounding(dialogDOM);
-	//s dialog尺寸
+	// s dialog尺寸
 	let dialogSize:
 		| {
 				width: number;
 				height: number;
 		  }
 		| undefined;
-	//j dialog尺寸样式
+	// j dialog尺寸样式
 	// let sizeStyle: ComputedRef<HTMLAttributes["style"]>;
 
-	//s window尺寸
-	const winSize = useWindowSize(); //s 响应式视口尺寸
+	// s window尺寸
+	const winSize = useWindowSize(); // s 响应式视口尺寸
 
 	//! 约束边界DOM
 	const boundaryDOM = ref<HTMLElement | null>(null);
 	//! 约束边界DOM的边界信息
 	const boundaryBounding = useElementBounding(boundaryDOM);
 
-	//w 监视可拖拽区域的尺寸变化
+	// w 监视可拖拽区域的尺寸变化
 	watch([boundaryBounding.width, boundaryBounding.height], () => {
 		// console.log("boundaryBounding变化");
 		if (dialogDOM.value) {
@@ -290,14 +290,14 @@
 		}
 	});
 
-	//s 可拖拽部分的DOM
+	// s 可拖拽部分的DOM
 	const draggableDOM = ref<HTMLElement | null>(null);
-	//j 是否拖拽中
+	// j 是否拖拽中
 	let isDragging: ComputedRef<boolean>;
 
-	//s 标记是否已经初始化了
+	// s 标记是否已经初始化了
 	const isInit = ref(false);
-	//f 初始化函数
+	// f 初始化函数
 	function init() {
 		const {
 			style,
@@ -313,7 +313,7 @@
 				// console.log(object);
 				let initHeight = 0,
 					initWidth = 0;
-				//s 判断用户传入的初始尺寸是否为“自动”
+				// s 判断用户传入的初始尺寸是否为“自动”
 				if (props.initSize === "auto") {
 					initWidth = dialogDOM.value?.clientWidth || initWidth;
 					initHeight = dialogDOM.value?.clientHeight || initHeight;
@@ -321,7 +321,7 @@
 					initWidth = props.initSize.width || initWidth;
 					initHeight = props.initSize.height || initHeight;
 				}
-				//s 计算位置
+				// s 计算位置
 				const { x, y } = calcPos({
 					width: initWidth,
 					height: initHeight,
@@ -346,7 +346,7 @@
 		isDragging = dragging;
 	}
 
-	//w 监听dialogDOM是否获取到
+	// w 监听dialogDOM是否获取到
 	watch(dialogDOM, (dom) => {
 		// console.log("dialogDOM", dom);
 		if (dom) {
@@ -354,12 +354,12 @@
 			if (!isInit.value) {
 				//! 进行初始化
 				isInit.value = true;
-				//s 初始化位置
+				// s 初始化位置
 				resSetSize();
 
 				//! 执行初始化
 				init();
-				//s 刷新显示状态
+				// s 刷新显示状态
 				showDialog.value = false;
 				nextTick(() => {
 					showDialog.value = true;
@@ -372,14 +372,14 @@
 				}
 
 				if (!props.allowResize) {
-					//s 如果不允许改变尺寸就重置尺寸
+					// s 如果不允许改变尺寸就重置尺寸
 					resSetSize();
 				}
 			}
 		}
 	});
 
-	//f dialog外部点击事件
+	// f dialog外部点击事件
 	function handleClickOutside() {
 		// console.log('点击了外部');
 		if (props.clickOutsideClose) {
@@ -387,12 +387,12 @@
 		}
 	}
 
-	//s 内容区DOM
+	// s 内容区DOM
 	const bodyDOM = ref<HTMLElement>();
 
-	//s 更新标识符
+	// s 更新标识符
 	const updating = ref(false);
-	//f 更新尺寸
+	// f 更新尺寸
 	function updateSize() {
 		return new Promise<void>((resolve) => {
 			updating.value = true;
@@ -405,7 +405,7 @@
 		});
 	}
 
-	//f 重置尺寸大小
+	// f 重置尺寸大小
 	function resSetSize() {
 		if (props.initSize === "auto") {
 			if (dialogDOM.value) {
@@ -422,7 +422,7 @@
 		}
 	}
 
-	//f 重置位置
+	// f 重置位置
 	function resSetPos() {
 		if (!position) return;
 		position.value = calcPos({
@@ -441,7 +441,7 @@
 		});
 	}
 
-	//f 居中
+	// f 居中
 	function toCenter(direction: "both" | "vertical" | "horizontal") {
 		const { x, y } = calcPos({
 			width: dialogDOM.value
@@ -468,26 +468,26 @@
 		}
 	}
 
-	//s 组件是否已挂载
+	// s 组件是否已挂载
 	const isMounted = ref(false);
-	//s 组件是否被冻结
+	// s 组件是否被冻结
 	const isFreeze = ref(false);
 
 	//! 是否显示dialog
 	const show = defineModel("show", { type: Boolean, default: false });
-	//s 显示dialog
+	// s 显示dialog
 	const showDialog = ref(false);
-	//s 是否显示框架
+	// s 是否显示框架
 	const showLayout = ref(false);
 
-	//w 监听是否显示dialog
+	// w 监听是否显示dialog
 	watch(
 		() => show.value,
 		(isShow) => {
 			if (isShow) {
-				//s 先渲染框架
+				// s 先渲染框架
 				showLayout.value = true;
-				//s 然后异步渲染dialog
+				// s 然后异步渲染dialog
 				setTimeout(() => {
 					showDialog.value = true;
 				});
@@ -532,16 +532,16 @@
 		showDialog.value = false;
 	});
 
-	//f dialog关闭前的回调
+	// f dialog关闭前的回调
 	function handleBeforeLeave() {
 		emits("beforeClose");
 	}
-	//f dialog关闭后的回调
+	// f dialog关闭后的回调
 	function handleAfterLeave() {
 		emits("closed");
 	}
 
-	//f dialog进入前的回调
+	// f dialog进入前的回调
 	function handleBeforeEnter() {
 		emits("before-enter");
 		// console.log(
@@ -551,7 +551,7 @@
 		// );
 	}
 
-	//f dialog进入时的回调
+	// f dialog进入时的回调
 	function handleEnter() {
 		emits("enter");
 		// console.log(
@@ -563,7 +563,7 @@
 		// );
 	}
 
-	//f dialog进入后的回调
+	// f dialog进入后的回调
 	function handleAfterEnter() {
 		emits("after-enter");
 		// console.log(
@@ -582,7 +582,7 @@
 		percentY: number; // 垂直方向百分比(0~1)
 		percentX: number; // 水平方向百分比(0~1)
 	}
-	//f 计算位置
+	// f 计算位置
 	function calcPos(options: Partial<CalcPosOption>): Position {
 		const defaultOptions: CalcPosOption = {
 			width: 0,
@@ -601,18 +601,18 @@
 		return { x, y };
 	}
 
-	//f 修正位置&尺寸
+	// f 修正位置&尺寸
 	function handleFixPosSize() {
 		if (!position || !dialogSize || !dialogDOM.value) return;
-		//s 水平方向纠正
+		// s 水平方向纠正
 		if (dialogSize.width > boundaryBounding.width.value) {
-			//s 溢出的处理方式
+			// s 溢出的处理方式
 			const newX = 0,
 				newWidth = boundaryBounding.width.value;
 			position.value.x = newX;
 			dialogSize.width = newWidth;
 		} else {
-			//s 没有溢出的处理方式
+			// s 没有溢出的处理方式
 			if (dialogBounding.right.value > boundaryBounding.width.value) {
 				position.value.x =
 					boundaryBounding.width.value - dialogBounding.width.value;
@@ -622,15 +622,15 @@
 			}
 		}
 
-		//s 垂直方向纠正
+		// s 垂直方向纠正
 		if (dialogSize.height > boundaryBounding.height.value) {
-			//s 溢出的处理方式
+			// s 溢出的处理方式
 			const newY = 0,
 				newHeight = boundaryBounding.height.value;
 			position.value.x = newY;
 			dialogSize.height = newHeight;
 		} else {
-			//s 没有溢出的处理方式
+			// s 没有溢出的处理方式
 
 			if (dialogBounding.bottom.value > boundaryBounding.height.value) {
 				position.value.y =
@@ -642,9 +642,9 @@
 		}
 	}
 
-	//s 是否全屏的标识符
+	// s 是否全屏的标识符
 	const isFullscreen = ref(false);
-	//s 记录全屏前的尺寸和位置
+	// s 记录全屏前的尺寸和位置
 	const beforePosAndSize = reactive({
 		width: 0,
 		height: 0,
@@ -662,7 +662,7 @@
 			toggleFullScreen();
 		}
 	});
-	//f 全屏和还原切换
+	// f 全屏和还原切换
 	const toggleFullScreen = () => {
 		if (!dialogSize || !props.allowFullScreen) return;
 		isFullscreen.value = !isFullscreen.value;
@@ -670,18 +670,18 @@
 		nextTick(() => {
 			if (!dialogSize) return;
 			if (isFullscreen.value) {
-				//s 全屏前先记录当前位置和尺寸
+				// s 全屏前先记录当前位置和尺寸
 				beforePosAndSize.x = position.value.x;
 				beforePosAndSize.y = position.value.y;
 				beforePosAndSize.width = dialogSize.width;
 				beforePosAndSize.height = dialogSize.height;
-				//s 然后设置全屏位置
+				// s 然后设置全屏位置
 				position.value.x = boundaryBounding.x.value;
 				position.value.y = boundaryBounding.y.value;
 				dialogSize.width = boundaryBounding.width.value;
 				dialogSize.height = boundaryBounding.height.value;
 			} else {
-				//s 还原到全屏前的位置和尺寸
+				// s 还原到全屏前的位置和尺寸
 				position.value.x = beforePosAndSize.x;
 				position.value.y = beforePosAndSize.y;
 				dialogSize.width = beforePosAndSize.width;
@@ -700,21 +700,21 @@
 	const isResizing = ref(false);
 
 	//! 边框拖拽逻辑
-	//f 左边框拖拽
+	// f 左边框拖拽
 	function dragLeftBorder(e: MouseEvent) {
-		//s 判断是否可以修改"水平"方向尺寸
+		// s 判断是否可以修改"水平"方向尺寸
 		if (props.allowResize !== true && props.allowResize !== "horizontal") {
 			return;
 		}
 		boundaryBounding.update();
 		dialogBounding.update();
-		//s modal起始宽度和left
+		// s modal起始宽度和left
 		const startWidth = dialogBounding.width.value;
 		const startLeft = dialogBounding.left.value;
-		const { clientX: startX } = e; //s 起始x坐标
+		const { clientX: startX } = e; // s 起始x坐标
 		// console.log("右边框拖拽", e);
-		//s 移动
-		//f 移动函数
+		// s 移动
+		// f 移动函数
 		document.addEventListener("mousemove", handleMove);
 		function handleMove(e: MouseEvent) {
 			isResizing.value = true;
@@ -729,9 +729,9 @@
 				dialogSize.width = startWidth - deltaX;
 			}
 		}
-		//s 松开
+		// s 松开
 		document.addEventListener("mouseup", handleDrop);
-		//f 松开函数
+		// f 松开函数
 		function handleDrop() {
 			// console.log("松开");
 			isResizing.value = false;
@@ -739,22 +739,22 @@
 			document.removeEventListener("mouseup", handleDrop);
 		}
 	}
-	//f 上边框拖拽
+	// f 上边框拖拽
 	function dragTopBorder(e: MouseEvent) {
-		//s 判断是否可以修改"垂直"方向尺寸
+		// s 判断是否可以修改"垂直"方向尺寸
 		if (props.allowResize !== true && props.allowResize !== "vertical") {
 			return;
 		}
 		boundaryBounding.update();
 		dialogBounding.update();
-		//s modal起始高度和top
+		// s modal起始高度和top
 		const startHeight = dialogBounding.height.value;
 		const startTop = dialogBounding.top.value;
-		const { clientY: startY } = e; //s 起始x坐标
+		const { clientY: startY } = e; // s 起始x坐标
 		// console.log("右边框拖拽", e);
-		//s 移动
+		// s 移动
 		document.addEventListener("mousemove", handleMove);
-		//f 移动函数
+		// f 移动函数
 		function handleMove(e: MouseEvent) {
 			isResizing.value = true;
 			if (!dialogSize) return;
@@ -768,9 +768,9 @@
 				dialogSize.height = startHeight - deltaY;
 			}
 		}
-		//s 松开
+		// s 松开
 		document.addEventListener("mouseup", handleDrop);
-		//f 松开函数
+		// f 松开函数
 		function handleDrop() {
 			// console.log("松开");
 			isResizing.value = false;
@@ -778,22 +778,22 @@
 			document.removeEventListener("mouseup", handleDrop);
 		}
 	}
-	//f 右边框拖拽
+	// f 右边框拖拽
 	function dragRightBorder(e: MouseEvent) {
-		//s 判断是否可以修改"水平"方向尺寸
+		// s 判断是否可以修改"水平"方向尺寸
 		if (props.allowResize !== true && props.allowResize !== "horizontal") {
 			return;
 		}
 		boundaryBounding.update();
 		dialogBounding.update();
-		//s modal起始宽度和right
+		// s modal起始宽度和right
 		const startWidth = dialogBounding.width.value;
 		const startRight = dialogBounding.right.value;
-		const { clientX: startX } = e; //s 起始x坐标
+		const { clientX: startX } = e; // s 起始x坐标
 		// console.log("右边框拖拽", e);
-		//s 移动
+		// s 移动
 		document.addEventListener("mousemove", handleMove);
-		//f 移动函数
+		// f 移动函数
 		function handleMove(e: MouseEvent) {
 			isResizing.value = true;
 			if (!dialogSize) return;
@@ -806,9 +806,9 @@
 				dialogSize.width = startWidth + deltaX;
 			}
 		}
-		//s 松开
+		// s 松开
 		document.addEventListener("mouseup", handleDrop);
-		//f 松开函数
+		// f 松开函数
 		function handleDrop() {
 			isResizing.value = false;
 			// console.log("松开");
@@ -816,22 +816,22 @@
 			document.removeEventListener("mouseup", handleDrop);
 		}
 	}
-	//f 下边框拖拽
+	// f 下边框拖拽
 	function dragBottomBorder(e: MouseEvent) {
-		//s 判断是否可以修改"垂直"方向尺寸
+		// s 判断是否可以修改"垂直"方向尺寸
 		if (props.allowResize !== true && props.allowResize !== "vertical") {
 			return;
 		}
 		boundaryBounding.update();
 		dialogBounding.update();
-		//s modal起始高度和bottom
+		// s modal起始高度和bottom
 		const startHeight = dialogBounding.height.value;
 		const startBottom = dialogBounding.bottom.value;
-		const { clientY: startY } = e; //s 起始Y坐标
+		const { clientY: startY } = e; // s 起始Y坐标
 		// console.log("下边框拖拽", e);
-		//s 移动
+		// s 移动
 		document.addEventListener("mousemove", handleMove);
-		//f 移动函数
+		// f 移动函数
 		function handleMove(e: MouseEvent) {
 			isResizing.value = true;
 			if (!dialogSize) return;
@@ -844,9 +844,9 @@
 				dialogSize.height = startHeight + deltaY;
 			}
 		}
-		//s 松开
+		// s 松开
 		document.addEventListener("mouseup", handleDrop);
-		//f 松开函数
+		// f 松开函数
 		function handleDrop() {
 			isResizing.value = false;
 			// console.log("松开");
@@ -856,26 +856,26 @@
 	}
 
 	//! 角落拖拽逻辑
-	//f 左上角控制点拖拽
+	// f 左上角控制点拖拽
 	function dragLTCorner(e: MouseEvent) {
 		boundaryBounding.update();
 		dialogBounding.update();
-		//s modal起始宽度、高度和left、bottom
+		// s modal起始宽度、高度和left、bottom
 		const startWidth = dialogBounding.width.value;
 		const startHeight = dialogBounding.height.value;
 		const startModalLeft = dialogBounding.left.value;
 		const startTop = dialogBounding.top.value;
-		const { clientX: startX, clientY: startY } = e; //s 起始x,y坐标
-		//s 移动
+		const { clientX: startX, clientY: startY } = e; // s 起始x,y坐标
+		// s 移动
 		document.addEventListener("mousemove", handleMove);
-		//f 移动函数
+		// f 移动函数
 		function handleMove(e: MouseEvent) {
 			isResizing.value = true;
 			if (!dialogSize) return;
 			const { clientX: nowX, clientY: nowY } = e;
 			const deltaX = nowX - startX;
 			const deltaY = nowY - startY;
-			//s 判断水平方向
+			// s 判断水平方向
 			if (
 				startModalLeft + deltaX >= boundaryBounding.left.value &&
 				startWidth - deltaX > props.minWidth &&
@@ -884,7 +884,7 @@
 				position.value.x = startModalLeft + deltaX;
 				dialogSize.width = startWidth - deltaX;
 			}
-			//s 判断垂直方向
+			// s 判断垂直方向
 			if (
 				startTop + deltaY >= boundaryBounding.top.value &&
 				startHeight - deltaY > props.minHeight &&
@@ -894,9 +894,9 @@
 				dialogSize.height = startHeight - deltaY;
 			}
 		}
-		//s 松开
+		// s 松开
 		document.addEventListener("mouseup", handleDrop);
-		//f 松开函数
+		// f 松开函数
 		function handleDrop() {
 			isResizing.value = false;
 			// console.log("松开");
@@ -904,27 +904,27 @@
 			document.removeEventListener("mouseup", handleDrop);
 		}
 	}
-	//f 右上角控制点拖拽
+	// f 右上角控制点拖拽
 	function dragRTCorner(e: MouseEvent) {
 		if (!dialogSize) return;
 		boundaryBounding.update();
 		dialogBounding.update();
-		//s modal起始宽度、高度和right、top
+		// s modal起始宽度、高度和right、top
 		const startWidth = dialogBounding.width.value;
 		const startHeight = dialogBounding.height.value;
 		const startRight = dialogBounding.right.value;
 		const startTop = dialogBounding.top.value;
-		const { clientX: startX, clientY: startY } = e; //s 起始x,y坐标
-		//s 移动
+		const { clientX: startX, clientY: startY } = e; // s 起始x,y坐标
+		// s 移动
 		document.addEventListener("mousemove", handleMove);
-		//f 移动函数
+		// f 移动函数
 		function handleMove(e: MouseEvent) {
 			isResizing.value = true;
 			if (!dialogSize) return;
 			const { clientX: nowX, clientY: nowY } = e;
 			const deltaX = nowX - startX;
 			const deltaY = nowY - startY;
-			//s 判断水平方向
+			// s 判断水平方向
 			if (
 				startRight + deltaX <= boundaryBounding.right.value &&
 				startWidth + deltaX > props.minWidth &&
@@ -932,7 +932,7 @@
 			) {
 				dialogSize.width = startWidth + deltaX;
 			}
-			//s 判断垂直方向
+			// s 判断垂直方向
 			if (
 				startTop + deltaY >= boundaryBounding.top.value &&
 				startHeight - deltaY > props.minHeight &&
@@ -942,9 +942,9 @@
 				dialogSize.height = startHeight - deltaY;
 			}
 		}
-		//s 松开
+		// s 松开
 		document.addEventListener("mouseup", handleDrop);
-		//f 松开函数
+		// f 松开函数
 		function handleDrop() {
 			isResizing.value = false;
 			// console.log("松开");
@@ -952,26 +952,26 @@
 			document.removeEventListener("mouseup", handleDrop);
 		}
 	}
-	//f 右下角控制点拖拽
+	// f 右下角控制点拖拽
 	function dragRBCorner(e: MouseEvent) {
 		boundaryBounding.update();
 		dialogBounding.update();
-		//s modal起始宽度、高度和right、bottom
+		// s modal起始宽度、高度和right、bottom
 		const startWidth = dialogBounding.width.value;
 		const startHeight = dialogBounding.height.value;
 		const startRight = dialogBounding.right.value;
 		const startBottom = dialogBounding.bottom.value;
-		const { clientX: startX, clientY: startY } = e; //s 起始x,y坐标
-		//s 移动
+		const { clientX: startX, clientY: startY } = e; // s 起始x,y坐标
+		// s 移动
 		document.addEventListener("mousemove", handleMove);
-		//f 移动函数
+		// f 移动函数
 		function handleMove(e: MouseEvent) {
 			isResizing.value = true;
 			if (!dialogSize) return;
 			const { clientX: nowX, clientY: nowY } = e;
 			const deltaX = nowX - startX;
 			const deltaY = nowY - startY;
-			//s 判断水平方向
+			// s 判断水平方向
 			if (
 				startRight + deltaX <= boundaryBounding.right.value &&
 				startWidth + deltaX > props.minWidth &&
@@ -979,7 +979,7 @@
 			) {
 				dialogSize.width = startWidth + deltaX;
 			}
-			//s 判断垂直方向
+			// s 判断垂直方向
 			if (
 				startBottom + deltaY <= boundaryBounding.bottom.value &&
 				startHeight + deltaY > props.minHeight &&
@@ -988,9 +988,9 @@
 				dialogSize.height = startHeight + deltaY;
 			}
 		}
-		//s 松开
+		// s 松开
 		document.addEventListener("mouseup", handleDrop);
-		//f 松开函数
+		// f 松开函数
 		function handleDrop() {
 			isResizing.value = false;
 			// console.log("松开");
@@ -998,26 +998,26 @@
 			document.removeEventListener("mouseup", handleDrop);
 		}
 	}
-	//f 左下角控制点拖拽
+	// f 左下角控制点拖拽
 	function dragLBCorner(e: MouseEvent) {
 		boundaryBounding.update();
 		dialogBounding.update();
-		//s modal起始宽度、高度和left、bottom
+		// s modal起始宽度、高度和left、bottom
 		const startWidth = dialogBounding.width.value;
 		const startHeight = dialogBounding.height.value;
 		const startModalLeft = dialogBounding.left.value;
 		const startBottom = dialogBounding.bottom.value;
-		const { clientX: startX, clientY: startY } = e; //s 起始x,y坐标
-		//s 移动
+		const { clientX: startX, clientY: startY } = e; // s 起始x,y坐标
+		// s 移动
 		document.addEventListener("mousemove", handleMove);
-		//f 移动函数
+		// f 移动函数
 		function handleMove(e: MouseEvent) {
 			isResizing.value = true;
 			if (!dialogSize) return;
 			const { clientX: nowX, clientY: nowY } = e;
 			const deltaX = nowX - startX;
 			const deltaY = nowY - startY;
-			//s 判断水平方向
+			// s 判断水平方向
 			if (
 				startModalLeft + deltaX >= boundaryBounding.left.value &&
 				startWidth - deltaX > props.minWidth &&
@@ -1026,7 +1026,7 @@
 				position.value.x = startModalLeft + deltaX;
 				dialogSize.width = startWidth - deltaX;
 			}
-			//s 判断垂直方向
+			// s 判断垂直方向
 			if (
 				startBottom + deltaY <= boundaryBounding.bottom.value &&
 				startHeight + deltaY > props.minHeight &&
@@ -1035,9 +1035,9 @@
 				dialogSize.height = startHeight + deltaY;
 			}
 		}
-		//s 松开
+		// s 松开
 		document.addEventListener("mouseup", handleDrop);
-		//f 松开函数
+		// f 松开函数
 		function handleDrop() {
 			isResizing.value = false;
 			// console.log("松开");
@@ -1052,7 +1052,7 @@
 		box-sizing: border-box;
 	}
 	// $radius: 4px;
-	//s dialog容器默认样式
+	// s dialog容器默认样式
 	.base-drag-dialog {
 		box-sizing: border-box !important;
 		position: fixed;
@@ -1089,7 +1089,7 @@
 		}
 	}
 
-	//s 主要区域
+	// s 主要区域
 	.base-drag-dialog__main {
 		position: relative;
 		display: flex;
@@ -1103,7 +1103,7 @@
 		background: rgba(255, 255, 255, 0.8);
 	}
 
-	//s 主要区域背景
+	// s 主要区域背景
 	.base-drag-dialog__main__background {
 		position: absolute;
 		overflow: hidden;
@@ -1117,7 +1117,7 @@
 		}
 	}
 
-	//s header容器默认样式
+	// s header容器默认样式
 	.base-drag-dialog__header {
 		position: relative;
 
@@ -1139,7 +1139,7 @@
 		}
 	}
 
-	//s header左侧
+	// s header左侧
 	.base-drag-dialog__header__left {
 		flex: auto;
 		display: flex;
@@ -1151,7 +1151,7 @@
 		white-space: nowrap;
 	}
 
-	//s header右侧
+	// s header右侧
 	.base-drag-dialog__header__right {
 		margin-left: auto;
 		display: flex;
@@ -1161,7 +1161,7 @@
 
 		touch-action: auto;
 
-		//s header中的button
+		// s header中的button
 		.header__button {
 			aspect-ratio: 1;
 			width: auto;
@@ -1171,18 +1171,18 @@
 			align-items: center;
 			transition: 0.5s ease;
 		}
-		//s 默认按钮悬浮样式
+		// s 默认按钮悬浮样式
 		.header__button:hover {
 			background: rgb(168, 168, 168);
 		}
-		//s 关闭按钮(悬浮样式)
+		// s 关闭按钮(悬浮样式)
 		.drag-modal__button-close:hover {
 			background: rgb(244, 67, 54);
 			color: white;
 		}
 	}
 
-	//s footer(底部)默认样式
+	// s footer(底部)默认样式
 	.base-drag-dialog__footer {
 		position: relative;
 		background: rgba(255, 255, 255, 0.3);
@@ -1193,7 +1193,7 @@
 		padding: 4px 8px;
 	}
 
-	//s body(内容区)默认样式
+	// s body(内容区)默认样式
 	.base-drag-dialog__body {
 		flex: auto;
 		padding: 4px;
@@ -1214,7 +1214,7 @@
 		// overflow: hidden !important;
 		// background-color: green !important;
 
-		//w 四个可拖拽边框
+		// w 四个可拖拽边框
 		.base-drag-dialog__border {
 			box-sizing: border-box;
 			position: absolute !important;
@@ -1232,7 +1232,7 @@
 				background-color: rgba(153, 205, 50, 1) !important;
 			}
 
-			//w 左边框
+			// w 左边框
 			&.base-drag-dialog__border__left {
 				position: relative;
 				left: -$weight !important;
@@ -1244,7 +1244,7 @@
 				border-top-left-radius: $weight;
 				border-bottom-left-radius: $weight;
 			}
-			//w 右边框
+			// w 右边框
 			&.base-drag-dialog__border__right {
 				right: -$weight !important;
 				top: 0 !important;
@@ -1255,7 +1255,7 @@
 				border-top-right-radius: $weight;
 				border-bottom-right-radius: $weight;
 			}
-			//w 上边框
+			// w 上边框
 			&.base-drag-dialog__border__top {
 				top: -$weight !important;
 				left: 0 !important;
@@ -1267,7 +1267,7 @@
 				border-top-right-radius: $weight;
 			}
 
-			//w 下边框
+			// w 下边框
 			&.base-drag-dialog__border__bottom {
 				bottom: -$weight !important;
 				left: 0 !important;
@@ -1279,7 +1279,7 @@
 				border-bottom-right-radius: $weight;
 			}
 		}
-		//j 四个可拖拽角落
+		// j 四个可拖拽角落
 		.base-drag-dialog__corner {
 			box-sizing: border-box;
 			position: absolute !important;
@@ -1301,7 +1301,7 @@
 				background-color: rgba(153, 205, 50, 1) !important;
 			}
 
-			//j 左上角
+			// j 左上角
 			&.base-drag-dialog__corner__lt {
 				position: relative;
 				left: -$weight !important;
@@ -1315,7 +1315,7 @@
 					black $weight
 				);
 			}
-			//j 右上角
+			// j 右上角
 			&.base-drag-dialog__corner__rt {
 				right: -$weight !important;
 				top: -$weight !important;
@@ -1329,7 +1329,7 @@
 				);
 			}
 
-			//j 右下角
+			// j 右下角
 			&.base-drag-dialog__corner__rb {
 				right: -$weight !important;
 				bottom: -$weight !important;
@@ -1343,7 +1343,7 @@
 				);
 			}
 
-			//j 左下角
+			// j 左下角
 			&.base-drag-dialog__corner__lb {
 				left: -$weight !important;
 				bottom: -$weight !important;
@@ -1360,7 +1360,7 @@
 	}
 
 	//? transition效果
-	//s	默认淡出淡入
+	// s	默认淡出淡入
 	.dialog-enter-active,
 	.dialog-leave-active {
 		transition: 0.5s ease;
@@ -1372,7 +1372,7 @@
 		top: 100% !important;
 	}
 
-	//s 默认可拖拽区域样式(约束边界)
+	// s 默认可拖拽区域样式(约束边界)
 	.base-drag-dialog__boundary {
 		position: fixed;
 		margin: auto;

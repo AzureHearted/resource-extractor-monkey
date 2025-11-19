@@ -203,13 +203,13 @@
 		});
 	});
 
-	//f 节点内容渲染
+	// f 节点内容渲染
 	const renderLabel: TreeProps["renderLabel"] = ({ option }) => {
 		const node = option as PatternNode | RuleNode;
 		return h(
 			"div",
 			{
-				//s 这里如果判断当前节点对应的方案与当前站点匹配则字体显示为红色
+				// s 这里如果判断当前节点对应的方案与当前站点匹配则字体显示为红色
 				style:
 					node.type === "pattern" &&
 					!node.id.includes("#") &&
@@ -227,7 +227,7 @@
 	//* 拖拽相关
 	const nowDragNode = ref<TreeOption>();
 
-	//f 拖拽开始时
+	// f 拖拽开始时
 	const dragstart: (data: { node: TreeOption; event: DragEvent }) => void = ({
 		node,
 	}) => {
@@ -236,7 +236,7 @@
 		nowDragNode.value = node;
 	};
 
-	//f 判断是否可以放置
+	// f 判断是否可以放置
 	const allowDrop: (info: {
 		dropPosition: TreeDropInfo["dropPosition"];
 		node: TreeOption;
@@ -255,7 +255,7 @@
 		}
 	};
 
-	//f 放置时执行
+	// f 放置时执行
 	const handleDrop: (data: TreeDropInfo) => void = ({
 		dragNode,
 		node,
@@ -321,7 +321,7 @@
 		}
 	};
 
-	//f 定义节点属性
+	// f 定义节点属性
 	const nodeProps: TreeProps["nodeProps"] = ({ option }) => {
 		return {
 			// 点击事件的定义

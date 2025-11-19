@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-	//s 应用版本号的环境变量声明
+	// s 应用版本号的环境变量声明
 	readonly VITE_APP_VERSION: string;
 }
 

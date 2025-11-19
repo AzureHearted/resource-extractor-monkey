@@ -43,10 +43,10 @@
 
 	const props = withDefaults(
 		defineProps<{
-			closeResetState?: boolean; //s 关闭后重置状态？
-			initPercentY?: number; //s 初始垂直位置百分比(相对窗口)
-			initPercentX?: number; //s 初始水平位置百分比(相对窗口)
-			initSize?: { width: number; height: number }; //s 初始尺寸
+			closeResetState?: boolean; // s 关闭后重置状态？
+			initPercentY?: number; // s 初始垂直位置百分比(相对窗口)
+			initPercentX?: number; // s 初始水平位置百分比(相对窗口)
+			initSize?: { width: number; height: number }; // s 初始尺寸
 			minWidth?: number; // 最小宽度
 			minHeight?: number; // 最小高度
 		}>(),
@@ -59,28 +59,28 @@
 	);
 	const emits = defineEmits(["open", "closed", "beforeClose"]);
 
-	//s 容器DOM
+	// s 容器DOM
 	const containerDOM = ref<HTMLElement | null>(null);
-	//s 位置
+	// s 位置
 	let position: UseDraggableReturn["position"];
-	//j dialog位置样式
+	// j dialog位置样式
 	let posStyle: ComputedRef<HTMLAttributes["style"]>;
-	//s 容器边界信息
+	// s 容器边界信息
 	const bounding = useElementBounding(containerDOM);
-	//s 容器尺寸
+	// s 容器尺寸
 	let size:
 		| {
 				width: number;
 				height: number;
 		  }
 		| undefined;
-	//j dialog尺寸样式
+	// j dialog尺寸样式
 	let sizeStyle: ComputedRef<HTMLAttributes["style"]>;
 
-	//s window尺寸
-	const winSize = useWindowSize(); //s 响应式视口尺寸
+	// s window尺寸
+	const winSize = useWindowSize(); // s 响应式视口尺寸
 
-	//w 监视可拖拽区域的尺寸变化
+	// w 监视可拖拽区域的尺寸变化
 	watch([() => winSize.width.value, () => winSize.height.value], () => {
 		if (show.value) {
 			nextTick(() => {
@@ -89,12 +89,12 @@
 		}
 	});
 
-	//j 是否拖拽中
+	// j 是否拖拽中
 	let isDragging: ComputedRef<boolean>;
 
-	//s 标记是否已经初始化了
+	// s 标记是否已经初始化了
 	const isInit = ref(false);
-	//f 初始化函数
+	// f 初始化函数
 	function init() {
 		const { style, position:pos, isDragging:dragging } = useDraggable(containerDOM, {
 			handle: containerDOM,
@@ -128,7 +128,7 @@
 		isDragging = dragging;
 	}
 
-	//w 监听dialogDOM是否获取到
+	// w 监听dialogDOM是否获取到
 	watch(containerDOM, (dom) => {
 		// console.log("containerDOM", dom);
 		if (dom) {
@@ -147,7 +147,7 @@
 					});
 				}
 
-				//w 监听dialog尺寸变化
+				// w 监听dialog尺寸变化
 				watch([() => size?.width, () => size?.height], () => {
 					if (show.value) {
 						nextTick(() => {
@@ -163,9 +163,9 @@
 					};
 				});
 
-				//s 执行初始化
+				// s 执行初始化
 				init();
-				//s 刷新显示状态
+				// s 刷新显示状态
 				showContainer.value = false;
 				nextTick(() => {
 					showContainer.value = true;
@@ -200,26 +200,26 @@
 		}
 	});
 
-	//s 组件是否已挂载
+	// s 组件是否已挂载
 	const isMounted = ref(false);
-	//s 组件是否被冻结
+	// s 组件是否被冻结
 	const isFreeze = ref(false);
 
 	//! 是否显示dialog
 	const show = defineModel("show", { type: Boolean, default: true });
-	//s 显示容器
+	// s 显示容器
 	const showContainer = ref(false);
-	//s 是否显示框架
+	// s 是否显示框架
 	const showLayout = ref(false);
 
-	//w 监听是否显示dialog
+	// w 监听是否显示dialog
 	watch(
 		() => show.value,
 		(isShow) => {
 			if (isShow) {
-				//s 先渲染框架
+				// s 先渲染框架
 				showLayout.value = true;
-				//s 然后异步渲染dialog
+				// s 然后异步渲染dialog
 				setTimeout(() => {
 					showContainer.value = true;
 				});
@@ -264,16 +264,16 @@
 		showContainer.value = false;
 	});
 
-	//f dialog关闭前的回调
+	// f dialog关闭前的回调
 	function handleBeforeLeave() {
 		emits("beforeClose");
 	}
-	//f dialog关闭后的回调
+	// f dialog关闭后的回调
 	function handleAfterLeave() {
 		emits("closed");
 	}
 
-	//f dialog进入前的回调
+	// f dialog进入前的回调
 	function handleBeforeEnter() {
 		// console.log(
 		// 	"before-enter",
@@ -282,7 +282,7 @@
 		// );
 	}
 
-	//f dialog进入时的回调
+	// f dialog进入时的回调
 	function handleEnter() {
 		// console.log(
 		// 	"enter",
@@ -293,7 +293,7 @@
 		// );
 	}
 
-	//f dialog进入后的回调
+	// f dialog进入后的回调
 	function handleAfterEnter() {
 		emits("open");
 		// console.log(
@@ -312,7 +312,7 @@
 		percentY: number; // 垂直方向百分比(0~1)
 		percentX: number; // 水平方向百分比(0~1)
 	}
-	//f 计算位置
+	// f 计算位置
 	function calcPos(options: Partial<CalcPosOption>): Position {
 		const defaultOptions: CalcPosOption = {
 			width: 0,
@@ -331,18 +331,18 @@
 		return { x, y };
 	}
 
-	//f 修正位置&尺寸
+	// f 修正位置&尺寸
 	function handleFixPosSize() {
 		if (!position || !size || !containerDOM.value) return;
-		//s 水平方向纠正
+		// s 水平方向纠正
 		if (size.width > winSize.width.value) {
-			//s 溢出的处理方式
+			// s 溢出的处理方式
 			const newX = 0,
 				newWidth = winSize.width.value;
 			position.value.x = newX;
 			size.width = newWidth;
 		} else {
-			//s 没有溢出的处理方式
+			// s 没有溢出的处理方式
 			if (bounding.right.value > winSize.width.value) {
 				position.value.x =
 					winSize.width.value - bounding.width.value;
@@ -352,15 +352,15 @@
 			}
 		}
 
-		//s 垂直方向纠正
+		// s 垂直方向纠正
 		if (size.height > winSize.height.value) {
-			//s 溢出的处理方式
+			// s 溢出的处理方式
 			const newY = 0,
 				newHeight = winSize.height.value;
 			position.value.x = newY;
 			size.height = newHeight;
 		} else {
-			//s 没有溢出的处理方式
+			// s 没有溢出的处理方式
 
 			if (bounding.bottom.value > winSize.height.value) {
 				position.value.y =
@@ -409,7 +409,7 @@
 		}
 	}
 
-	//s 拖拽条容器
+	// s 拖拽条容器
 	.base-drag__header {
 		position: relative;
 		height: 10px;
@@ -425,7 +425,7 @@
 		/* 禁止图文拖拽 */
 		-webkit-user-drag: none;
 	}
-	//s (默认)拖拽条
+	// s (默认)拖拽条
 	.base-drag__drag-bar-default {
 		width: 100%;
 		height: 100%;
@@ -450,7 +450,7 @@
 		}
 	}
 
-	//s 按钮容器
+	// s 按钮容器
 	.base-dock__button-wrap {
 		position: relative;
 		display: flex;
@@ -467,7 +467,7 @@
 		// }
 	}
 
-	//s 关闭按钮
+	// s 关闭按钮
 	.base-dock__close-button {
 		height: 100%;
 		aspect-ratio: 1;
@@ -476,7 +476,7 @@
 	}
 
 	//? transition效果
-	//s	默认淡出淡入
+	// s	默认淡出淡入
 	.v-enter-active,
 	.v-leave-active {
 		transition: 0.5s ease;

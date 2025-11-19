@@ -15,13 +15,13 @@ export interface PatternRowData {
 
 // 主要信息
 export interface BaseMainInfo {
-	name: string; //s 规则名称
-	host: string; //s 域名
-	matchHost: string[]; //s 匹配域名列表
+	name: string; // s 规则名称
+	host: string; // s 域名
+	matchHost: string[]; // s 匹配域名列表
 	// 路径过滤器
 	filter: Pick<BaseRegex, "expression" | "flags">;
-	icon: string; //s 站点图标链接
-	titleSelector: string; //s 标题选择器
+	icon: string; // s 站点图标链接
+	titleSelector: string; // s 标题选择器
 	note: string; //方案备注
 }
 
@@ -64,9 +64,9 @@ export interface BaseMatch {
 	fix: BaseFix[]; // 修正
 }
 
-//s 匹配区域
+// s 匹配区域
 export interface BaseMatchRegion extends Pick<BaseMatch, "selector"> {
-	//s 时候启用区域限定(开启后将以该项指定的区域作为起点查找查询其他项目)
+	// s 时候启用区域限定(开启后将以该项指定的区域作为起点查找查询其他项目)
 	enable: boolean; // 是否开启
 }
 
@@ -87,32 +87,32 @@ export interface BaseMatchDescription extends BaseMatch {
 
 // 基础正则接口
 interface BaseRegex {
-	expression: string; //s 正则表达式
-	replaceTo: string; //s 替换结果
-	flags: string[]; //s 正则修饰符
+	expression: string; // s 正则表达式
+	replaceTo: string; // s 替换结果
+	flags: string[]; // s 正则修饰符
 }
 
-//s 正则提取修正类型的接口
+// s 正则提取修正类型的接口
 interface BaseMatchRegExtract extends Omit<BaseRegex, "replaceTo"> {
 	type: "regex-extract";
 }
 
-//s 正则替换类型的接口
+// s 正则替换类型的接口
 interface BaseMatchRegReplace extends BaseRegex {
 	type: "regex-replace";
 }
-//s 获取页面并提取内容
+// s 获取页面并提取内容
 interface BaseMatchFetchPageAndExtractContent extends Omit<BaseMatch, "fix"> {
 	type: "fetch-page-and-extract-content";
 }
 
-//s 正则修正类型
+// s 正则修正类型
 export type BaseFix =
 	| BaseMatchRegExtract
 	| BaseMatchRegReplace
 	| BaseMatchFetchPageAndExtractContent;
 
-//s 匹配过滤器
+// s 匹配过滤器
 export interface BaseFilter {
 	formats: string[]; //格式列表
 	width: [number, number]; // 宽度范围

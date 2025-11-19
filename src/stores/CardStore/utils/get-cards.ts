@@ -12,7 +12,13 @@ import type {
 } from "../interface";
 import Card from "../class/Card";
 // 导入请求工具
-import { getExtByUrl, getNameByUrl, isBase64Img, isUrl, safeDecodeURI } from "@/utils/common";
+import {
+  getExtByUrl,
+  getNameByUrl,
+  isBase64Img,
+  isUrl,
+  safeDecodeURI,
+} from "@/utils/common";
 import { TaskQueue } from "@/utils/taskQueue";
 import type { Task } from "@/utils/taskQueue";
 import { getHTMLDocumentFromUrl } from "@/utils/http";
@@ -234,7 +240,7 @@ export default async function getCard(
             description.title = safeDecodeURI(description.title);
           }
 
-          //s 设置卡片来源
+          // s 设置卡片来源
           source.host = location.host;
           if (source.originUrls?.length) {
             source.originUrls.push(location.origin + location.pathname);
@@ -430,7 +436,7 @@ export default async function getCard(
           }
           description.title = safeDecodeURI(description.title);
 
-          //s 设置卡片来源
+          // s 设置卡片来源
           source.host = location.host;
           if (source.originUrls?.length) {
             source.originUrls.push(location.origin + location.pathname);
@@ -444,7 +450,7 @@ export default async function getCard(
             source.meta.ext = preview.meta.ext;
           }
 
-          //f 创建卡片
+          // f 创建卡片
           const card = new Card({ source, preview, description });
 
           // 触发回调
@@ -549,7 +555,7 @@ async function fixResult(value: string, fixRules: BaseFix[]): Promise<string> {
         console.error(e);
         continue; //如果失败则直接跳过该修正规则
       }
-      //s 正则提取类型的修正
+      // s 正则提取类型的修正
       if (fixType === "regex-extract") {
         const match = value.match(regex);
         // console.log("正则提取", value, regex, match);
@@ -557,14 +563,14 @@ async function fixResult(value: string, fixRules: BaseFix[]): Promise<string> {
           value = match[0];
         }
       }
-      //s 正则替换类型的修正
+      // s 正则替换类型的修正
       if (fixType === "regex-replace") {
         // console.log("正则替换", value, regex, fixRule.replaceTo);
         value = value.replace(regex, fixRule.replaceTo);
       }
     } else if (fixType === "fetch-page-and-extract-content") {
       const { selector, infoType, name } = fixRule;
-      //s 抓取页面并提取内容
+      // s 抓取页面并提取内容
       const doc = await getHTMLDocumentFromUrl(value);
       if (doc) {
         // console.log(`url:${value}\n获取到的Document对象`, doc.documentElement);
@@ -607,7 +613,7 @@ interface GetMetaOption {
   url?: string;
 }
 
-//f 获取元信息(根据传入的值类型判断获取方式)
+// f 获取元信息(根据传入的值类型判断获取方式)
 async function getMeta(
   target: string | Blob | HTMLElement,
   option?: Partial<GetMetaOption>
@@ -625,18 +631,18 @@ async function getMeta(
   const { method, url } = { ...defaultOption, ...option };
   // console.log("开始Meta获取 target:", target);
   if (method === "auto") {
-    //s 按照优先级顺序一次尝试各种方式获取meta
-    //s 按照DOM
+    // s 按照优先级顺序一次尝试各种方式获取meta
+    // s 按照DOM
     if (typeof target === "object" && target instanceof HTMLElement) {
       // console.log("获取元信息(类型:DOM元素)", target);
       if (!(target instanceof HTMLImageElement && target.srcset)) {
-        //s 只有不含有srcset属性的img元素才能执行
+        // s 只有不含有srcset属性的img元素才能执行
         const { width, height } = await getDOMNaturalSize(target);
         meta = {
           ...meta,
           ...{ valid: width > 0 && height > 0, width, height, type: "image" },
         };
-        //s 只有匹配到url不是data:image开头的video元素才能执行
+        // s 只有匹配到url不是data:image开头的video元素才能执行
         if (target instanceof HTMLVideoElement && url && url.trim()) {
           if (isUrl(url)) {
             if (inferUrlType(new URL(url)) === "video") {
@@ -664,7 +670,7 @@ async function getMeta(
       // console.log("getDOMNaturalSize 获取结果", target, meta);
       // console.count('通过HTML获取元信息')
     }
-    //s 按照链接
+    // s 按照链接
     if (
       !meta.valid &&
       typeof target === "string" &&
@@ -678,7 +684,7 @@ async function getMeta(
       // console.log("通过Url获取元信息(成功)");
       // console.log("getMetaByUrl 获取结果", target, meta);
     }
-    //s 按照Blob
+    // s 按照Blob
     if (!meta.valid && typeof target === "object" && target instanceof Blob) {
       // console.log("开始通过Blob获取元信息", target);
       // 如果是一个Blob
@@ -687,13 +693,13 @@ async function getMeta(
       // console.log("通过Blob获取元信息");
     }
   } else {
-    //T 指定方式
+    // T 指定方式
     if (
       method === "byNaturalSize" &&
       typeof target === "object" &&
       target instanceof HTMLElement
     ) {
-      //s DOM
+      // s DOM
       const { width, height } = await getDOMNaturalSize(target);
       meta = { ...meta, ...{ valid: width > 0 && height > 0, width, height } };
     } else if (
@@ -701,7 +707,7 @@ async function getMeta(
       typeof target === "string" &&
       isUrl(target)
     ) {
-      //s 链接
+      // s 链接
 
       meta = await getMetaByUrl(new URL(target), { type: "image" });
     } else if (
@@ -709,7 +715,7 @@ async function getMeta(
       typeof target === "object" &&
       target instanceof Blob
     ) {
-      //s Blob
+      // s Blob
       meta = await getMetaByBlob(target);
     } else {
       // 没有符合的匹配条件
@@ -738,12 +744,12 @@ async function getMetaByUrl(url: URL, _default: Partial<BaseMeta> = {}) {
   };
   meta = { ...meta, ..._default };
   // 先推断链接类型
-  //s 初步推断
+  // s 初步推断
   const type = inferUrlType(url);
 
   //TODO 这里由于使用油猴的API，在部分IOS的油猴脚本环境中可能无法正常调用(暂时弃用)
   // if (type === "html") {
-  // 	//s 如果还是html类型则尝试通过Head请求获取类型
+  // 	// s 如果还是html类型则尝试通过Head请求获取类型
   // 	const mime = await getContentType(url.href);
   // 	const { mainType, subType } = getMIMEinfo(mime);
   // 	if (mainType) {
@@ -756,7 +762,7 @@ async function getMetaByUrl(url: URL, _default: Partial<BaseMeta> = {}) {
   // }
 
   if (type === "image") {
-    //s 处理图片类型
+    // s 处理图片类型
     // console.log("通过getImgMetaByImage获取Meta信息", url.href);
     const res = await getMetaByImage(url.href);
     res.ext = meta.ext || res.ext;
@@ -765,10 +771,10 @@ async function getMetaByUrl(url: URL, _default: Partial<BaseMeta> = {}) {
   } else if (type === "video") {
     const res = await getMetaByVideo(url.href);
     res.ext = meta.ext || res.ext;
-    //s 处理视频类型
+    // s 处理视频类型
     meta = { ...meta, ...res };
   } else {
-    //s 其他类型
+    // s 其他类型
     meta = {
       ...meta,
       type,
@@ -808,7 +814,7 @@ async function getMetaByBlob(blob: Blob) {
   return meta;
 }
 
-//f [功能封装]通过Image对象获取图片meta
+// f [功能封装]通过Image对象获取图片meta
 export function getMetaByImage(url: string): Promise<BaseMeta> {
   if (!url || !url.trim().length) {
     console.log("链接无效", url);
@@ -838,7 +844,7 @@ export function getMetaByImage(url: string): Promise<BaseMeta> {
         type: "image",
         ext: getExtByUrl(url),
       };
-      img = null; //s 用完后释放img对象
+      img = null; // s 用完后释放img对象
       resolve(meta);
     } else {
       img.addEventListener(
@@ -853,7 +859,7 @@ export function getMetaByImage(url: string): Promise<BaseMeta> {
             type: "image",
             ext: getExtByUrl(url),
           };
-          img = null; //s 用完后释放img对象
+          img = null; // s 用完后释放img对象
           resolve(meta);
         },
         { once: true }
@@ -867,7 +873,7 @@ export function getMetaByImage(url: string): Promise<BaseMeta> {
           type: false,
           ext: getExtByUrl(url),
         };
-        img = null; //s 用完后释放img对象
+        img = null; // s 用完后释放img对象
         resolve(meta);
       };
       img.addEventListener("error", error, { once: true });
@@ -877,7 +883,7 @@ export function getMetaByImage(url: string): Promise<BaseMeta> {
   });
 }
 
-//f [功能封装]通过Video对象获取视频meta
+// f [功能封装]通过Video对象获取视频meta
 export function getMetaByVideo(url: string): Promise<BaseMeta> {
   if (!url || !url.trim().length) {
     console.log("链接无效", url);
@@ -924,7 +930,7 @@ export function getMetaByVideo(url: string): Promise<BaseMeta> {
   });
 }
 
-//f [功能封装]通过blob获取图片meta
+// f [功能封装]通过blob获取图片meta
 export function getImgMetaByBlob(blob: Blob) {
   type Meta = Pick<BaseMeta, "valid" | "width" | "height" | "aspectRatio">;
   let meta: Meta;
@@ -943,7 +949,7 @@ export function getImgMetaByBlob(blob: Blob) {
             height: image.height,
             aspectRatio: image.width / image.height,
           };
-          //s 释放内存
+          // s 释放内存
           URL.revokeObjectURL((reader.result as string) || "");
           resolve(meta);
         });
@@ -955,7 +961,7 @@ export function getImgMetaByBlob(blob: Blob) {
               width: 0,
               height: 0,
             };
-            //s 释放内存
+            // s 释放内存
             URL.revokeObjectURL((reader.result as string) || "");
             resolve(meta);
           },

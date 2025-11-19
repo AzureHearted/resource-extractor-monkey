@@ -1,6 +1,6 @@
 import type { MonkeyOption } from "vite-plugin-monkey";
 
-//s vite-油猴插件(vite-plugin-monkey) 的配置设置
+// s vite-油猴插件(vite-plugin-monkey) 的配置设置
 export default {
   entry: "./src/main.ts",
   userscript: {

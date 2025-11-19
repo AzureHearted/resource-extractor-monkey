@@ -62,14 +62,14 @@
 		list: [] as Card[],
 	});
 
-	//f 刷新数据
+	// f 刷新数据
 	function updateData(rowList: Card[]) {
 		nextTick(() => {
 			dataInfo.list = rowList;
 		});
 	}
 
-	//j 列表信息
+	// j 列表信息
 	const list = computed(() => {
 		return dataInfo.list;
 	});
@@ -89,7 +89,7 @@
 		}
 	);
 
-	//s 判断组件是否被冻结
+	// s 判断组件是否被冻结
 	const freeze = ref(false);
 
 	//* 当组件被激活时执行

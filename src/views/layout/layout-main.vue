@@ -55,7 +55,7 @@
 	const globalStore = useGlobalStore();
 	const { tab: activeKey, navCollapse: collapsed } = storeToRefs(globalStore);
 
-	//s 移动端标识符
+	// s 移动端标识符
 	const isMobile = ref(false);
 	onMounted(() => {
 		isMobile.value = judgeIsMobile();
