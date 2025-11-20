@@ -10,8 +10,6 @@
 					v-model:data="(item as Card)"
 					:highlight-key="searchKeywords"
 					:is-mobile="isMobile"
-					img-object-fit="cover"
-					:set-aspect-ratio="1"
 					@change:selected="item.isSelected = $event"
 					@delete="removeCard([$event])"
 					@loaded="handleLoaded"

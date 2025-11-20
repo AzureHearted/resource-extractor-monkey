@@ -20,20 +20,20 @@
 					class="drag-modal__header"
 					:style="[headerStyle]"
 					:class="[headerClass]">
-					<!--s header部分  -->
+					<!-- s header部分  -->
 					<div class="drag-modal__header-left">
 						<!-- s header插槽 -->
 						<slot name="header"> {{ title }} </slot>
 					</div>
 					<div class="drag-modal__header-right" @click.stop>
-						<!--s 全屏切换按钮 -->
+						<!-- s 全屏切换按钮 -->
 						<div
 							class="header__button drag-modal__button-toggle-fullscreen"
 							@click="toggleFullScreen">
 							<i-material-symbols-fullscreen-rounded v-if="!isFullscreen" />
 							<i-material-symbols-close-fullscreen-rounded v-else />
 						</div>
-						<!--s 关闭按钮 -->
+						<!-- s 关闭按钮 -->
 						<div
 							class="header__button drag-modal__button-close"
 							@click="show = false">
@@ -263,7 +263,7 @@
 			onMove() {
 				dragZoneBounding.update();
 				modalBounding.update();
-				//! 防止modal超出边界视口
+				// ! 防止modal超出边界视口
 				nextTick(() => {
 					handleFix();
 				});
@@ -319,7 +319,7 @@
 		}
 	};
 
-	//! 边框拖拽逻辑
+	// ! 边框拖拽逻辑
 	// f 左边框拖拽
 	function dragLeftBorder(e: MouseEvent) {
 		// s 判断是否可以修改"水平"方向尺寸
@@ -455,7 +455,7 @@
 		}
 	}
 
-	//! 角落拖拽逻辑
+	// ! 角落拖拽逻辑
 	// f 左上角控制点拖拽
 	function dragLTCorner(e: MouseEvent) {
 		dragZoneBounding.update();
@@ -699,7 +699,7 @@
 			position: relative;
 			height: 30px;
 
-			touch-action: none; //! 必须设为none否则useDraggable不能正常使用
+			touch-action: none; // ! 必须设为none否则useDraggable不能正常使用
 			/* 禁止选中文字 */
 			user-select: none;
 			/* 禁止图文拖拽 */
@@ -777,7 +777,7 @@
 			padding: 4px 8px;
 		}
 
-		//! modal控制边框和角
+		// ! modal控制边框和角
 		.drag-modal-size-control {
 			$weight: 4px;
 			$length: 100%;

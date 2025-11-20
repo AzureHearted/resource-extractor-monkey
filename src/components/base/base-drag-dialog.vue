@@ -29,7 +29,7 @@
 				<div class="base-drag-dialog__main" :style="[dialogStyle]">
 					<!-- 背景 -->
 					<div class="base-drag-dialog__main__background"></div>
-					<!--s 可拖拽区(header)  -->
+					<!-- s 可拖拽区(header)  -->
 					<div
 						ref="draggableDOM"
 						class="base-drag-dialog__header"
@@ -46,7 +46,7 @@
 							</div>
 							<!-- s header右侧 -->
 							<div class="base-drag-dialog__header__right" @click.stop>
-								<!--s 全屏切换按钮 -->
+								<!-- s 全屏切换按钮 -->
 								<div
 									v-if="allowFullScreen"
 									class="header__button drag-modal__button-toggle-fullscreen"
@@ -54,7 +54,7 @@
 									<i-material-symbols-fullscreen-rounded v-if="!isFullscreen" />
 									<i-material-symbols-close-fullscreen-rounded v-else />
 								</div>
-								<!--s 关闭按钮 -->
+								<!-- s 关闭按钮 -->
 								<div
 									class="header__button drag-modal__button-close"
 									@click="show = false">
@@ -63,7 +63,7 @@
 							</div>
 						</slot>
 					</div>
-					<!--s 主要内容区 -->
+					<!-- s 主要内容区 -->
 					<div
 						ref="bodyDOM"
 						class="base-drag-dialog__body"
@@ -92,7 +92,7 @@
 							</n-flex>
 						</slot>
 					</div>
-					<!--s 底部区域 -->
+					<!-- s 底部区域 -->
 					<div
 						v-if="slots['footer']"
 						class="base-drag-dialog__footer"
@@ -275,9 +275,9 @@
 	// s window尺寸
 	const winSize = useWindowSize(); // s 响应式视口尺寸
 
-	//! 约束边界DOM
+	// ! 约束边界DOM
 	const boundaryDOM = ref<HTMLElement | null>(null);
-	//! 约束边界DOM的边界信息
+	// ! 约束边界DOM的边界信息
 	const boundaryBounding = useElementBounding(boundaryDOM);
 
 	// w 监视可拖拽区域的尺寸变化
@@ -309,7 +309,7 @@
 			stopPropagation: true,
 			containerElement: boundaryDOM,
 			initialValue: () => {
-				//! 位置初始化
+				// ! 位置初始化
 				// console.log(object);
 				let initHeight = 0,
 					initWidth = 0;
@@ -334,13 +334,13 @@
 			onMove() {
 				boundaryBounding.update();
 				dialogBounding.update();
-				//! 防止modal超出边界视口
+				// ! 防止modal超出边界视口
 				nextTick(() => {
 					handleFixPosSize();
 				});
 			},
 		});
-		//! 记录响应式数据
+		// ! 记录响应式数据
 		positionStyle = style;
 		position = pos;
 		isDragging = dragging;
@@ -352,12 +352,12 @@
 		if (dom) {
 			// 判断是否需要初始化
 			if (!isInit.value) {
-				//! 进行初始化
+				// ! 进行初始化
 				isInit.value = true;
 				// s 初始化位置
 				resSetSize();
 
-				//! 执行初始化
+				// ! 执行初始化
 				init();
 				// s 刷新显示状态
 				showDialog.value = false;
@@ -365,7 +365,7 @@
 					showDialog.value = true;
 				});
 			} else {
-				//! 已经初始化过了(判断是否重置位置和尺寸)
+				// ! 已经初始化过了(判断是否重置位置和尺寸)
 				if (props.closeResetState) {
 					resSetPos();
 					resSetSize();
@@ -473,7 +473,7 @@
 	// s 组件是否被冻结
 	const isFreeze = ref(false);
 
-	//! 是否显示dialog
+	// ! 是否显示dialog
 	const show = defineModel("show", { type: Boolean, default: false });
 	// s 显示dialog
 	const showDialog = ref(false);
@@ -507,28 +507,28 @@
 		}
 	});
 
-	//! 组件挂载时
+	// ! 组件挂载时
 	onMounted(() => {
 		// console.log("onMounted");
 		isMounted.value = true;
 	});
 
-	//! 组件卸载时
+	// ! 组件卸载时
 	onUnmounted(() => {
 		isMounted.value = false;
 	});
 
-	//! 组件被激活时
+	// ! 组件被激活时
 	onActivated(() => {
 		isFreeze.value = false;
-		//! 被冻结时进行显示/隐藏
+		// ! 被冻结时进行显示/隐藏
 		showDialog.value = show.value;
 	});
 
-	//! 组件被冻结时
+	// ! 组件被冻结时
 	onDeactivated(() => {
 		isFreeze.value = true;
-		//! 被冻结时进行隐藏
+		// ! 被冻结时进行隐藏
 		showDialog.value = false;
 	});
 
@@ -699,7 +699,7 @@
 
 	const isResizing = ref(false);
 
-	//! 边框拖拽逻辑
+	// ! 边框拖拽逻辑
 	// f 左边框拖拽
 	function dragLeftBorder(e: MouseEvent) {
 		// s 判断是否可以修改"水平"方向尺寸
@@ -855,7 +855,7 @@
 		}
 	}
 
-	//! 角落拖拽逻辑
+	// ! 角落拖拽逻辑
 	// f 左上角控制点拖拽
 	function dragLTCorner(e: MouseEvent) {
 		boundaryBounding.update();
@@ -1121,7 +1121,7 @@
 	.base-drag-dialog__header {
 		position: relative;
 
-		touch-action: none; //! 必须设为none否则useDraggable不能正常使用
+		touch-action: none; // ! 必须设为none否则useDraggable不能正常使用
 		/* 禁止选中文字 */
 		user-select: none;
 		/* 禁止图文拖拽 */
@@ -1199,7 +1199,7 @@
 		padding: 4px;
 	}
 
-	//! modal控制边框和角
+	// ! modal控制边框和角
 	.base-drag-dialog__resizer__container {
 		position: absolute;
 		inset: 0px;

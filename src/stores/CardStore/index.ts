@@ -380,7 +380,16 @@ export default defineStore("CardStore", () => {
   });
 
   // f 获取页面资源
-  async function getPageCard() {
+  async function getPageCard(
+    options: {
+      onGet: (stop: () => void) => void;
+    } = {
+      onGet: () => {},
+    }
+  ) {
+    const { onGet } = options;
+    let stopFlag = false;
+
     const patternId = patternStore.used.id;
     const patternNow =
       patternStore.findPattern(patternId) || patternStore.list[0];
@@ -397,24 +406,33 @@ export default defineStore("CardStore", () => {
     loadingStore.start();
     // s 依次执行每个规则
     let amount = 0; // 累计数量(用于统计每次匹配过程中的结果数量)
+    // s 依次执行每个规则
     for (let i = 0; i < patternNow.rules.length; i++) {
+      if (stopFlag) break;
       const rule = patternNow.rules[i];
       if (!rule.enable) continue; //为启用的规则就跳过
       const startIndex = amount; //记录起始index
+      let matchDomCount = 0;
       await getCard(
         // 规则配置
         rule,
         // 选项配置
         {
-          // 当获取到所有基准dom时的回调
+          // * 当获取到所有基准dom时的回调
           onAllDOMGet: async (doms) => {
             // console.log("匹配到的DOM", doms);
             loadingStore.update(0, doms.length);
+            matchDomCount = doms.length;
             return doms;
           },
-          // 当获得卡片时的回调
-          onCardGet: async (card, index, dom, addCard) => {
-            loadingStore.current++;
+          // * 当获得卡片时的回调
+          onCardGet: async (card, index, dom, addCard, stop) => {
+            if (stopFlag) {
+              stop();
+              return;
+            }
+            loadingStore.update(index + 1);
+            // loadingStore.updatePercent(index + 1 / matchDomCount);
             // console.log("当前进度", loadingStore.current, loadingStore.total);
             const sourceMeta = card.source.meta;
             const previewMeta = card.preview.meta;
@@ -480,9 +498,14 @@ export default defineStore("CardStore", () => {
                   isKeywordsMatch(card.tags);
               });
               await addCard(); //执行回调函数
+              // ? 判断是否终止后续操作
+              onGet(() => {
+                stop();
+                stopFlag = true;
+              });
             }
           },
-          // 匹配结束后的回调
+          // * 匹配结束后的回调
           onFinished() {
             // 记录当前数量
             amount = data.cardList.length;
@@ -525,7 +548,18 @@ export default defineStore("CardStore", () => {
     data.typeMap.clear(); // 清空类型映射表
     data.extensionMap.clear(); // 清空扩展名映射表
     data.urlBlobMap.clear(); // 清空url和blob的Map对象
-    data.cardList = []; // 清空卡片列表
+    // data.cardList = []; // 清空卡片列表
+
+    // 清空卡片列表
+    // nextTick(async () => {
+    //   while (data.cardList.length) {
+    //     // await new Promise((resolve) => setTimeout(resolve, 1));
+    //     data.cardList.splice(0, 1);
+    //   }
+    //   // data.cardList.splice(0);
+    // });
+    data.cardList.splice(0);
+
     // resetFilters();
   }
 
@@ -609,8 +643,8 @@ export default defineStore("CardStore", () => {
       const zipContainer = new JSZip();
       // 创建任务队列实例
       const taskQueue = new TaskQueue({
-        interval: 300,
-        maxConcurrent: 6,
+        interval: 10,
+        maxConcurrent: 1,
         // 每个任务处理完成时的回调
         onTaskComplete(_, completed) {
           loadingStore.update(completed);

@@ -16,13 +16,13 @@
 		}"
 		:click-outside-close="false">
 		<template #header-left>
-			<!--s 可拖拽条 -->
+			<!-- s 可拖拽条 -->
 			<slot name="draggableBar">
 				<!-- 默认可拖拽条 -->
 				<div class="base-dock__drag-bar"></div>
 			</slot>
 		</template>
-		<!--s dock按钮区域 -->
+		<!-- s dock按钮区域 -->
 		<div ref="contentDOM" class="base-dock__content">
 			<slot>
 				<n-button type="error" @click="show = false">

@@ -10,7 +10,7 @@
 							:src="editingPattern?.mainInfo.icon"
 							style="width: 16px; height: 16px"></BaseImg>
 						<span>{{ editingPattern?.mainInfo?.name }}</span>
-						<!--s 在新窗口打开 -->
+						<!-- s 在新窗口打开 -->
 						<el-button
 							v-if="!disabled"
 							type="success"
@@ -69,7 +69,7 @@
 								clearable>
 								<template v-if="!disabled" #append>
 									<n-flex :size="4" style="margin: 0 -10px">
-										<!--s 新增 -->
+										<!-- s 新增 -->
 										<n-button
 											:disabled="disabled"
 											type="success"
@@ -86,7 +86,7 @@
 												<i-ep-plus />
 											</template>
 										</n-button>
-										<!--s 打开 -->
+										<!-- s 打开 -->
 										<n-button
 											type="info"
 											size="tiny"
@@ -96,7 +96,7 @@
 												<i-material-symbols-open-in-new />
 											</template>
 										</n-button>
-										<!--s 删除 -->
+										<!-- s 删除 -->
 										<el-popconfirm
 											title="确定删除?"
 											:hide-after="0"

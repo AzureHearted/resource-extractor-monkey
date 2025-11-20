@@ -19,6 +19,7 @@ export default defineStore("LoadingStore", () => {
 		total.value = _total;
 		loading.value = true;
 	}
+
 	// f 更新
 	function update(_current: number, _total?: number) {
 		current.value = _current;
@@ -26,6 +27,7 @@ export default defineStore("LoadingStore", () => {
 			total.value = _total;
 		}
 	}
+
 	// f 更新(百分比)
 	function updatePercent(percent: number, _total?: number) {
 		if (_total) {
@@ -33,6 +35,7 @@ export default defineStore("LoadingStore", () => {
 		}
 		current.value = percent * total.value;
 	}
+  
 	// f 停止
 	function end() {
 		loading.value = false;

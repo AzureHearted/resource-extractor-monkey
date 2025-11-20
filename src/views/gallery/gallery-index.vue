@@ -8,7 +8,7 @@
 				style="width: 100%; height: 100%"
 				wrap-style="overflow:hidden;"
 				@tab-active="nowType = $event as any">
-				<!--s 图片类 -->
+				<!-- s 图片类 -->
 				<BaseTabPane name="image">
 					<template #tab>
 						<n-flex :size="4" align="center" :wrap="false">
@@ -29,7 +29,7 @@
 							:search-keywords="filters.keyword" />
 					</keep-alive>
 				</BaseTabPane>
-				<!--s 视频类 -->
+				<!-- s 视频类 -->
 				<BaseTabPane name="video">
 					<template #tab>
 						<n-flex :size="4" align="center" :wrap="false">
@@ -50,7 +50,7 @@
 							:search-keywords="filters.keyword" />
 					</keep-alive>
 				</BaseTabPane>
-				<!--s 压缩包类 -->
+				<!-- s 压缩包类 -->
 				<BaseTabPane name="zip">
 					<template #tab>
 						<n-flex :size="4" align="center" :wrap="false">
@@ -69,7 +69,7 @@
 						:card-list="filterCardList.zip"
 						:search-keywords="filters.keyword" />
 				</BaseTabPane>
-				<!--s 网页类 -->
+				<!-- s 网页类 -->
 				<BaseTabPane name="html">
 					<template #tab>
 						<n-flex :size="4" align="center" :wrap="false">
@@ -88,7 +88,7 @@
 						:card-list="filterCardList.html"
 						:search-keywords="filters.keyword" />
 				</BaseTabPane>
-				<!--s 其他类 -->
+				<!-- s 其他类 -->
 				<BaseTabPane name="other">
 					<template #tab>
 						<n-flex :size="4" align="center" :wrap="false">

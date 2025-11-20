@@ -79,7 +79,7 @@ function getDOMAttribute(dom: HTMLElement | null, _name: string) {
 		const name = names[i];
 		let temp: string | null = null;
 		if (name === "src" || name === "href" || name === "srcset") {
-			//! 是否是和链接相关的属性(如：src、href、srcset) 则使用property方式获取
+			// ! 是否是和链接相关的属性(如：src、href、srcset) 则使用property方式获取
 			temp = getDOMProperty(dom, name);
 			// s 判断是否不为空
 			if (!!temp && !!temp.trim().length) {

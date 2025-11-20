@@ -1,6 +1,6 @@
 <template>
 	<div class="app-bar__container">
-		<!--s 移动端的菜单按钮 -->
+		<!-- s 移动端的菜单按钮 -->
 		<n-button
 			circle
 			:bordered="false"
@@ -28,14 +28,14 @@
 				<NavMenu @select="navCollapse = true" />
 			</n-drawer-content>
 		</n-drawer>
-		<!--s 标题 -->
+		<!-- s 标题 -->
 		<div class="app-bar__title">
 			<n-gradient-text type="primary"> Web Img Collector 2 </n-gradient-text>
 			<n-tag type="info" size="tiny" round :bordered="false">
 				{{ VERSION }}
 			</n-tag>
 		</div>
-		<!--s  关闭按钮 -->
+		<!-- s  关闭按钮 -->
 		<n-button
 			type="error"
 			circle

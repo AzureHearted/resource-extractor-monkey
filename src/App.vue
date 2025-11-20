@@ -1,11 +1,11 @@
 <template>
-	<!--s 脚本应用容器 -->
+	<!-- s 脚本应用容器 -->
 	<div :data-host="host" ref="appDOM" class="web-img-collector__container">
-		<!--s 消息通知类信息容器 -->
+		<!-- s 消息通知类信息容器 -->
 		<el-config-provider namespace="el">
 			<div class="web-img-collector__notification-container"></div>
 		</el-config-provider>
-		<!--s 内容区 -->
+		<!-- s 内容区 -->
 		<el-config-provider namespace="wic2">
 			<n-config-provider
 				namespace="wic2-n"
@@ -14,11 +14,11 @@
 				preflight-style-disabled
 				:hljs="hljs"
 				abstract>
-				<!--s 布局 -->
+				<!-- s 布局 -->
 				<Layout />
-				<!--s 悬浮按钮 -->
+				<!-- s 悬浮按钮 -->
 				<hover-button :show="!globalStore.openWindow" :teleport-to="false" />
-				<!--s 顶层元素的承载容器 -->
+				<!-- s 顶层元素的承载容器 -->
 				<div
 					ref="windowContainer"
 					class="web-img-collector__top-container"></div>
@@ -130,7 +130,7 @@
 		}
 	}
 
-	//! 子窗口容器样式(主要作为弹窗的容器)
+	// ! 子窗口容器样式(主要作为弹窗的容器)
 	.web-img-collector__top-container {
 		position: absolute;
 		inset: 0;

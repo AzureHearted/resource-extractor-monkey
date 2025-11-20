@@ -10,7 +10,7 @@
 			:trigger="isMobile ? 'click' : 'hover'"
 			:teleport="false">
 			<template #trigger>
-				<!--s 图库显示切换按钮 -->
+				<!-- s 图库显示切换按钮 -->
 				<n-badge :value="filterCardList.all.length" :max="999" type="default">
 					<var-button
 						elevation
@@ -48,7 +48,7 @@
 				</n-badge>
 			</template>
 			<template #default>
-				<!--s 图库 -->
+				<!-- s 图库 -->
 				<n-badge
 					:value="filterCardList.all.length"
 					:processing="loading"
@@ -62,22 +62,22 @@
 						<i-material-symbols-team-dashboard color="black" />
 					</var-button>
 				</n-badge>
-				<!--s 方案管理 -->
+				<!-- s 方案管理 -->
 				<var-button type="info" round @click.stop="toggleWindow('PatternEdit')">
 					<i-material-symbols-box-edit color="black" />
 				</var-button>
-				<!--s 收藏 -->
+				<!-- s 收藏 -->
 				<var-button type="success" round @click.stop="toggleWindow('Favorite')">
 					<i-mdi-favorite color="red" />
 				</var-button>
-				<!--s 设置 -->
+				<!-- s 设置 -->
 				<var-button
 					color="rgb(217, 121, 252)"
 					round
 					@click.stop="toggleWindow('Setting')">
 					<i-ant-design-setting-twotone color="black" />
 				</var-button>
-				<!--s 测试窗口 -->
+				<!-- s 测试窗口 -->
 				<var-button
 					color="rgb(117, 121, 252)"
 					round

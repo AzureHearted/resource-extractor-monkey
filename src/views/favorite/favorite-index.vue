@@ -1,6 +1,6 @@
 <template>
 	<n-flex ref="containerDOM" class="favorite__container" vertical :size="0">
-		<!--s 工具栏 -->
+		<!-- s 工具栏 -->
 		<n-flex class="toolbar-wrap" :size="4">
 			<!-- s排序方式选择 -->
 			<n-select
@@ -37,11 +37,11 @@
 					@keydown.enter="handleKeywordFilter()"
 					@clear="handleKeywordFilter('')" />
 			</n-badge>
-			<!--s 尺寸过滤器 -->
+			<!-- s 尺寸过滤器 -->
 			<div
 				v-if="nowType === 'image' || nowType === 'video'"
 				class="size-filter">
-				<!--s 宽度过滤器 -->
+				<!-- s 宽度过滤器 -->
 				<div class="width-filter">
 					<el-text type="primary">宽度</el-text>
 					<el-slider
@@ -54,7 +54,7 @@
 						:marks="storeFilters.size.marks"
 						@change="filterChange('width', $event as [number, number])" />
 				</div>
-				<!--s 高度过滤器 -->
+				<!-- s 高度过滤器 -->
 				<div class="height-filter">
 					<el-text type="primary">高度</el-text>
 					<el-slider
@@ -69,13 +69,13 @@
 				</div>
 			</div>
 		</n-flex>
-		<!--s 内容区 -->
+		<!-- s 内容区 -->
 		<n-flex class="content-wrap" :size="4">
 			<BaseTabs
 				style="width: 100%; height: 100%"
 				wrap-style="overflow:hidden;"
 				@tab-active="nowType = $event as any">
-				<!--s 图片类 -->
+				<!-- s 图片类 -->
 				<BaseTabPane name="image">
 					<template #tab>
 						<n-flex :size="4" align="center" :wrap="false">
@@ -93,7 +93,7 @@
 					</template>
 					<BaseCardList :card-list="filterCardList.image" :search-keywords="filterKeyword"  />
 				</BaseTabPane>
-				<!--s 视频类 -->
+				<!-- s 视频类 -->
 				<BaseTabPane name="video">
 					<template #tab>
 						<n-flex :size="4" align="center" :wrap="false">
@@ -110,7 +110,7 @@
 					</template>
 					<BaseCardList :card-list="filterCardList.video" :search-keywords="filterKeyword" />
 				</BaseTabPane>
-				<!--s 压缩包类 -->
+				<!-- s 压缩包类 -->
 				<BaseTabPane name="zip">
 					<template #tab>
 						<n-flex :size="4" align="center" :wrap="false">
@@ -128,7 +128,7 @@
 					</template>
 					<BaseCardList :card-list="filterCardList.zip" :search-keywords="filterKeyword" />
 				</BaseTabPane>
-				<!--s 网页类 -->
+				<!-- s 网页类 -->
 				<BaseTabPane name="html">
 					<template #tab>
 						<n-flex :size="4" align="center" :wrap="false">
@@ -146,7 +146,7 @@
 					</template>
 					<BaseCardList :card-list="filterCardList.html" :search-keywords="filterKeyword" />
 				</BaseTabPane>
-				<!--s 其他类 -->
+				<!-- s 其他类 -->
 				<BaseTabPane name="other">
 					<template #tab>
 						<n-flex :size="4" align="center" :wrap="false">

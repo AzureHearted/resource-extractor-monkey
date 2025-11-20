@@ -1,6 +1,6 @@
 <template>
 	<div class="base-tabs__container">
-		<!--s tab栏  -->
+		<!-- s tab栏  -->
 		<div class="base-tabs__tabs">
 			<div
 				class="base-tabs__tabs-wrap"
@@ -28,13 +28,13 @@
 				</div>
 			</div>
 			<div class="base-tabs__other-bar-wrap" v-if="tabs.length">
-				<!--s 浮动条 -->
+				<!-- s 浮动条 -->
 				<div class="base-tabs__hover-bar" :style="hoverBarStyle"></div>
-				<!--s 激活条  -->
+				<!-- s 激活条  -->
 				<div class="base-tabs__active-bar" :style="activeBarStyle"></div>
 			</div>
 		</div>
-		<!--s 内容区 -->
+		<!-- s 内容区 -->
 		<div class="base-tabs__content-wrap" :style="[wrapStyle]">
 			<template v-for="tab in tabs" :key="tab">
 				<keep-alive>

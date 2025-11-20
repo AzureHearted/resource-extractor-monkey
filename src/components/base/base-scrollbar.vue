@@ -1,13 +1,13 @@
 <template>
-	<!--s 视口区域 -->
+	<!-- s 视口区域 -->
 	<div
 		ref="containerDOM"
 		class="base-scrollbar_container"
 		@mouseover="scrollbar.show = true"
 		@mouseleave="scrollbar.show = false">
-		<!--s 包裹区 -->
+		<!-- s 包裹区 -->
 		<div ref="wrapDOM" class="base-scrollbar__wrap">
-			<!--s 视口区内部区域 -->
+			<!-- s 视口区内部区域 -->
 			<div
 				ref="viewDOM"
 				class="base-scrollbar__view"
@@ -25,7 +25,7 @@
 						scrollbar.horizontal.length
 					}}
 				</div>
-				<!--s 插槽出口 (内容) -->
+				<!-- s 插槽出口 (内容) -->
 				<slot></slot>
 			</div>
 			<teleport :disabled="!teleportTo" :to="teleportTo ? teleportTo : 'body'">

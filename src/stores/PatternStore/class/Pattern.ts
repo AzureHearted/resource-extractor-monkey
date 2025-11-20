@@ -51,7 +51,7 @@ export class Pattern implements BasePattern {
 			this.rules = this.rules.map((r) => new Rule(r));
 		}
 
-		//! 旧版兼容性设置
+		// ! 旧版兼容性设置
 		if (!this.mainInfo.matchHost.length) {
 			this.mainInfo.matchHost.push(this.mainInfo.host);
 		}

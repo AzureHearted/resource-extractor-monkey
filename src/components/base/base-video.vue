@@ -18,7 +18,7 @@
 				<template v-if="mounted">
 					<!-- s 不使用用缩略图 -->
 					<template v-if="!useThumb">
-						<!--s 正常视频元素 -->
+						<!-- s 正常视频元素 -->
 						<video
 							v-if="!state.isError"
 							ref="videoDom"
@@ -30,7 +30,7 @@
 							controlslist="nofullscreen noremoteplayback"
 							disablepictureinpicture
 							:draggable="draggable" />
-						<!--s 加载错误时的显示元素 -->
+						<!-- s 加载错误时的显示元素 -->
 						<BaseImg v-else :src="errorImg" />
 					</template>
 					<!-- s 使用用缩略图 -->

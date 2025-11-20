@@ -13,7 +13,7 @@
 				class="base-drag__container"
 				ref="containerDOM"
 				:style="[posStyle, sizeStyle]">
-				<!--s 主要内容区 -->
+				<!-- s 主要内容区 -->
 				<slot> </slot>
 			</div>
 		</transition>
@@ -116,13 +116,13 @@
 			},
 			onMove() {
 				bounding.update();
-				//! 防止modal超出边界视口
+				// ! 防止modal超出边界视口
 				nextTick(() => {
 					handleFixPosSize();
 				});
 			},
 		});
-		//! 记录响应式数据
+		// ! 记录响应式数据
 		posStyle = style;
 		position = pos;
 		isDragging = dragging;
@@ -133,7 +133,7 @@
 		// console.log("containerDOM", dom);
 		if (dom) {
 			if (!isInit.value) {
-				//! 进行初始化
+				// ! 进行初始化
 				isInit.value = true;
 				if (!props.initSize) {
 					size = reactive({
@@ -171,7 +171,7 @@
 					showContainer.value = true;
 				});
 			} else {
-				//! 已经初始化过了(判断是否重置位置和尺寸)
+				// ! 已经初始化过了(判断是否重置位置和尺寸)
 				if (props.closeResetState) {
 					position.value = calcPos({
 						width: containerDOM.value
@@ -205,7 +205,7 @@
 	// s 组件是否被冻结
 	const isFreeze = ref(false);
 
-	//! 是否显示dialog
+	// ! 是否显示dialog
 	const show = defineModel("show", { type: Boolean, default: true });
 	// s 显示容器
 	const showContainer = ref(false);
@@ -239,28 +239,28 @@
 		}
 	});
 
-	//! 组件挂载时
+	// ! 组件挂载时
 	onMounted(() => {
 		console.log("onMounted");
 		isMounted.value = true;
 	});
 
-	//! 组件卸载时
+	// ! 组件卸载时
 	onUnmounted(() => {
 		isMounted.value = false;
 	});
 
-	//! 组件被激活时
+	// ! 组件被激活时
 	onActivated(() => {
 		isFreeze.value = false;
-		//! 被冻结时进行显示/隐藏
+		// ! 被冻结时进行显示/隐藏
 		showContainer.value = show.value;
 	});
 
-	//! 组件被冻结时
+	// ! 组件被冻结时
 	onDeactivated(() => {
 		isFreeze.value = true;
-		//! 被冻结时进行隐藏
+		// ! 被冻结时进行隐藏
 		showContainer.value = false;
 	});
 
@@ -419,7 +419,7 @@
 		// border-top-left-radius: $radius;
 		// border-top-right-radius: $radius;
 
-		touch-action: none; //! 必须设为none否则useDraggable不能正常使用
+		touch-action: none; // ! 必须设为none否则useDraggable不能正常使用
 		/* 禁止选中文字 */
 		user-select: none;
 		/* 禁止图文拖拽 */
