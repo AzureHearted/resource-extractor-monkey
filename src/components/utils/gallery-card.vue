@@ -343,11 +343,7 @@ import { GM_openInTab } from "$";
 import { ElMessageBox } from "@/plugin/element-plus";
 
 // 导入公用TS库
-import {
-  buildUUID,
-  byteAutoUnit,
-  legalizationPathString,
-} from "@/utils/common";
+import { byteAutoUnit, legalizationPathString } from "@/utils/common";
 
 // 导入svg
 import HtmlTypeImg from "@svg/html.svg";
@@ -429,7 +425,7 @@ interface Tag {
 const tags = computed<Tag[]>(() => {
   return data.value.tags.map((t) => {
     return {
-      id: buildUUID(),
+      id: crypto.randomUUID(),
       label: t,
     };
   });
