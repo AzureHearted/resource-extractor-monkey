@@ -145,7 +145,8 @@
             :src="data.preview.url"
             use-thumb
             :thumb-max-size="1080"
-            :viewport-selector="viewportSelector"
+            :viewport="viewport"
+            :observer-once="observerOnce"
             :init-width="data.preview.meta.width"
             :init-height="data.preview.meta.height"
             @mounted="emits('mounted')"
@@ -159,7 +160,8 @@
             use-thumb
             :thumb-max-size="1080"
             :src="data.preview.url"
-            :viewport-selector="viewportSelector"
+            :viewport="viewport"
+            :observer-once="observerOnce"
             :init-width="data.preview.meta.width"
             :init-height="data.preview.meta.height"
             @mounted="emits('mounted')"
@@ -182,7 +184,8 @@
             loop
             :show-controls="false"
             :src="data.preview.url"
-            :viewport-selector="viewportSelector"
+            :viewport="viewport"
+            :observer-once="observerOnce"
             :init-width="data.preview.meta.width"
             :init-height="data.preview.meta.height"
             @loaded="emits('loaded', data.id, $event)"
@@ -365,7 +368,9 @@ const data = defineModel<Card>("data", {
 const props = withDefaults(
   defineProps<{
     // data: Card;
-    viewportSelector?: string;
+    viewport?: IntersectionObserverInit["root"];
+    /** 是否只监听一次 (默认：true) */
+    observerOnce?: boolean;
     showCheckBox?: boolean;
     showDeleteButton?: boolean;
     showDownloadButton?: boolean;
@@ -375,6 +380,7 @@ const props = withDefaults(
     highlightKey?: string; // s 高亮关键词
   }>(),
   {
+    observerOnce: true,
     showCheckBox: true,
     showDeleteButton: true,
     showDownloadButton: true,
