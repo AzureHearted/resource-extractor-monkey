@@ -30,7 +30,6 @@ import {
 import type { CSSProperties } from "vue";
 
 import BaseCard from "@/components/base/base-card.vue";
-// import GalleryCard from "./gallery-card.vue";
 import type Card from "@/stores/CardStore/class/Card";
 
 // props定义
@@ -136,8 +135,10 @@ onDeactivated(() => {
 }
 
 .grid__item {
-  min-width: 0; // * 解决Grid布局中子元素溢出的问题
-  min-height: 0; // 可选
+  /* min-width: 0; // * 解决Grid布局中子元素溢出的问题 */
+  /* min-height: 0; // 可选 */
+  width: 100%;
+  aspect-ratio: 1;
 }
 
 .grid__item :deep(.img__wrap img) {
