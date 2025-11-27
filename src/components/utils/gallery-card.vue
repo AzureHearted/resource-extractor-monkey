@@ -148,6 +148,7 @@
             :viewport-selector="viewportSelector"
             :init-width="data.preview.meta.width"
             :init-height="data.preview.meta.height"
+            @mounted="emits('mounted')"
             @loaded="emits('loaded', data.id, $event)"
             @error="emits('error', data.id)"
             :draggable="false"
@@ -161,6 +162,7 @@
             :viewport-selector="viewportSelector"
             :init-width="data.preview.meta.width"
             :init-height="data.preview.meta.height"
+            @mounted="emits('mounted')"
             @loaded="emits('loaded', data.id, $event)"
             @error="emits('error', data.id)"
             :draggable="false"
@@ -192,6 +194,7 @@
           <BaseImg
             src=""
             :init-show="true"
+            @mounted="emits('mounted')"
             @loaded="emits('loaded', data.id, $event)"
             @error="emits('error', data.id)"
             :draggable="false"
@@ -335,7 +338,7 @@ import BaseVideo from "@/components/base/base-video.vue";
 import BaseCheckbox from "@/components/base/base-checkbox.vue";
 import BaseLineOverFlowList from "@/components/base/base-line-overflow-list.vue";
 import Card from "@/stores/CardStore/class/Card";
-import type { returnInfo } from "@/components/base/base-img.vue";
+import type { ImgReadyInfo } from "@/components/base/base-img.vue";
 import { GM_openInTab } from "$";
 import { ElMessageBox } from "@/plugin/element-plus";
 
@@ -394,16 +397,18 @@ const props = withDefaults(
 // 	console.log("卡片被冻结", props.data.id);
 // });
 
+// ? 定义emits
 const emits = defineEmits<{
   (e: "change:selected", val: boolean): Promise<void>; // 选中状态变化事件
   (e: "change:title", id: string, val: string): Promise<void>; // 标题变化事件
   (e: "toggle-favorite", val: boolean): Promise<void>; // 卡片收藏事件
-  (e: "loaded", id: string, info: returnInfo): Promise<void>; // 卡片加载成功事件
+  (e: "loaded", id: string, info: ImgReadyInfo): Promise<void>; // 卡片加载成功事件
   (e: "error", id: string): Promise<void>; // 卡片加载失败事件
   (e: "download", id: string): Promise<void>; // 下载事件
   (e: "delete", id: string): Promise<void>; // 删除事件
   (e: "change:visible", val: boolean): Promise<void>; // 可见性发生变化
   (e: "save:tags", id: string, newTags: string[]): Promise<void>; // 卡片tags保存事件
+  (e: "mounted"): void;
 }>();
 
 // j 大小
