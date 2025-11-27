@@ -62,36 +62,30 @@ const props = withDefaults(
   defineProps<{
     /** 图片src */
     src?: string;
-    /** 图片初始高度 */
-    initWidth?: number;
-    /** 图片初始宽度 */
-    initHeight?: number;
-    /** 使用缩略图 */
+    /** 使用缩略图 @default false */
     useThumb?: boolean;
-    /** 缩略图路径 */
+    /** 缩略图路径 @default "" */
     thumb?: string;
-    /** 缩略图最大尺寸 (当启用缩略图但没有传入有效 `thumb` 时生效, 会尝试自动生成缩略图，并且生成尺寸由该值决定，默认`400px`,传入`number`类型) */
+    /** 缩略图最大尺寸 (当启用缩略图但没有传入有效 `thumb` 时生效, 会尝试自动生成缩略图，并且生成尺寸由该值决定，默认`400px`,传入`number`类型) @default 400 */
     thumbMaxSize?: number;
-    /** 监听视口选择器 (用于设定监听视口，用于图片懒加载) */
-    viewportSelector?: string;
+    /** 监听视口 (用于设定监听视口，用于图片懒加载) */
+    viewport?: IntersectionObserverInit["root"];
     /** 监听视口的Margin */
     viewRootMargin?: IntersectionObserverInit["rootMargin"];
     /** 是否只监听一次 (默认：true) */
     observerOnce?: boolean;
     /** 手动控制 (图片加载成功后是否手动控制图片的显示，如果为true则在@loaded的回调函数中会携带show方法供外部调用) */
     manualControl?: boolean;
-    draggable?: boolean; // 是否允许拖拽图片
+    /** 是否在初始状态（图片可能还未加载）就展示组件 @default false */
     initShow?: boolean;
+    /** 是否允许拖拽图片 @default false */
+    draggable?: boolean;
   }>(),
   {
     src: "",
-    initWidth: 0,
-    initHeight: 0,
     useThumb: false,
     thumb: "",
     thumbMaxSize: 400,
-    viewportSelector: "",
-    viewRootMargin: "0%",
     observerOnce: true,
     manualControl: false,
     draggable: true, // 默认允许拖拽图片
@@ -117,24 +111,16 @@ const slots = useSlots();
 const mounted = ref(false);
 
 // s 组件挂载时执行
-onMounted(async () => {
-  // 触发emit:mounted
+onMounted(() => {
+  setTimeout(() => {
+    mounted.value = true;
+    // 触发emit:mounted
+  }, 300);
   emits("mounted");
-  await nextTick();
-  mounted.value = true;
 });
 
 // ? 组件容器Ref
 const container = useTemplateRef("container");
-
-// j 计算属性：监听容器的dom
-const viewportDom = computed<IntersectionObserverInit["root"]>(() => {
-  if (props.viewportSelector.trim()) {
-    return document.querySelector(props.viewportSelector);
-  } else {
-    return null;
-  }
-});
 
 // ? 监听src的变化
 watch(
@@ -148,8 +134,6 @@ watch(
 // s 组件状态信息
 const state = reactive({
   errorImg: errorImg,
-  width: props.initWidth,
-  height: props.initHeight,
   isError: ref(false),
   loaded: ref(props.initShow),
   show: ref(props.initShow),
@@ -170,11 +154,8 @@ onMounted(() => {
     // 实例化 ResizeObserver
     observer = new ResizeObserver((entries) => {
       // 每次尺寸变化时，更新响应式数据
-      const rect = entries[0].contentRect;
-      imgWrapDimensions.value = {
-        width: rect.width,
-        height: rect.height,
-      };
+      const { width, height } = entries[0].contentRect;
+      imgWrapDimensions.value = { width, height };
     });
     observer.observe(imgWrapRef.value);
   }
@@ -274,8 +255,8 @@ const loadImage = async (src: string, thumb: string = "") => {
   if (img.complete) {
     // * 当图片已经加载过
 
-    state.width = img.naturalWidth;
-    state.height = img.naturalHeight;
+    // state.width = img.naturalWidth;
+    // state.height = img.naturalHeight;
 
     let info: ImgReadyInfo = {
       meta: {
@@ -307,17 +288,20 @@ const loadImage = async (src: string, thumb: string = "") => {
         // * 当图片加载成功时
 
         // 记录图片的宽高信息
-        state.width = img.naturalWidth;
-        state.height = img.naturalHeight;
+        // state.width = img.naturalWidth;
+        // state.height = img.naturalHeight;
+        const { naturalWidth, naturalHeight } = img;
 
-        let { loaded, isError, show, ...infoRest } = state;
+        let { loaded, isError, show, errorImg, ...infoRest } = state;
 
         // 对剩余的属性进行类型标注
         let info: ImgReadyInfo = {
           meta: {
             valid: true,
+            width: naturalWidth,
+            height: naturalHeight,
+            aspectRatio: naturalWidth / naturalHeight,
             ...infoRest,
-            aspectRatio: infoRest.width / infoRest.height,
           },
           dom: imgRef.value,
         };
@@ -433,14 +417,13 @@ async function generateThumbnail(
 
 // ? 自定义指令
 const vLazy: Directive = {
-  mounted: async () => {
-
-    await nextTick();
+  mounted: () => {
+    // await nextTick();
     // ! 将任务放入宏队列(防止有些时候交叉检测失败的bug)
     setTimeout(() => {
       let src: string = props.src; // 默认使用原图
 
-      if (!!slots.default||!src) {
+      if (!!slots.default || !src) {
         // ? 用户向默认传入内容，则直接完成加载逻辑
         state.loaded = true;
         state.show = true;
@@ -506,18 +489,20 @@ const vLazy: Directive = {
         }
       };
 
-      // 创建 IntersectionObserver
+      // 配置 IntersectionObserver
       const options: IntersectionObserverInit = {
-        root: viewportDom.value,
+        root: props.viewport,
         rootMargin: props.viewRootMargin,
+        threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
       };
-      // console.log(viewportDom.value);
+
+      // 创建 IntersectionObserver
       const observer = new IntersectionObserver(handleIntersection, options);
       // 开始监听
       if (container.value) {
         observer.observe(container.value);
       } else {
-        console.log("图片监听失效,可能未找到imgContainer");
+        console.log("图片监听失效，未找到组件container");
       }
     });
   },
@@ -544,7 +529,7 @@ const vLazy: Directive = {
   opacity: 0;
   visibility: hidden;
   /* transform: scale(0.1); */
-  transition: opacity 0s ease-out, visibility 0s linear 0s;
+  transition: opacity 0.25s ease-out, visibility 0s linear 0s;
 
   /* transition: opacity 0.25s ease-out, visibility 0s linear 0.25s; */
 }
