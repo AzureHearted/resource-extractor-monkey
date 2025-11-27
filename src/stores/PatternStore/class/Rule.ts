@@ -10,7 +10,6 @@ import type {
 	BaseStatus,
 	BaseRuleRowData,
 } from "../interface/Pattern";
-import { buildUUID } from "@/utils/common";
 
 export class Rule implements BaseRule {
 	public readonly id: string;
@@ -53,7 +52,7 @@ export class Rule implements BaseRule {
 	public backup: BaseRuleRowData | null = null;
 
 	constructor(options?: Partial<BaseRule>) {
-		this.id = options?.id || buildUUID();
+		this.id = options?.id || crypto.randomUUID();
 		if (options?.enable !== undefined) {
 			this.enable = options?.enable;
 		}

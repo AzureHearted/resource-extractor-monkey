@@ -113,7 +113,7 @@ export default async function getCard(
         const task: Task<Card> = {
           // dom: regionDOM,
           handle: async () => {
-            if(stopFlag) return new Card()
+            if (stopFlag) return new Card();
 
             // s source的匹配
             const source = await handleRegionGetInfo<CardSource>({
@@ -304,7 +304,7 @@ export default async function getCard(
               // ? 传出函数用给外部判断是否终止操作
               () => {
                 taskQueue.stop();
-                stopFlag = true
+                stopFlag = true;
                 resolve();
               }
             );
@@ -362,7 +362,7 @@ export default async function getCard(
         const task: Task<Card> = {
           // dom: sourceDOM,
           handle: async () => {
-            if(stopFlag) return new Card()
+            if (stopFlag) return new Card();
             // s 直接获取source信息
             const source: CardSource = {
               url: await getDOMInfo(
@@ -510,7 +510,7 @@ export default async function getCard(
               // ? 传出函数用给外部判断是否终止操作
               () => {
                 taskQueue.stop();
-                stopFlag = true
+                stopFlag = true;
                 resolve();
               }
             );
