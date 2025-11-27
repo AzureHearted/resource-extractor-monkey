@@ -9,10 +9,9 @@
       ref="itemRefs"
       v-for="(item, index) in items"
       :key="item.id"
+      :data-id="item.id"
       class="base-waterfall__item"
-      :style="item.style"
     >
-      <!-- ? 默认插槽替换默认卡片 -->
       <slot
         :index="index"
         :item="item"
@@ -32,21 +31,18 @@
           @mounted="itemOnMounted(index)"
         >
           <template #header>
-            <!-- ? 默认卡片header插槽 -->
             <slot name="header" :index="index"></slot>
           </template>
           <template #default>
-            <!-- ? 默认卡片内容 -->
             <slot name="content" :index="index"></slot>
           </template>
           <template #footer>
-            <!-- ? 默认卡片footer插槽 -->
             <slot name="footer" :index="index"></slot>
           </template>
         </BaseCard>
       </slot>
     </div>
-    <!-- ? 空状态 (还未完全实现) -->
+    <!-- ? 空状态 -->
     <div
       class="base-waterfall__empty-state"
       :data-show="items.length < 1"
@@ -62,9 +58,9 @@ import {
   watch,
   computed,
   onUnmounted,
-  onActivated,
-  onDeactivated,
   useTemplateRef,
+  onDeactivated,
+  onActivated,
 } from "vue";
 import type { ImgReadyInfo } from "./base-img.vue";
 import BaseCard from "./base-card.vue";
@@ -185,13 +181,15 @@ onMounted(() => {
 
 // ? 监听items
 watch(
-  props.items,
+  () => props.items,
   (newItems) => {
     // console.log(newItems);
     // ? 当items被清空时清空 columnHeights 中的缓存高度并且重置容器高度
     if (newItems.length === 0) {
       columnHeights.splice(0, columnHeights.length);
       containerHeight.value = 0;
+    } else if (newItems.length > 0) {
+      debounceHandleTask(scheduleLayout);
     }
   },
   { deep: true }
@@ -317,7 +315,6 @@ onActivated(() => {
  * @param {number} newGutter 间隔
  */
 function layout(newColumns: number, newGutter: number) {
-  // 容器还未加载或被冻结时不进行操作
   if (!container.value || isFreeze) return;
 
   // 重置每列高度
@@ -331,20 +328,18 @@ function layout(newColumns: number, newGutter: number) {
   // cacheItemRectMap.clear();
 
   // ? 遍历所有图片重新布局
-  itemRefs.value?.forEach((item, _index) => {
-    const itemInfo = props.items[_index];
+  props.items.forEach((item, _index) => {
+    const itemDOMRef = itemRefs.value?.find((x) => x.dataset.id === item.id);
+    if (!itemDOMRef) return;
+    // const itemInfo = props.items[_index];
 
     // 图片宽高比
     let imageAspectRatio = 1;
-    if (
-      itemInfo.metadata &&
-      itemInfo.metadata.width &&
-      itemInfo.metadata.height
-    ) {
+    if (item.metadata && item.metadata.width && item.metadata.height) {
       // ? 如果metadata有效则使用metadata数据计算
-      imageAspectRatio = itemInfo.metadata.width / itemInfo.metadata.height;
+      imageAspectRatio = item.metadata.width / item.metadata.height;
     } else {
-      const aspectRatio = item.dataset["aspectRatio"];
+      const aspectRatio = itemDOMRef.dataset["aspectRatio"];
       imageAspectRatio = aspectRatio ? Number(aspectRatio) : 1;
     }
 
@@ -360,15 +355,13 @@ function layout(newColumns: number, newGutter: number) {
     const top = newColumnHeights[minCol];
     const left = minCol * (columnWidth.value + newGutter);
 
-    const rect = {
+    // ? 先把样式记录到rectMap中，最后统一修改
+    rectMap.set(itemDOMRef, {
       width: columnWidth.value,
       height: scaledHeight,
       left,
       top,
-    };
-
-    // ? 先把样式记录到rectMap中，最后统一修改
-    rectMap.set(item, rect);
+    });
 
     // 缓存一份
     // cacheItemRectMap.set(item, rect);
@@ -378,14 +371,16 @@ function layout(newColumns: number, newGutter: number) {
   });
 
   // ? 最后统一调整样式
-  itemRefs.value?.forEach((item) => {
-    const rect = rectMap.get(item);
+  props.items.forEach((item, _index) => {
+    const itemDOMRef = itemRefs.value?.find((x) => x.dataset.id === item.id);
+    if (!itemDOMRef) return;
+    const rect = rectMap.get(itemDOMRef);
     if (!rect) return;
     const { width, height, left, top } = rect;
-    item.style.setProperty("--x", `${left}px`);
-    item.style.setProperty("--y", `${top}px`);
-    item.style.setProperty("--w", `${width}px`);
-    item.style.setProperty("--h", `${height}px`);
+    itemDOMRef.style.setProperty("--x", `${left}px`);
+    itemDOMRef.style.setProperty("--y", `${top}px`);
+    itemDOMRef.style.setProperty("--w", `${width}px`);
+    itemDOMRef.style.setProperty("--h", `${height}px`);
   });
 
   // 更新全局列高度
@@ -407,16 +402,18 @@ function onLoaded(index: number, info: ImgReadyInfo) {
     // ? 通过 BaseImg组件中的img标签尺寸计算宽高比
     // const aspectRatio = dom!.clientWidth / dom!.clientHeight;
 
-    const item = itemRefs.value![index];
+    const item = props.items[index];
+    const itemDOMRef = itemRefs.value?.find((x) => x.dataset.id === item.id);
+    if (!itemDOMRef) return;
     // 在dom设置 dataset-aspect-ratio 供布局使用
-    item.dataset["aspectRatio"] = String(aspectRatio ? aspectRatio : 1);
+    itemDOMRef.dataset["aspectRatio"] = String(aspectRatio ? aspectRatio : 1);
 
     // 必须立即计算布局
     scheduleLayout();
 
     requestAnimationFrame(() => {
       // 下一帧率再显示图片
-      item.dataset["loaded"] = "true";
+      itemDOMRef.dataset["loaded"] = "true";
     });
   });
 }
@@ -444,6 +441,7 @@ function useResizeObserver(
 }
 
 defineExpose({
+  scheduleLayout,
   layout,
 });
 </script>
