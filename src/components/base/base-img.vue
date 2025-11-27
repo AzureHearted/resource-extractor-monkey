@@ -156,10 +156,33 @@ onMounted(() => {
       // 每次尺寸变化时，更新响应式数据
       const { width, height } = entries[0].contentRect;
       imgWrapDimensions.value = { width, height };
+      if (!state.loaded || !state.show) {
+        fixStyleBug();
+      }
     });
     observer.observe(imgWrapRef.value);
   }
+  fixStyleBug();
 });
+
+/**
+ * * 修复与Fancyapps/ui 的 FancyBox 可能的冲突
+ * 未知情况下 Fancyapps/ui 可能会将下面几个dom元素设置为 display:none
+ */
+async function fixStyleBug() {
+  await nextTick();
+  requestAnimationFrame(() => {
+    if (container.value) {
+      container.value.style.display = "flex";
+    }
+    if (imgWrapRef.value) {
+      imgWrapRef.value.style.display = "flex";
+    }
+    if (imgRef.value) {
+      imgRef.value.style.display = "block";
+    }
+  });
+}
 
 // ? 当组件卸载时取消监听
 onUnmounted(() => {
@@ -241,9 +264,14 @@ const loadImage = async (src: string, thumb: string = "") => {
   const handleShow = () => {
     if (imgRef.value) {
       imgRef.value.src = thumb != "" ? thumb : src;
-      nextTick(() => {
-        imgRef.value!.style.display = "block";
-      });
+      /**
+       * ! 由于Fancybox的一些特殊作用使用该组件可能会把这三个dom设置为display:none;
+       * ? 因此手动设置dispaly
+       */
+      // imgRef.value!.style.display = "block";
+      // imgWrapRef.value!.style.display = "flex";
+      // container.value!.style.display = "flex";
+      fixStyleBug();
     }
     state.loaded = true;
     state.show = true;
