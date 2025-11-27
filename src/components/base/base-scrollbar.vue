@@ -756,8 +756,8 @@ $track-hover-padding: v-bind("$props.hoverThumbPadding");
       opacity: 1;
       z-index: 1;
 
-      /* transition: background 0.5s ease, opacity 0.5s ease, left 0.5s ease,
-					right 0.5s ease, top 0.5s ease, bottom 0.5s ease, inset 0.5s ease; */
+      transition: background 0.5s ease, opacity 0.5s ease, left 0.5s ease,
+        right 0.5s ease, top 0.5s ease, bottom 0.5s ease, inset 0.5s ease;
     }
 
     &:hover,
