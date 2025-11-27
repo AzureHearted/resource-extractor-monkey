@@ -1,163 +1,149 @@
 <template>
-	<BaseScrollbar show-back-top-button>
-		<!-- f 普通网格布局 -->
-		<GridList v-if="layout === 'Grid'" :data="cardList">
-			<template #default="{ item }">
-				<GalleryCard
-					v-model:data="(item as Card)"
-					:highlight-key="searchKeywords"
-					img-object-fit="cover"
-					:set-aspect-ratio="1"
-					:is-mobile="isMobile"
-					:show-to-locate-button="false"
-					:show-delete-button="false"
-					:show-download-button="(item as Card).source.meta.type!=='html'"
-					@change:selected="item.isSelected = $event"
-					@change:title="updateCard([item as Card])"
-					@loaded="handleLoaded"
-					@download="handleDownload"
-					@toggle-favorite="handleToggleFavorite(item as Card)"
-					@save:tags="handleTagsSave(item as Card)"
-					@delete="deleteCard([item as Card])">
-					<template #custom-button="{ openUrl }">
-						<el-button
-							type="warning"
-							@click="openUrl((item as Card).source.originUrls![0])"
-							title="打开卡片对应的来源地址"
-							v-ripple>
-							<template #icon>
-								<i-material-symbols-open-in-new-down-rounded />
-							</template>
-						</el-button>
-					</template>
-				</GalleryCard>
-			</template>
-		</GridList>
-		<!-- f 瀑布流布局 -->
-		<!-- <WaterFallList
-			v-if="layout === 'WaterFall'"
-			ref="waterFallRef"
-			:data="cardList.filter((x) => x.isMatch)"
-			item-padding="2px">
-			<template #default="{ item }">
-				<GalleryCard
-					v-model:data="(item as Card)"
-					:highlight-key="searchKeywords"
-					:is-mobile="isMobile"
-					:show-to-locate-button="false"
-					:show-delete-button="false"
-					:show-download-button="(item as Card).source.meta.type!=='html'"
-					@change:selected="item.isSelected = $event"
-					@change:title="updateCard([item as Card])"
-					@loaded="handleLoaded"
-					@download="handleDownload"
-					@toggle-favorite="handleToggleFavorite(item as Card)"
-					@save:tags="handleTagsSave(item as Card)"
-					@delete="deleteCard([item as Card])">
-					<template #custom-button="{ openUrl }">
-						<el-button
-							type="warning"
-							@click="openUrl((item as Card).source.originUrls![0])"
-							title="打开卡片对应的来源地址"
-							v-ripple>
-							<template #icon>
-								<i-material-symbols-open-in-new-down-rounded />
-							</template>
-						</el-button>
-					</template>
-				</GalleryCard>
-			</template>
-		</WaterFallList> -->
+  <BaseScrollbar
+    :disable="!showScrollbar"
+    show-back-top-button
+    overflow-x="hidden"
+    auto-hidden
+  >
+    <!-- f 普通网格布局 -->
+    <GridList v-if="layout === 'Grid'" :data="cardList">
+      <template #default="{ item }">
+        <GalleryCard
+          v-model:data="(item as Card)"
+          :highlight-key="searchKeywords"
+          img-object-fit="cover"
+          :set-aspect-ratio="1"
+          :is-mobile="isMobile"
+          :show-to-locate-button="false"
+          :show-delete-button="false"
+          :show-download-button="(item as Card).source.meta.type!=='html'"
+          @change:selected="item.isSelected = $event"
+          @change:title="updateCard([item as Card])"
+          @loaded="handleLoaded"
+          @download="handleDownload"
+          @toggle-favorite="handleToggleFavorite(item as Card)"
+          @save:tags="handleTagsSave(item as Card)"
+          @delete="deleteCard([item as Card])"
+        >
+          <template #custom-button="{ openUrl }">
+            <el-button
+              type="warning"
+              @click="openUrl((item as Card).source.originUrls![0])"
+              title="打开卡片对应的来源地址"
+              v-ripple
+            >
+              <template #icon>
+                <i-material-symbols-open-in-new-down-rounded />
+              </template>
+            </el-button>
+          </template>
+        </GalleryCard>
+      </template>
+    </GridList>
+    <!-- f 瀑布流布局 -->
     <div v-if="layout === 'WaterFall'" style="padding: 10px">
-      <BaseWaterfall :items="waterfallItems" :columns="6">
+      <BaseWaterfall ref="waterFallRef" :items="waterfallItems" :columns="6">
         <template #default="{ index, item, loaded, mounted }">
           <GalleryCard
-					v-model:data="(item.data as Card)"
-					:highlight-key="searchKeywords"
-					:is-mobile="isMobile"
-					:show-to-locate-button="false"
-					:show-delete-button="false"
-					:show-download-button="(item.data as Card).source.meta.type!=='html'"
-					@change:selected="item.data.isSelected = $event"
-					@change:title="updateCard([item.data as Card])"
-          @mounted="mounted(index)"
-					@loaded="(id,info)=>{
-            loaded(index,info)
-            handleLoaded(id,info)
-          }"
-					@download="handleDownload"
-					@toggle-favorite="handleToggleFavorite(item.data as Card)"
-					@save:tags="handleTagsSave(item.data as Card)"
-					@delete="deleteCard([item.data as Card])">
-					<template #custom-button="{ openUrl }">
-						<el-button
-							type="warning"
-							@click="openUrl((item.data as Card).source.originUrls![0])"
-							title="打开卡片对应的来源地址"
-							v-ripple>
-							<template #icon>
-								<i-material-symbols-open-in-new-down-rounded />
-							</template>
-						</el-button>
-					</template>
-				</GalleryCard>
+            v-model:data="(item.data as Card)"
+            :highlight-key="searchKeywords"
+            :is-mobile="isMobile"
+            :show-to-locate-button="false"
+            :show-delete-button="false"
+            :show-download-button="(item.data as Card).source.meta.type!=='html'"
+            @change:selected="item.data.isSelected = $event"
+            @change:title="updateCard([item.data as Card])"
+            @mounted="mounted(index)"
+            @loaded="
+              (id, info) => {
+                loaded(index, info);
+                handleLoaded(id, info);
+              }
+            "
+            @download="handleDownload"
+            @toggle-favorite="handleToggleFavorite(item.data as Card)"
+            @save:tags="handleTagsSave(item.data as Card)"
+            @delete="deleteCard([item.data as Card])"
+          >
+            <template #custom-button="{ openUrl }">
+              <el-button
+                type="warning"
+                @click="openUrl((item.data as Card).source.originUrls![0])"
+                title="打开卡片对应的来源地址"
+                v-ripple
+              >
+                <template #icon>
+                  <i-material-symbols-open-in-new-down-rounded />
+                </template>
+              </el-button>
+            </template>
+          </GalleryCard>
         </template>
       </BaseWaterfall>
     </div>
-	</BaseScrollbar>
+  </BaseScrollbar>
 </template>
 
 <script setup lang="ts">
-	import { ref, defineProps, withDefaults, onMounted, onActivated, computed } from "vue";
-	import BaseScrollbar from "@/components/base/base-scrollbar.vue";
-	import GridList from "@/components/utils/grid-card-list.vue";
-  import BaseWaterfall from "@/components/base/base-waterfall.vue";
-  import type { Item as WaterfallItem } from "@/components/base/base-waterfall.vue";
-	import GalleryCard from "@/components/utils/gallery-card.vue";
-	import Card from "@/stores/CardStore/class/Card";
-	import type { ImgReadyInfo } from "@/components/base/base-img.vue";
+import {
+  ref,
+  watch,
+  nextTick,
+  defineProps,
+  withDefaults,
+  onMounted,
+  onActivated,
+  computed,
+  useTemplateRef,
+} from "vue";
+import BaseScrollbar from "@/components/base/base-scrollbar.vue";
+import GridList from "@/components/utils/grid-card-list.vue";
+import BaseWaterfall from "@/components/base/base-waterfall.vue";
+import type { Item as WaterfallItem } from "@/components/base/base-waterfall.vue";
+import GalleryCard from "@/components/utils/gallery-card.vue";
+import Card from "@/stores/CardStore/class/Card";
+import type { ImgReadyInfo } from "@/components/base/base-img.vue";
 
-	import useCardStore from "@/stores/CardStore";
-	import useFavoriteStore from "@/stores/FavoriteStore";
-	import { isEqualUrl, isMobile as judgeIsMobile } from "@/utils/common";
+import useCardStore from "@/stores/CardStore";
+import useFavoriteStore from "@/stores/FavoriteStore";
+import { isEqualUrl, isMobile as judgeIsMobile } from "@/utils/common";
 
-	const cardStore = useCardStore();
-	const favoriteStore = useFavoriteStore();
+const cardStore = useCardStore();
+const favoriteStore = useFavoriteStore();
 
-	const { updateCard, deleteCard, unFavoriteCard, refreshStore, findCardById } =
-		favoriteStore;
-	const { downloadCards } = cardStore;
+const { updateCard, deleteCard, unFavoriteCard, refreshStore, findCardById } =
+  favoriteStore;
+const { downloadCards } = cardStore;
 
-	const props =withDefaults(
-		defineProps<{
-			cardList: Card[];
-			layout?: "Grid" | "WaterFall"; // s 布局模式
-			searchKeywords?: string; // s 检索关键词
-		}>(),
-		{
-			cardList: () => [],
-			layout: "WaterFall",
-		}
-	);
+const props = withDefaults(
+  defineProps<{
+    cardList: Card[];
+    layout?: "Grid" | "WaterFall"; // s 布局模式
+    searchKeywords?: string; // s 检索关键词
+  }>(),
+  {
+    cardList: () => [],
+    layout: "WaterFall",
+    searchKeywords: "",
+  }
+);
 
-	// s 滚动条组件的Ref
-	const scrollbarRef = ref<InstanceType<typeof BaseScrollbar> | null>(null);
-	// s 是否显示滚动条
-	const showScrollbar = ref(true);
+// s 是否显示滚动条
+const showScrollbar = ref(true);
 
-	// s 移动端标识符
-	const isMobile = ref(false);
-	onMounted(() => {
-		isMobile.value = judgeIsMobile();
-		showScrollbar.value = !isMobile.value;
-	});
+// s 移动端标识符
+const isMobile = ref(false);
+onMounted(() => {
+  isMobile.value = judgeIsMobile();
+  showScrollbar.value = !isMobile.value;
+});
 
-	onActivated(() => {
-		isMobile.value = judgeIsMobile();
-		showScrollbar.value = !isMobile.value;
-	});
+onActivated(() => {
+  isMobile.value = judgeIsMobile();
+  showScrollbar.value = !isMobile.value;
+});
 
-  // 转为适用于瀑布流的数据
+// 转为适用于瀑布流的数据
 const waterfallItems = computed<Array<WaterfallItem>>(() => {
   return props.cardList
     .filter((x) => x.isMatch)
@@ -177,48 +163,47 @@ const waterfallItems = computed<Array<WaterfallItem>>(() => {
     });
 });
 
-	// f 处理卡片下载
-	const handleDownload = async (id: string) => {
-		// console.log("下载", id);
-		const card = await findCardById(id);
-		if (!card) return;
-		// console.log("找到card", card);
-		await downloadCards([card]);
-		// 更新卡片
-		updateCard([card]);
-	};
+// f 处理卡片下载
+const handleDownload = async (id: string) => {
+  // console.log("下载", id);
+  const card = await findCardById(id);
+  if (!card) return;
+  // console.log("找到card", card);
+  await downloadCards([card]);
+  // 更新卡片
+  updateCard([card]);
+};
 
-	// f 处理收藏/取消收藏
-	const handleToggleFavorite = (card: Card) => {
-		unFavoriteCard([card]);
-		refreshStore();
-	};
+// f 处理收藏/取消收藏
+const handleToggleFavorite = (card: Card) => {
+  unFavoriteCard([card]);
+  refreshStore();
+};
 
+// f 卡片加载成功完成事件( 1.更新cardStore的尺寸范围信息;2.判断卡片是否被收藏 )
+const handleLoaded = async (id: string, info: ImgReadyInfo) => {
+  // s 仓库找到对应的数据
+  const card = await findCardById(id);
+  if (!card) return; //* 如果卡片不存在也不在向下执行
+  if (card.isLoaded) return; //* 如果已经成功加载过了就不在执行
+  card.isLoaded = true; // s 置为加载成功
+  // console.count("卡片加载完成");
+  // s 刷新仓库对应卡片的preview.meta信息
+  card.preview.meta = { ...card.preview.meta, ...info.meta };
+  if (
+    isEqualUrl(card.preview.url, card.source.url) &&
+    (card.preview.meta.width > card.source.meta.width ||
+      card.preview.meta.height > card.source.meta.height)
+  ) {
+    card.source.meta = card.preview.meta;
+    updateCard([card]);
+  }
+};
 
-	// f 卡片加载成功完成事件( 1.更新cardStore的尺寸范围信息;2.判断卡片是否被收藏 )
-	const handleLoaded = async (id: string, info: ImgReadyInfo) => {
-		// s 仓库找到对应的数据
-		const card = await findCardById(id);
-		if (!card) return; //* 如果卡片不存在也不在向下执行
-		if (card.isLoaded) return; //* 如果已经成功加载过了就不在执行
-		card.isLoaded = true; // s 置为加载成功
-		// console.count("卡片加载完成");
-		// s 刷新仓库对应卡片的preview.meta信息
-		card.preview.meta = { ...card.preview.meta, ...info.meta };
-		if (
-			isEqualUrl(card.preview.url, card.source.url) &&
-			(card.preview.meta.width > card.source.meta.width ||
-				card.preview.meta.height > card.source.meta.height)
-		) {
-			card.source.meta = card.preview.meta;
-			updateCard([card]);
-		}
-	};
-
-	// f 处理卡片标签变化
-	const handleTagsSave = async (card: Card) => {
-		updateCard([card]);
-	};
+// f 处理卡片标签变化
+const handleTagsSave = async (card: Card) => {
+  updateCard([card]);
+};
 </script>
 
 <style lang="scss" scoped>

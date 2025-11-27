@@ -1,9 +1,9 @@
 <template>
   <BaseScrollbar
-    ref="scrollbarRef"
-    :show-scrollbar="showScrollbar"
+    :disable="!showScrollbar"
     show-back-top-button
     overflow-x="hidden"
+    auto-hidden
   >
     <!-- f 普通网格布局 -->
     <GridList v-if="layout === 'Grid'" :data="cardList">
@@ -24,7 +24,7 @@
     </GridList>
     <!-- f 瀑布流布局 -->
     <div v-if="layout === 'WaterFall'" style="padding: 10px">
-      <BaseWaterfall :items="waterfallItems" :columns="6">
+      <BaseWaterfall ref="waterFallRef" :items="waterfallItems" :columns="6">
         <template #default="{ index, item, loaded, mounted }">
           <GalleryCard
             v-model:data="(item.data as Card)"
@@ -50,7 +50,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted, onActivated, computed } from "vue";
+import {
+  ref,
+  watch,
+  nextTick,
+  onMounted,
+  onActivated,
+  computed,
+  useTemplateRef,
+} from "vue";
 import GridList from "@/components/utils/grid-card-list.vue";
 import BaseScrollbar from "@/components/base/base-scrollbar.vue";
 import type { ImgReadyInfo } from "@/components/base/base-img.vue";
@@ -76,6 +84,33 @@ const props = withDefaults(
   }
 );
 
+// s 卡片仓库
+const cardStore = useCardStore();
+const { findCard, removeCard, downloadCards } = cardStore;
+// s 收藏仓库
+const favoriteStore = useFavoriteStore();
+const {
+  refreshStore: refreshFavoriteStore,
+  isExist: isFavorite,
+  addCard: toFavoriteCard,
+  unFavoriteCard,
+} = favoriteStore;
+
+// s 是否显示滚动条
+const showScrollbar = ref(true);
+
+// s 移动端标识符
+const isMobile = ref(false);
+onMounted(() => {
+  isMobile.value = judgeIsMobile();
+  showScrollbar.value = !isMobile.value;
+});
+
+onActivated(() => {
+  isMobile.value = judgeIsMobile();
+  showScrollbar.value = !isMobile.value;
+});
+
 // 转为适用于瀑布流的数据
 const waterfallItems = computed<Array<WaterfallItem>>(() => {
   return props.cardList
@@ -94,35 +129,6 @@ const waterfallItems = computed<Array<WaterfallItem>>(() => {
         data: c,
       };
     });
-});
-
-// s 卡片仓库
-const cardStore = useCardStore();
-const { findCard, removeCard, downloadCards } = cardStore;
-// s 收藏仓库
-const favoriteStore = useFavoriteStore();
-const {
-  refreshStore: refreshFavoriteStore,
-  isExist: isFavorite,
-  addCard: toFavoriteCard,
-  unFavoriteCard,
-} = favoriteStore;
-
-// s 滚动条组件的Ref
-const scrollbarRef = ref<InstanceType<typeof BaseScrollbar> | null>(null);
-// s 是否显示滚动条
-const showScrollbar = ref(true);
-
-// s 移动端标识符
-const isMobile = ref(false);
-onMounted(() => {
-  isMobile.value = judgeIsMobile();
-  showScrollbar.value = !isMobile.value;
-});
-
-onActivated(() => {
-  isMobile.value = judgeIsMobile();
-  showScrollbar.value = !isMobile.value;
 });
 
 // f 卡片加载成功完成事件( 1.更新cardStore的尺寸范围信息;2.判断卡片是否被收藏 )
