@@ -275,9 +275,7 @@ const scrollbar = reactive({
 
 // ? 记录器: 用于记录冻结前的进度条百分比
 const recorder = {
-  viewportInfo: {
-    ...viewportInfo,
-  },
+  viewportInfo: {} as typeof viewportInfo,
   verticalTrackInfo: {} as typeof verticalTrackInfo,
   horizontalTrackInfo: {} as typeof horizontalTrackInfo,
   scrollbar: {
@@ -308,10 +306,8 @@ onDeactivated(() => {
   recorder.horizontalTrackInfo = {
     ...horizontalTrackInfo,
   };
-  recorder.scrollbar.vertical.length = scrollbar.vertical.length;
   recorder.scrollbar.vertical.top = scrollbar.vertical.top;
   recorder.scrollbar.vertical.lengthPercent = scrollbar.vertical.lengthPercent;
-  recorder.scrollbar.horizontal.length = scrollbar.horizontal.length;
   recorder.scrollbar.horizontal.left = scrollbar.horizontal.left;
   recorder.scrollbar.horizontal.lengthPercent =
     scrollbar.horizontal.lengthPercent;
@@ -394,8 +390,13 @@ function calcVerticalThumbPosition(
   behavior: ScrollBehavior = "instant"
 ) {
   // ? 防止滚动条超出轨道最大长度
-  if (y + scrollbar.vertical.length / 2 > verticalTrackInfo.height) {
-    y = verticalTrackInfo.height - scrollbar.vertical.length;
+  if (
+    y + (verticalTrackInfo.height * scrollbar.vertical.lengthPercent) / 2 >
+    verticalTrackInfo.height
+  ) {
+    y =
+      verticalTrackInfo.height -
+      verticalTrackInfo.height * scrollbar.vertical.lengthPercent;
   }
   // ? 防止滚动条超出轨道最小长度
   if (y < 0) y = 0;
@@ -423,7 +424,9 @@ const verticalStyle: ComputedRef<CSSProperties> = computed(() => {
 // j 垂直滚动条可见性
 const verticalScrollbarVisible = computed<boolean>(() => {
   return (
-    ((scrollbar.show && scrollbar.vertical.length > 0) ||
+    ((scrollbar.show &&
+      scrollbar.vertical.lengthPercent > 0 &&
+      scrollbar.vertical.lengthPercent < 1) ||
       scrollbar.vertical.isDragging) &&
     props.showScrollbar &&
     (props.overflowY === "auto" || props.overflowY === "scroll")
@@ -464,8 +467,13 @@ function calcHorizontalThumbPosition(
   behavior: ScrollBehavior = "instant"
 ) {
   // ? 防止滚动条超出轨道最大长度
-  if (x + scrollbar.horizontal.length / 2 > horizontalTrackInfo.width) {
-    x = horizontalTrackInfo.width - scrollbar.horizontal.length;
+  if (
+    x + (horizontalTrackInfo.width * scrollbar.horizontal.lengthPercent) / 2 >
+    horizontalTrackInfo.width
+  ) {
+    x =
+      horizontalTrackInfo.width -
+      horizontalTrackInfo.width * scrollbar.horizontal.lengthPercent;
   }
   // ? 防止滚动条超出轨道最小长度
   if (x < 0) x = 0;
@@ -492,7 +500,9 @@ const horizontalStyle: ComputedRef<CSSProperties> = computed(() => {
 // j 水平滚动条可见性
 const horizontalScrollbarVisible = computed<boolean>(() => {
   return (
-    ((scrollbar.show && scrollbar.horizontal.length > 0) ||
+    ((scrollbar.show &&
+      scrollbar.horizontal.lengthPercent > 0 &&
+      scrollbar.horizontal.lengthPercent < 1) ||
       scrollbar.horizontal.isDragging) &&
     props.showScrollbar &&
     (props.overflowX === "auto" || props.overflowX === "scroll")
@@ -500,21 +510,12 @@ const horizontalScrollbarVisible = computed<boolean>(() => {
 });
 
 /**
- * f 滚动尺寸和实际尺寸换算
- * @param trackLen 轨道 `长度`
- * @param scrollContentLen 内容 `可scroll长度`
- * @param viewportLen 视口 `长度`
- * @returns 计算结果
+ * f 获取track长度相对于可滚动长度的百分占比 (同时等于滚动条长度应该占track长度的百分比)
+ * @param scrollContentLen 可滚内容总长度
+ * @param viewportLen 视口长度
+ * @param {number} 范围：0.0 ~ 1.0
  */
-function getThumbLength(
-  trackLen: number,
-  scrollContentLen: number,
-  viewportLen: number
-) {
-  return (viewportLen / scrollContentLen) * trackLen * (trackLen / viewportLen);
-}
-
-function getPercentage(scrollContentLen: number, viewportLen: number) {
+function getThumbSizePercentage(scrollContentLen: number, viewportLen: number) {
   return viewportLen / scrollContentLen;
 }
 
@@ -525,22 +526,13 @@ function calcThumbSize() {
   const { scrollWidth, scrollHeight } = viewportDOM.value;
   const { width, height } = viewportInfo;
   // 计算垂直滚动条长度
-  scrollbar.vertical.length =
-    // Math.floor(scrollHeight) > Math.ceil(viewportInfo.height)
-    scrollHeight > height + 1
-      ? getThumbLength(verticalTrackInfo.height, scrollHeight, height)
-      : -1;
-  scrollbar.vertical.lengthPercent = getPercentage(
-    scrollHeight,
-    verticalTrackInfo.height
-  );
+  scrollbar.vertical.lengthPercent =
+    scrollHeight > height + 0.5
+      ? getThumbSizePercentage(scrollHeight, height)
+      : 1;
   // 计算水平滚动条长度
-  scrollbar.horizontal.length =
-    // Math.floor(scrollWidth) > Math.ceil(viewportInfo.width)
-    scrollWidth > width + 1
-      ? getThumbLength(horizontalTrackInfo.width, scrollWidth, width)
-      : -1;
-  scrollbar.horizontal.lengthPercent = getPercentage(scrollWidth, width);
+  scrollbar.horizontal.lengthPercent =
+    scrollWidth > width + 0.5 ? getThumbSizePercentage(scrollWidth, width) : 1;
 }
 
 // f 设置滚动条位置
@@ -609,8 +601,13 @@ function onClickTrack(direction: "vertical" | "horizontal", e: MouseEvent) {
     const delta = clickPos - (top + length / 2);
     let y = top + delta;
     // ? 防止滚动条超出轨道最大长度
-    if (y + scrollbar.vertical.length / 2 > verticalTrackInfo.height) {
-      y = verticalTrackInfo.height - scrollbar.vertical.length;
+    if (
+      y + (verticalTrackInfo.height * scrollbar.vertical.lengthPercent) / 2 >
+      verticalTrackInfo.height
+    ) {
+      y =
+        verticalTrackInfo.height -
+        verticalTrackInfo.height * scrollbar.vertical.lengthPercent;
     }
     // ? 防止滚动条超出轨道最小长度
     if (y < 0) y = 0;
@@ -624,8 +621,13 @@ function onClickTrack(direction: "vertical" | "horizontal", e: MouseEvent) {
     const delta = clickPos - (left + length / 2);
     let x = left + delta;
     // ? 防止滚动条超出轨道最大长度
-    if (x + scrollbar.horizontal.length / 2 > horizontalTrackInfo.width) {
-      x = horizontalTrackInfo.width - scrollbar.horizontal.length;
+    if (
+      x + (horizontalTrackInfo.width * scrollbar.horizontal.lengthPercent) / 2 >
+      horizontalTrackInfo.width
+    ) {
+      x =
+        horizontalTrackInfo.width -
+        horizontalTrackInfo.width * scrollbar.horizontal.lengthPercent;
     }
     // ? 防止滚动条超出轨道最小长度
     if (x < 0) x = 0;
@@ -680,6 +682,26 @@ export default {
     opacity: 0;
     transition: 0.5s ease;
   }
+
+  &.arrived-top {
+  }
+  &.arrived-left {
+  }
+  &.arrived-right {
+  }
+  &.arrived-bottom {
+    &::after {
+      /* position: absolute; */
+      /* opacity: 1; */
+      content: "到底部了！";
+      bottom: 0;
+      width: 100%;
+      height: 20px;
+      text-align: center;
+      background-color: hsla(189, 100%, 50%, 0.5);
+      /* transition: 0.5s ease 0.5s; */
+    }
+  }
 }
 
 // s 视口
@@ -689,7 +711,7 @@ export default {
   height: 100%;
   max-width: 100%;
   max-height: 100%;
-  scroll-behavior: smooth;
+  /* scroll-behavior: smooth; */
   overflow-y: v-bind("props.overflowY");
   overflow-x: v-bind("props.overflowX");
   transition: 0.5 ease;
@@ -734,8 +756,8 @@ $track-hover-padding: v-bind("$props.hoverThumbPadding");
       opacity: 1;
       z-index: 1;
 
-      transition: background 0.5s ease, opacity 0.5s ease, left 0.5s ease,
-        right 0.5s ease, top 0.5s ease, bottom 0.5s ease, inset 0.5s ease;
+      /* transition: background 0.5s ease, opacity 0.5s ease, left 0.5s ease,
+					right 0.5s ease, top 0.5s ease, bottom 0.5s ease, inset 0.5s ease; */
     }
 
     &:hover,
