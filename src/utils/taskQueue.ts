@@ -92,7 +92,7 @@ export class TaskQueue<T = any> {
 
     this.timer = setTimeout(() => {
       if (this.stopped || this.paused) return; // stop 或 pause 后中断
-      console.log("Task轮询中……")
+      // console.log("Task轮询中……")
       this.handleRun();
     }, this.interval);
   }
