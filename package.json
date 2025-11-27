@@ -15,10 +15,10 @@
 	},
 	"dependencies": {
 		"@element-plus/icons-vue": "^2.3.1",
-		"@fancyapps/ui": "^5.0.35",
+		"@fancyapps/ui": "^6.1.6",
 		"@varlet/ui": "^3.2.3",
-		"@vueuse/components": "^10.11.0",
-		"@vueuse/core": "^10.9.0",
+		"@vueuse/components": "^14.1.0",
+		"@vueuse/core": "^14.1.0",
 		"element-plus": "^2.7.1",
 		"file-saver": "^2.0.5",
 		"gsap": "^3.12.5",
@@ -28,8 +28,8 @@
 		"lodash": "^4.17.21",
 		"masonry-layout": "^4.2.2",
 		"pinia": "^2.1.7",
-		"vue": "^3.4.21",
-		"vue-router": "^4.3.0",
+		"vue": "^3.5.25",
+		"vue-router": "^4.6.3",
 		"vuetify": "^3.5.14"
 	},
 	"devDependencies": {
@@ -67,7 +67,7 @@
 		"sass": "^1.75.0",
 		"seemly": "^0.3.8",
 		"terser": "^5.30.3",
-		"typescript": "~5.4.0",
+		"typescript": "^5.9.3",
 		"unplugin-auto-import": "^0.17.5",
 		"unplugin-element-plus": "^0.8.0",
 		"unplugin-icons": "^0.18.5",

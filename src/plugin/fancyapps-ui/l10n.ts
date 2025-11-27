@@ -1,4 +1,4 @@
-import type { OptionsType } from "@fancyapps/ui/types/Fancybox/options";
+import type { FancyboxOptions } from "@fancyapps/ui";
 
 export default {
 	DOWNLOAD: "下载",
@@ -10,4 +10,4 @@ export default {
 	TOGGLE_THUMBS: "切换缩略图显示",
 	CLOSE: "关闭",
 	TO_LOCATE: "定位图片",
-} as OptionsType["l10n"];
+} as FancyboxOptions["l10n"];
