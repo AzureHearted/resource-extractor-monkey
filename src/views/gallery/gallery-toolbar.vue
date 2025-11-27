@@ -8,6 +8,7 @@
         :to="false"
         :render-label="renderPatternSelectOptionsLabel"
         :options="patternSelectOptions"
+        filterable
       />
     </div>
     <!-- s 操作栏 -->
@@ -400,7 +401,8 @@ const renderPatternSelectOptionsLabel = (option: SelectOption): VNodeChild => {
       option && !(option.key as string).includes("#")
         ? h(BaseImg, {
             src: (option.rowData as Pattern).mainInfo.icon,
-            style: "width: 16px; height: 16px;margin-right:4px;",
+            style:
+              "width: 16px; height: 16px;margin-right:4px; flex-shrink: 0;",
           })
         : null,
       h(
@@ -416,6 +418,8 @@ const renderPatternSelectOptionsLabel = (option: SelectOption): VNodeChild => {
               })
                 ? "red"
                 : null,
+            overflow: "hidden",
+            "text-overflow": "ellipsis",
           },
           title: option.label,
         },
@@ -606,7 +610,7 @@ const batchAddTag = (tags: string[]) => {
 
 // 方案选择器样式
 .pattern-select {
-  width: 130px;
+  width: 150px;
 }
 
 // 排序方式选择器
