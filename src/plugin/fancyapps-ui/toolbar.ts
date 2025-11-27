@@ -1,13 +1,5 @@
-// import type {
-// 	ToolbarOptionsType,
-// 	ToolbarItemsType,
-// } from "@fancyapps/ui/types/Fancybox/plugins";
 import { Fancybox } from "@fancyapps/ui";
-import type {
-  ToolbarOptions,
-  ToolbarItem,
-  FancyboxInstance,
-} from "@fancyapps/ui";
+import type { ToolbarOptions } from "@fancyapps/ui";
 import { GM_openInTab } from "$";
 import useCardStore from "@/stores/CardStore";
 import useFavoriteStore from "@/stores/FavoriteStore";
@@ -19,11 +11,12 @@ export default {
   // 要显示的工具
   display: {
     left: ["open", "download"],
-    middle: ["infobar"],
-    right: ["toLocate", "thumbs", "close"],
+    middle: ["counter"],
+    right: ["rotateCCW", "rotateCW", "toLocate", "thumbs", "close"],
   },
   // 自定义的按钮
   items: {
+    // f 关闭按钮
     close: {
       tpl: /*html*/ `
         <button class="f-button" title="{{CLOSE}}"><svg tabindex="-1" width="24" height="24" viewBox="0 0 24 24"><path d="M19.286 4.714 4.714 19.286M4.714 4.714l14.572 14.572"></path></svg></button>
@@ -64,19 +57,19 @@ export default {
         const slides = instance.getSlides();
         const triggerEl = slides[index].triggerEl;
         if (!triggerEl) return;
-        console.log("下载按钮点击", triggerEl);
+        // console.log("下载按钮点击", triggerEl);
         const url = triggerEl.dataset.downloadSrc;
         const cid = triggerEl.dataset.id;
         if (!cid) return;
         console.log("下载", cid, url);
-        // 先尝试到图库的卡片仓库擦找卡片
+        // 先尝试到图库的卡片仓库找卡片
         // 找不到再从收藏仓库查找
         let card = cardStore.findCard(cid);
         if (card) {
-          //? 如果成功在图库卡片仓库找到就直接进行下载
+          // ? 如果成功在图库卡片仓库找到就直接进行下载
           cardStore.downloadCards([card]);
         } else {
-          //? 如果没找到就尝试在收藏仓库中查找
+          // ? 如果没找到就尝试在收藏仓库中查找
           card = await favoriteStore.findCardById(cid);
           if (!card) return; // 没找到就停止
           // 如果找到了就先下载
