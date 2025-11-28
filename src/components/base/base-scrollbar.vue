@@ -527,12 +527,12 @@ function calcThumbSize() {
 	const { width, height } = viewportInfo;
 	// 计算垂直滚动条长度
 	scrollbar.vertical.lengthPercent =
-		scrollHeight > height + 0.5
+		scrollHeight > height + 1
 			? getThumbSizePercentage(scrollHeight, height)
 			: 1;
 	// 计算水平滚动条长度
 	scrollbar.horizontal.lengthPercent =
-		scrollWidth > width + 0.5 ? getThumbSizePercentage(scrollWidth, width) : 1;
+		scrollWidth > width + 1 ? getThumbSizePercentage(scrollWidth, width) : 1;
 }
 
 // f 设置滚动条位置
@@ -656,7 +656,9 @@ const bakctopShow = computed<Boolean>(() => {
 
 // f 执行回到顶部
 function backToTop() {
-	requestAnimationFrame(() => updateScrollPosition({ y: 0 }));
+	requestAnimationFrame(() =>
+		updateScrollPosition({ y: 0, behavior: "smooth" })
+	);
 }
 </script>
 
