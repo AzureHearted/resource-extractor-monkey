@@ -20,7 +20,7 @@
 					@mouseenter="!tab.disable && updateHoverBar($event)"
 					@click="handleActive(tab)">
 					<div class="base-tabs__tab__label">
-						<component v-if="tab.customTab" :is="tab.customTab"></component>
+						<component v-if="tab.customTab" :is="tab.customTab" :key="tab.customTab"></component>
 						<template v-else>
 							{{ tab.title }}
 						</template>
@@ -63,8 +63,6 @@
 	import type { HtmlHTMLAttributes } from "vue";
 	import type { VNode, HTMLAttributes } from "vue";
 	import BaseTabPane from "./base-tab-pane.vue";
-	import { buildUUID } from "@/utils/common";
-	import { onUpdated } from "vue";
 
 	withDefaults(
 		defineProps<{
@@ -111,7 +109,7 @@
 			const { name, title, disable } = props!;
 			const { tab }: { tab: Function | undefined } = children || ({} as any);
 			return {
-				id: buildUUID(),
+				id: crypto.randomUUID(),
 				name,
 				title: title || name,
 				disable: disable === "" ? true : disable || false,

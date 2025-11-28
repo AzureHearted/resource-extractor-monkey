@@ -9,18 +9,18 @@
 </template>
 
 <script setup lang="ts">
-	withDefaults(
-		defineProps<{
-			name: string;
-			title?: string;
-			disable?: boolean;
-		}>(),
-		{}
-	);
+withDefaults(
+	defineProps<{
+		name: string;
+		title?: string;
+		disable?: boolean;
+	}>(),
+	{}
+);
 </script>
 
 <style lang="scss" scoped>
-	.base-tab-pane__container {
-		flex: 1;
-	}
+.base-tab-pane__container {
+	flex: 1;
+}
 </style>
