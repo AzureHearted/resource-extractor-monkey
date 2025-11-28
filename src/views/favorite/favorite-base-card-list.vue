@@ -6,10 +6,25 @@
 		auto-hidden
 	>
 		<!-- f 普通网格布局 -->
-		<GridList v-if="layout === 'grid'" :data="cardList">
-			<template #default="{ item }">
+		<div v-if="layout === 'grid'" style="padding: 10px">
+			<BaseGrid
+				:columns="7"
+				:gap="4"
+				:breakpoints="{
+					'0': 1,
+					'320': 2,
+					'480': 3,
+					'768': 4,
+					'1024': 5,
+					'1200': 6,
+					'1440': 7,
+				}"
+			>
 				<GalleryCard
-					v-model:data="(item as Card)"
+					class="grid-item"
+					v-for="(item, index) in cardList"
+					:key="item.id"
+					v-model:data="cardList[index]"
 					:highlight-key="searchKeywords"
 					img-object-fit="cover"
 					:set-aspect-ratio="1"
@@ -17,14 +32,14 @@
 					:observer-once="false"
 					:show-to-locate-button="false"
 					:show-delete-button="false"
-					:show-download-button="(item as Card).source.meta.type!=='html'"
+					:show-download-button="item.source.meta.type !== 'html'"
 					@change:selected="item.isSelected = $event"
-					@change:title="updateCard([item as Card])"
+					@change:title="updateCard([item])"
 					@loaded="handleLoaded"
 					@download="handleDownload"
-					@toggle-favorite="handleToggleFavorite(item as Card)"
-					@save:tags="handleTagsSave(item as Card)"
-					@delete="deleteCard([item as Card])"
+					@toggle-favorite="handleToggleFavorite(item)"
+					@save:tags="handleTagsSave(item)"
+					@delete="deleteCard([item])"
 				>
 					<template #custom-button="{ openUrl }">
 						<el-button
@@ -39,13 +54,14 @@
 						</el-button>
 					</template>
 				</GalleryCard>
-			</template>
-		</GridList>
+			</BaseGrid>
+		</div>
 		<!-- f 瀑布流布局 -->
 		<div v-if="layout === 'waterfall'" style="padding: 10px">
 			<BaseWaterfall ref="waterFallRef" :items="waterfallItems" :columns="6">
 				<template #default="{ index, item, loaded, mounted }">
 					<GalleryCard
+						class="waterfall-item"
 						v-model:data="(item.data as Card)"
 						:highlight-key="searchKeywords"
 						:is-mobile="isMobile"
@@ -89,17 +105,14 @@
 <script setup lang="ts">
 import {
 	ref,
-	watch,
-	nextTick,
 	defineProps,
 	withDefaults,
 	onMounted,
 	onActivated,
 	computed,
-	useTemplateRef,
 } from "vue";
 import BaseScrollbar from "@/components/base/base-scrollbar.vue";
-import GridList from "@/components/utils/grid-card-list.vue";
+import BaseGrid from "@/components/base/base-grid.vue";
 import BaseWaterfall from "@/components/base/base-waterfall.vue";
 import type { Item as WaterfallItem } from "@/components/base/base-waterfall.vue";
 import GalleryCard from "@/components/utils/gallery-card.vue";
@@ -145,7 +158,7 @@ onActivated(() => {
 	showScrollbar.value = !isMobile.value;
 });
 
-// 转为适用于瀑布流的数据
+// j 转为适用于瀑布流的数据
 const waterfallItems = computed<Array<WaterfallItem>>(() => {
 	return props.cardList
 		.filter((x) => x.isMatch)
@@ -219,6 +232,21 @@ const handleTagsSave = async (card: Card) => {
 </script>
 
 <style lang="scss" scoped>
+/* 修改网格布局样式 */
+.grid-item {
+	aspect-ratio: 1;
+	overflow: hidden;
+	border-radius: 4px;
+	:deep(.img__container > .img__wrap) {
+		aspect-ratio: 1;
+		/* overflow: hidden; */
+		img {
+			object-fit: cover;
+			height: 100%;
+		}
+	}
+}
+
 /* 修改瀑布流默认样式 */
 :deep(.base-waterfall__container) {
 	.base-card__container {
@@ -228,5 +256,9 @@ const handleTagsSave = async (card: Card) => {
 			display: none;
 		}
 	}
+}
+.waterfall-item {
+	overflow: hidden;
+	border-radius: 4px;
 }
 </style>

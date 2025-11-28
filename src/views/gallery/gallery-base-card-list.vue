@@ -7,9 +7,24 @@
 		ref="container"
 	>
 		<!-- f 普通网格布局 -->
-		<GridList v-if="layout === 'grid'" :data="cardList">
-			<template #default="{ item }">
+		<div v-if="layout === 'grid'" style="padding: 10px">
+			<BaseGrid
+				:columns="7"
+				:gap="4"
+				:breakpoints="{
+					'0': 1,
+					'320': 2,
+					'480': 3,
+					'768': 4,
+					'1024': 5,
+					'1200': 6,
+					'1440': 7,
+				}"
+			>
 				<GalleryCard
+					class="grid-item"
+					v-for="(item, index) in cardList"
+					:key="item.id"
 					style="aspect-ratio: 1"
 					v-model:data="(item as Card)"
 					:highlight-key="searchKeywords"
@@ -22,8 +37,8 @@
 					@download="handleDownload"
 					@toggle-favorite="handleToFavorite(item.id, $event)"
 				/>
-			</template>
-		</GridList>
+			</BaseGrid>
+		</div>
 		<!-- f 瀑布流布局 -->
 		<div v-if="layout === 'waterfall'" style="padding: 10px">
 			<BaseWaterfall ref="waterFallRef" :items="waterfallItems" :columns="6">
@@ -49,35 +64,23 @@
 			</BaseWaterfall>
 		</div>
 	</BaseScrollbar>
-	<!-- <BaseDock></BaseDock> -->
 </template>
 
 <script setup lang="ts">
-import {
-	ref,
-	watch,
-	nextTick,
-	computed,
-	useTemplateRef,
-	onMounted,
-	onActivated,
-	onUpdated,
-	onUnmounted,
-	onDeactivated,
-} from "vue";
-import GridList from "@/components/utils/grid-card-list.vue";
+import { ref, computed, useTemplateRef, onMounted, onActivated } from "vue";
 import BaseScrollbar from "@/components/base/base-scrollbar.vue";
 import type { ImgReadyInfo } from "@/components/base/base-img.vue";
 import GalleryCard from "@/components/utils/gallery-card.vue";
 import Card from "@/stores/CardStore/class/Card";
 import BaseWaterfall from "@/components/base/base-waterfall.vue";
+import BaseGrid from "@/components/base/base-grid.vue";
+
 import type { Item as WaterfallItem } from "@/components/base/base-waterfall.vue";
 
 import { isEqualUrl, isMobile as judgeIsMobile } from "@/utils/common";
-// i 导入仓库
+// ? 导入仓库
 import useCardStore from "@/stores/CardStore";
 import useFavoriteStore from "@/stores/FavoriteStore";
-import { info } from "console";
 
 const props = withDefaults(
 	defineProps<{
@@ -120,7 +123,7 @@ onActivated(() => {
 	showScrollbar.value = !isMobile.value;
 });
 
-// 转为适用于瀑布流的数据
+// j 转为适用于瀑布流的数据
 const waterfallItems = computed<Array<WaterfallItem>>(() => {
 	return props.cardList
 		.filter((x) => x.isMatch)
@@ -154,8 +157,8 @@ const waterfallItems = computed<Array<WaterfallItem>>(() => {
 const handleLoaded = async (id: string, info: ImgReadyInfo) => {
 	// s 仓库找到对应的数据
 	const card = findCard(id);
-	if (!card) return; //* 如果卡片不存在也不在向下执行
-	if (card.isLoaded) return; //* 如果已经成功加载过了就不在执行
+	if (!card) return; // * 如果卡片不存在也不在向下执行
+	if (card.isLoaded) return; // * 如果已经成功加载过了就不在执行
 	card.isLoaded = true; // s 置为加载成功
 	// console.log("卡片加载完成", info, findCard(id));
 	// s 刷新仓库对应卡片的preview.meta信息
@@ -164,10 +167,11 @@ const handleLoaded = async (id: string, info: ImgReadyInfo) => {
 		card.source.meta = card.preview.meta;
 	}
 };
+
 const handleError = async (id: string) => {
 	// s 仓库找到对应的数据
 	const card = findCard(id);
-	if (!card) return; //* 如果卡片不存在也不在向下执行
+	if (!card) return; // * 如果卡片不存，则不在向下执行
 	card.isLoaded = true;
 };
 
@@ -192,7 +196,7 @@ const handleToFavorite = async (id: string, val: boolean) => {
 	}
 };
 
-//* 激活时进行比对所有卡片收藏状态
+// * 激活时进行比对所有卡片收藏状态
 onActivated(() => {
 	requestAnimationFrame(async () => {
 		await refreshFavoriteStore();
@@ -204,19 +208,33 @@ onActivated(() => {
 </script>
 
 <style lang="scss" scoped>
+/* 修改网格布局样式 */
+.grid-item {
+	aspect-ratio: 1;
+	overflow: hidden;
+	border-radius: 4px;
+	:deep(.img__container > .img__wrap) {
+		aspect-ratio: 1;
+		/* overflow: hidden; */
+		img {
+			object-fit: cover;
+			height: 100%;
+		}
+	}
+}
+
 /* 修改瀑布流默认样式 */
 :deep(.base-waterfall__container) {
 	.base-card__container {
 		padding: unset;
-
 		&::after,
 		&:focus::after {
 			display: none;
 		}
 	}
-
-	.img__container {
-		display: flex !important;
-	}
+}
+.waterfall-item {
+	overflow: hidden;
+	border-radius: 4px;
 }
 </style>
