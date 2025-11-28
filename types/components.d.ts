@@ -20,6 +20,7 @@ declare module 'vue' {
     BaseTabPane: typeof import('./../src/components/base/base-tab-pane.vue')['default']
     BaseTabs: typeof import('./../src/components/base/base-tabs.vue')['default']
     BaseVideo: typeof import('./../src/components/base/base-video.vue')['default']
+    BaseWaterfall: typeof import('./../src/components/base/base-waterfall.vue')['default']
     ElBadge: typeof import('element-plus/es')['ElBadge']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElButtonGroup: typeof import('element-plus/es')['ElButtonGroup']
