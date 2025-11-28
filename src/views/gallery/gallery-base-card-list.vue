@@ -7,7 +7,7 @@
 		ref="container"
 	>
 		<!-- f 普通网格布局 -->
-		<GridList v-if="layout === 'Grid'" :data="cardList">
+		<GridList v-if="layout === 'grid'" :data="cardList">
 			<template #default="{ item }">
 				<GalleryCard
 					style="aspect-ratio: 1"
@@ -25,7 +25,7 @@
 			</template>
 		</GridList>
 		<!-- f 瀑布流布局 -->
-		<div v-if="layout === 'WaterFall'" style="padding: 10px">
+		<div v-if="layout === 'waterfall'" style="padding: 10px">
 			<BaseWaterfall ref="waterFallRef" :items="waterfallItems" :columns="6">
 				<template #default="{ index, item, loaded, mounted }">
 					<GalleryCard
@@ -82,12 +82,12 @@ import { info } from "console";
 const props = withDefaults(
 	defineProps<{
 		cardList: Card[];
-		layout?: "Grid" | "WaterFall"; // s 布局模式
+		layout?: "grid" | "waterfall"; // s 布局模式
 		searchKeywords?: string; // s 检索关键词
 	}>(),
 	{
 		cardList: () => [],
-		layout: "Grid",
+		layout: "grid",
 	}
 );
 

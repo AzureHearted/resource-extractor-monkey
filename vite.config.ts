@@ -23,10 +23,8 @@ import Icons from "unplugin-icons/vite";
 // s 用于在vue项目中使用svg文件
 import svgLoader from "vite-svg-loader";
 
-// s打包分析插件
+// s 打包分析插件
 import { visualizer } from "rollup-plugin-visualizer";
-
-// import vuetify from "vite-plugin-vuetify";
 
 // s NaiveUi配置
 import { NaiveUiResolver } from "unplugin-vue-components/resolvers";
@@ -70,7 +68,13 @@ export default defineConfig({
 				// 自动注册图标组件
 				IconsResolver({
 					// prefix: "Icon", //图标组件前缀,默认是“i”
-					enabledCollections: ["ep", "ant-design", "mdi", "material-symbols"],
+					enabledCollections: [
+						"ep",
+						"ant-design",
+						"mdi",
+						"prime",
+						"material-symbols",
+					],
 				}),
 			],
 			dts: "./types/components.d.ts",
@@ -79,12 +83,6 @@ export default defineConfig({
 		Icons({
 			autoInstall: true,
 		}),
-		// vuetify({
-		// 	autoImport: {
-		// 		ignore: ["Ripple"], // vuetify的ripple组件有bug进行排除
-		// 		// labs: true,
-		// 	},
-		// }),
 		// s 打包体积分析
 		visualizer({
 			open: true, //注意这里要设置为true，否则无效

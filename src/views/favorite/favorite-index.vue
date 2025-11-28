@@ -103,6 +103,7 @@
 					<BaseCardList
 						:card-list="filterCardList.image"
 						:search-keywords="filterKeyword"
+						:layout="galleyLayout"
 					/>
 				</BaseTabPane>
 				<!-- s 视频类 -->
@@ -124,6 +125,7 @@
 					<BaseCardList
 						:card-list="filterCardList.video"
 						:search-keywords="filterKeyword"
+						:layout="galleyLayout"
 					/>
 				</BaseTabPane>
 				<!-- s 压缩包类 -->
@@ -146,6 +148,7 @@
 					<BaseCardList
 						:card-list="filterCardList.zip"
 						:search-keywords="filterKeyword"
+						:layout="galleyLayout"
 					/>
 				</BaseTabPane>
 				<!-- s 网页类 -->
@@ -168,6 +171,7 @@
 					<BaseCardList
 						:card-list="filterCardList.html"
 						:search-keywords="filterKeyword"
+						:layout="galleyLayout"
 					/>
 				</BaseTabPane>
 				<!-- s 其他类 -->
@@ -190,6 +194,7 @@
 					<BaseCardList
 						:card-list="filterCardList.other"
 						:search-keywords="filterKeyword"
+						:layout="galleyLayout"
 					/>
 				</BaseTabPane>
 			</BaseTabs>
@@ -219,9 +224,13 @@ import BaseTabPane from "@/components/base/base-tab-pane.vue";
 import BaseCardList from "./favorite-base-card-list.vue";
 
 import { storeToRefs } from "pinia";
+
+import useGlobalStore from "@/stores/GlobalStore";
+const globalStore = useGlobalStore();
+const { galleyLayout } = storeToRefs(globalStore);
+
 import useFavoriteStore from "@/stores/FavoriteStore";
 const favoriteStore = useFavoriteStore();
-
 const {
 	nowType,
 	filterCardList,

@@ -29,6 +29,7 @@
 						<GalleryBaseWaterfall
 							:card-list="filterCardList.image"
 							:search-keywords="filters.keyword"
+							:layout="galleyLayout"
 						/>
 					</keep-alive>
 				</BaseTabPane>
@@ -52,6 +53,7 @@
 						<GalleryBaseWaterfall
 							:card-list="filterCardList.video"
 							:search-keywords="filters.keyword"
+							:layout="galleyLayout"
 						/>
 					</keep-alive>
 				</BaseTabPane>
@@ -74,6 +76,7 @@
 					<GalleryBaseWaterfall
 						:card-list="filterCardList.zip"
 						:search-keywords="filters.keyword"
+						:layout="galleyLayout"
 					/>
 				</BaseTabPane>
 				<!-- s 网页类 -->
@@ -95,6 +98,7 @@
 					<GalleryBaseWaterfall
 						:card-list="filterCardList.html"
 						:search-keywords="filters.keyword"
+						:layout="galleyLayout"
 					/>
 				</BaseTabPane>
 				<!-- s 其他类 -->
@@ -116,6 +120,7 @@
 					<GalleryBaseWaterfall
 						:card-list="filterCardList.other"
 						:search-keywords="filters.keyword"
+						:layout="galleyLayout"
 					/>
 				</BaseTabPane>
 			</BaseTabs>
@@ -134,13 +139,18 @@ import {
 	onDeactivated,
 	useTemplateRef,
 } from "vue";
-import { storeToRefs } from "pinia";
 import GalleryToolbar from "./gallery-toolbar.vue";
 import GalleryBaseWaterfall from "./gallery-base-card-list.vue";
 import BaseTabs from "@/components/base/base-tabs.vue";
 import BaseTabPane from "@/components/base/base-tab-pane.vue";
-import useCardStore from "@/stores/CardStore";
 
+import { storeToRefs } from "pinia";
+
+import useGlobalStore from "@/stores/GlobalStore";
+const globalStore = useGlobalStore();
+const { galleyLayout } = storeToRefs(globalStore);
+
+import useCardStore from "@/stores/CardStore";
 const cardStore = useCardStore();
 const { filterCardList, nowType, filters } = storeToRefs(cardStore);
 
