@@ -82,6 +82,21 @@ const props = withDefaults(
 		items: Item[];
 		/** 列数 */
 		columns?: number;
+		/**
+		 * 断点 (响应式列数)
+		 * - 若传入该属性列数将依据 `columns` 属性
+		 * @example
+		 * {
+		 *	 '0': 1,	// 0px及以上：1列
+		 *	 '320': 2,	// 320px及以上：2列
+		 *	 '480': 3,	// 480px及以上：3列
+		 *	 '768': 4,	// 768px及以上：4列
+		 *	 '1024': 5,	// 1024px及以上：5列
+		 *	 '1200': 6,	// 1200px及以上：6列
+		 *	 '1440': 7,	// 1440px及以上：7列
+		 *	}
+		 */
+		breakpoints?: Record<string, number>;
 		/** 间隔 */
 		gutter?: number;
 		/** `item` 启用缩略图 */
@@ -124,8 +139,29 @@ const itemRefs = useTemplateRef("itemRefs");
 
 // j 列数 (从prop中安全的获取结果)
 const safeColumns = computed(() => {
-	return props.columns > 0 ? props.columns : 1;
+	// 判断是否传入breakpoints
+	if (props.breakpoints && Object.keys(props.breakpoints).length > 0) {
+		// 从最大的断点开始检查
+		for (const breakpoint of sortedBreakpoints.value) {
+			if (containerWidth.value >= breakpoint) {
+				// 找到第一个满足条件的断点，并返回其列数
+				return props.breakpoints[breakpoint];
+			}
+		}
+		// 如果容器宽度小于所有断点，则返回最小断点的列数（通常是 '0' 键）
+		return props.breakpoints[0];
+	} else {
+		return props.columns > 0 ? props.columns : 1;
+	}
 });
+
+// j 缓存和排序断点键名，只执行一次
+const sortedBreakpoints = computed(() => {
+	return Object.keys(props.breakpoints || {})
+		.map((key) => parseInt(key))
+		.sort((a, b) => b - a); // 降序排序，从最大断点开始检查
+});
+
 // j 间隙 (从prop中安全的获取结果)
 const safeGutter = computed(() => {
 	return props.gutter >= 0 ? props.gutter : 0;
