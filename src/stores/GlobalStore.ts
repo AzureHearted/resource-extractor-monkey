@@ -1,6 +1,6 @@
-import { ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { defineStore } from "pinia";
-// import views from "@/views/index";
+import { GM_getValue, GM_setValue } from "$";
 
 export default defineStore("Global", () => {
 	/** 窗口打开状态 */
@@ -11,6 +11,16 @@ export default defineStore("Global", () => {
 	const tab = ref("Gallery");
 	/** 图库布局 @default "grid" */
 	const galleyLayout = ref<"grid" | "waterfall">("grid");
+
+	onMounted(()=>{
+		const rawValue= GM_getValue<typeof galleyLayout.value>("galleyLayout","grid")
+		galleyLayout.value = rawValue
+	})
+	watch(galleyLayout, (newValue, oldValue) => {
+		if (newValue != oldValue) {
+			GM_setValue("galleyLayout", newValue);
+		}
+	});
 
 	watch(
 		openWindow,
