@@ -157,6 +157,7 @@ const columnWidth = computed(() => {
 	const colWidth =
 		(containerWidth.value - (safeColumns.value - 1) * safeGutter.value) /
 		safeColumns.value;
+
 	return colWidth;
 });
 
@@ -385,9 +386,10 @@ function layout(newColumns: number, newGutter: number) {
 
 	// 更新全局列高度
 	columnHeights.splice(0, columnHeights.length, ...newColumnHeights);
-	// ? 同时更新容器高度
-
-	containerHeight.value = Math.max(...columnHeights) - newGutter;
+	requestAnimationFrame(() => {
+		// ? 同时更新容器高度
+		containerHeight.value = Math.max(...columnHeights) - newGutter;
+	});
 }
 
 // f 项目加载函数
