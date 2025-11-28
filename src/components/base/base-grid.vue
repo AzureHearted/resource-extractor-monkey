@@ -58,7 +58,7 @@ onUnmounted(() => stopObserver());
 // j 动态计算列数
 const columns = computed<number>(() => {
 	// 判断是否传入breakpoints
-	if (props.breakpoints) {
+	if (props.breakpoints && Object.keys(props.breakpoints).length > 0) {
 		// 从最大的断点开始检查
 		for (const breakpoint of sortedBreakpoints.value) {
 			if (containerWidth.value >= breakpoint) {
