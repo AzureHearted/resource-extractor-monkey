@@ -7,19 +7,7 @@
 	>
 		<!-- f 普通网格布局 -->
 		<div v-if="layout === 'grid'" style="padding: 10px">
-			<BaseGrid
-				:columns="7"
-				:gap="4"
-				:breakpoints="{
-					'0': 1,
-					'320': 2,
-					'480': 3,
-					'768': 4,
-					'1024': 5,
-					'1200': 6,
-					'1440': 7,
-				}"
-			>
+			<BaseGrid :gap="4" :breakpoints="breakpoints">
 				<GalleryCard
 					class="grid-item"
 					v-for="(item, index) in cardList"
@@ -58,7 +46,11 @@
 		</div>
 		<!-- f 瀑布流布局 -->
 		<div v-if="layout === 'waterfall'" style="padding: 10px">
-			<BaseWaterfall ref="waterFallRef" :items="waterfallItems" :columns="6">
+			<BaseWaterfall
+				ref="waterFallRef"
+				:items="waterfallItems"
+				:breakpoints="breakpoints"
+			>
 				<template #default="{ index, item, loaded, mounted }">
 					<GalleryCard
 						class="waterfall-item"
@@ -142,6 +134,16 @@ const props = withDefaults(
 		searchKeywords: "",
 	}
 );
+
+const breakpoints = {
+	"0": 1,
+	"320": 2,
+	"480": 3,
+	"768": 4,
+	"1024": 5,
+	"1200": 6,
+	"1440": 7,
+};
 
 // s 是否显示滚动条
 const showScrollbar = ref(true);
