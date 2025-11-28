@@ -87,7 +87,7 @@ const container = useTemplateRef("container");
 const loaded = ref(false);
 
 // f 图片加载完成后的回调
-async function onLoaded(info: ImgReadyInfo) {
+function onLoaded(info: ImgReadyInfo) {
 	loaded.value = true;
 	// await nextTick();
 	emits("loaded", info);
