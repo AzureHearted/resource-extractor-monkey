@@ -14,7 +14,7 @@
 					<template #tab>
 						<n-flex :size="4" align="center" :wrap="false">
 							<n-icon>
-								<i-mdi-images />
+								<icon-mdi-images />
 							</n-icon>
 							图片
 							<n-badge
@@ -38,7 +38,7 @@
 					<template #tab>
 						<n-flex :size="4" align="center" :wrap="false">
 							<n-icon>
-								<i-material-symbols-animated-images-rounded />
+								<icon-material-symbols-animated-images-rounded />
 							</n-icon>
 							视频
 							<n-badge
@@ -62,7 +62,7 @@
 					<template #tab>
 						<n-flex :size="4" align="center" :wrap="false">
 							<n-icon>
-								<i-ant-design-file-zip-filled />
+								<icon-ant-design-file-zip-filled />
 							</n-icon>
 							压缩包
 							<n-badge
@@ -84,7 +84,7 @@
 					<template #tab>
 						<n-flex :size="4" align="center" :wrap="false">
 							<n-icon>
-								<i-material-symbols-dataset-linked />
+								<icon-material-symbols-dataset-linked />
 							</n-icon>
 							网页
 							<n-badge
@@ -106,7 +106,7 @@
 					<template #tab>
 						<n-flex :size="4" align="center" :wrap="false">
 							<n-icon>
-								<i-material-symbols-other-admission-outline />
+								<icon-material-symbols-other-admission-outline />
 							</n-icon>
 							其他
 							<n-badge

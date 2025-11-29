@@ -4,7 +4,7 @@
 			<template #header>
 				<div class="form-card-header">
 					<div class="form-card-header-left">
-						<i-material-symbols-box-edit v-if="disabled" />
+						<icon-material-symbols-box-edit v-if="disabled" />
 						<BaseImg
 							v-else
 							:src="editingPattern?.mainInfo.icon"
@@ -17,7 +17,7 @@
 							circle
 							text
 							@click="open(editingPattern.mainInfo.host)">
-							<i-material-symbols-open-in-new />
+							<icon-material-symbols-open-in-new />
 						</el-button>
 					</div>
 					<div class="form-card-header-right">
@@ -27,7 +27,7 @@
 							circle
 							text
 							@click="saveToFile(editingPattern)">
-							<i-material-symbols-download />
+							<icon-material-symbols-download />
 						</el-button>
 						<!-- 拷贝方案至剪贴板 -->
 						<el-button
@@ -35,7 +35,7 @@
 							circle
 							text
 							@click="copyToClipboard(editingPattern)">
-							<i-ep-document-copy />
+							<icon-ep-document-copy />
 						</el-button>
 					</div>
 				</div>
@@ -83,7 +83,7 @@
 												)
 											">
 											<template #icon>
-												<i-ep-plus />
+												<icon-ep-plus />
 											</template>
 										</n-button>
 										<!-- s 打开 -->
@@ -93,7 +93,7 @@
 											circle
 											@click="open(item)">
 											<template #icon>
-												<i-material-symbols-open-in-new />
+												<icon-material-symbols-open-in-new />
 											</template>
 										</n-button>
 										<!-- s 删除 -->
@@ -108,7 +108,7 @@
 											<template #reference>
 												<n-button type="error" size="tiny" circle @click.stop>
 													<template #icon>
-														<i-material-symbols-delete-rounded />
+														<icon-material-symbols-delete-rounded />
 													</template>
 												</n-button>
 											</template>
@@ -178,7 +178,7 @@
 			<template v-if="!editingPattern.id.includes('#')" #footer>
 				<el-button type="success" @click="save">
 					<template #icon>
-						<i-material-symbols-save />
+						<icon-material-symbols-save />
 					</template>
 					<el-badge
 						is-dot
@@ -189,7 +189,7 @@
 				</el-button>
 				<el-button type="warning" @click="reset">
 					<template #icon>
-						<i-material-symbols-reset-wrench-rounded />
+						<icon-material-symbols-reset-wrench-rounded />
 					</template>
 					重置
 				</el-button>
@@ -199,7 +199,7 @@
 					type="primary"
 					@click="pasteRule">
 					<template #icon>
-						<i-material-symbols-markdown-paste-rounded />
+						<icon-material-symbols-markdown-paste-rounded />
 					</template>
 					粘贴规则
 				</el-button>
@@ -220,7 +220,7 @@
 							v-model="editingRule.name">
 							<template #prefix>
 								<el-icon color="black">
-									<i-material-symbols-regular-expression-rounded />
+									<icon-material-symbols-regular-expression-rounded />
 								</el-icon>
 							</template>
 						</el-input>
@@ -239,7 +239,7 @@
 							circle
 							text
 							@click="saveToFile(editingRule)">
-							<i-material-symbols-download />
+							<icon-material-symbols-download />
 						</el-button>
 						<!-- 拷贝方案至剪贴板 -->
 						<el-button
@@ -247,7 +247,7 @@
 							circle
 							text
 							@click="copyToClipboard(editingRule)">
-							<i-ep-document-copy />
+							<icon-ep-document-copy />
 						</el-button>
 					</div>
 				</div>

@@ -5,7 +5,7 @@
 				<template #tab>
 					<n-flex :size="2" align="center">
 						<n-icon>
-							<i-material-symbols-image />
+							<icon-material-symbols-image />
 						</n-icon>
 						自定义-图片
 					</n-flex>

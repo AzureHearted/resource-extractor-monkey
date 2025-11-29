@@ -40,7 +40,7 @@
               停止
             </var-button>
             <var-button style="padding: 0 4px">
-              <i-material-symbols-arrow-drop-down-rounded
+              <icon-material-symbols-arrow-drop-down-rounded
                 style="fill: white"
                 width="24"
                 height="24"
@@ -55,7 +55,7 @@
               ripple
             >
               <template #icon>
-                <i-ant-design-reload-outlined />
+                <icon-ant-design-reload-outlined />
               </template>
             </var-cell>
             <var-cell @click="resetFilters" title="重置过滤器" ripple>
@@ -74,7 +74,7 @@
               ripple
             >
               <template #icon>
-                <i-mdi-delete-empty style="color: red" />
+                <icon-mdi-delete-empty style="color: red" />
               </template>
             </var-cell>
           </template>
@@ -134,7 +134,7 @@
               "
               style="padding: 0 4px"
             >
-              <i-material-symbols-arrow-drop-down-rounded
+              <icon-material-symbols-arrow-drop-down-rounded
                 style="fill: white"
                 width="24"
                 height="24"
@@ -149,7 +149,7 @@
               ripple
             >
               <template #icon>
-                <i-mdi-auto-download />
+                <icon-mdi-auto-download />
               </template>
             </var-cell>
             <var-cell
@@ -159,7 +159,7 @@
               ripple
             >
               <template #icon>
-                <i-mdi-delete-sweep style="color: red" />
+                <icon-mdi-delete-sweep style="color: red" />
               </template>
             </var-cell>
             <var-cell
@@ -169,7 +169,7 @@
               ripple
             >
               <template #icon>
-                <i-mdi-book-favorite style="color: purple" />
+                <icon-mdi-book-favorite style="color: purple" />
               </template>
             </var-cell>
             <var-cell
@@ -179,7 +179,7 @@
               ripple
             >
               <template #icon>
-                <i-mdi-tag-text style="color: purple" />
+                <icon-mdi-tag-text style="color: purple" />
               </template>
             </var-cell>
           </template>

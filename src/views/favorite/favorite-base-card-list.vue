@@ -37,7 +37,7 @@
 							v-ripple
 						>
 							<template #icon>
-								<i-material-symbols-open-in-new-down-rounded />
+								<icon-material-symbols-open-in-new-down-rounded />
 							</template>
 						</el-button>
 					</template>
@@ -83,7 +83,7 @@
 								v-ripple
 							>
 								<template #icon>
-									<i-material-symbols-open-in-new-down-rounded />
+									<icon-material-symbols-open-in-new-down-rounded />
 								</template>
 							</el-button>
 						</template>

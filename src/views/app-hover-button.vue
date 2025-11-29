@@ -22,7 +22,7 @@
             @dblclick.stop="toggleWindow()"
           >
             <!-- 图标 -->
-            <i-mdi-dots-grid style="font-size: 30px" color="black" />
+            <icon-mdi-dots-grid style="font-size: 30px" color="black" />
           </var-button>
           <!-- 底部悬浮按钮 -->
           <div class="bottom-fab" :data-active="active || state.scrolling">
@@ -33,7 +33,7 @@
               :loading="state.scrollingToDown"
               @click.stop="toDown"
             >
-              <i-material-symbols-keyboard-double-arrow-down-rounded
+              <icon-material-symbols-keyboard-double-arrow-down-rounded
                 style="font-size: 24px"
                 color="black"
               />
@@ -45,7 +45,7 @@
               :loading="state.scrollingToUp"
               @click.stop="toUp"
             >
-              <i-material-symbols-keyboard-double-arrow-up-rounded
+              <icon-material-symbols-keyboard-double-arrow-up-rounded
                 style="font-size: 24px"
                 color="black"
               />
@@ -67,16 +67,16 @@
             icon-container
             @click.stop="toggleWindow('Gallery')"
           >
-            <i-material-symbols-team-dashboard color="black" />
+            <icon-material-symbols-team-dashboard color="black" />
           </var-button>
         </n-badge>
         <!-- s 方案管理 -->
         <var-button type="info" round @click.stop="toggleWindow('PatternEdit')">
-          <i-material-symbols-box-edit color="black" />
+          <icon-material-symbols-box-edit color="black" />
         </var-button>
         <!-- s 收藏 -->
         <var-button type="success" round @click.stop="toggleWindow('Favorite')">
-          <i-mdi-favorite color="red" />
+          <icon-mdi-favorite color="red" />
         </var-button>
         <!-- s 设置 -->
         <var-button
@@ -84,7 +84,7 @@
           round
           @click.stop="toggleWindow('Setting')"
         >
-          <i-ant-design-setting-twotone color="black" />
+          <icon-ant-design-setting-twotone color="black" />
         </var-button>
         <!-- s 测试窗口 -->
         <var-button
@@ -92,7 +92,7 @@
           round
           @click.stop="toggleWindow('Test')"
         >
-          <i-material-symbols-experiment-outline color="black" />
+          <icon-material-symbols-experiment-outline color="black" />
         </var-button>
       </template>
     </var-fab>

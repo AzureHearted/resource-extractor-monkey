@@ -31,10 +31,10 @@
               @change="emits('toggle-favorite', $event)"
             >
               <template #checked>
-                <i-mdi-favorite />
+                <icon-mdi-favorite />
               </template>
               <template #un-checked>
-                <i-mdi-favorite-border />
+                <icon-mdi-favorite-border />
               </template>
             </BaseCheckbox>
           </div>
@@ -56,7 +56,7 @@
                 v-ripple
               >
                 <template #icon>
-                  <i-material-symbols-delete />
+                  <icon-material-symbols-delete />
                 </template>
               </el-button>
             </el-button-group>
@@ -69,7 +69,7 @@
                 v-ripple
               >
                 <template #icon>
-                  <i-ep-edit />
+                  <icon-ep-edit />
                 </template>
               </el-button>
             </el-button-group>
@@ -83,7 +83,7 @@
                 v-ripple
               >
                 <template #icon>
-                  <i-material-symbols-location-on-outline />
+                  <icon-material-symbols-location-on-outline />
                 </template>
               </el-button>
               <!-- s 下载(图片或视频类) -->
@@ -104,7 +104,7 @@
                 v-ripple
               >
                 <template #icon>
-                  <i-material-symbols-download />
+                  <icon-material-symbols-download />
                 </template>
               </el-button>
               <!-- s 打开(网址类) -->
@@ -116,7 +116,7 @@
                 v-ripple
               >
                 <template #icon>
-                  <i-material-symbols-open-in-new-rounded />
+                  <icon-material-symbols-open-in-new-rounded />
                 </template>
               </el-button>
             </el-button-group>

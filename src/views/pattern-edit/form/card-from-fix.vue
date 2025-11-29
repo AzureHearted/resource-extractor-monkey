@@ -22,7 +22,7 @@
 										circle
 										@click.stop="upItem(index)">
 										<template #icon>
-											<i-ep-arrow-up-bold />
+											<icon-ep-arrow-up-bold />
 										</template>
 									</el-button>
 									<!-- 下移 -->
@@ -33,7 +33,7 @@
 										:text="!(index < fixList.length - 1)"
 										@click.stop="downItem(index)">
 										<template #icon>
-											<i-ep-arrow-down-bold />
+											<icon-ep-arrow-down-bold />
 										</template>
 									</el-button>
 									<!-- 删除 -->
@@ -46,7 +46,7 @@
 										<template #reference>
 											<el-button type="danger" circle plain @click.stop>
 												<template #icon>
-													<i-material-symbols-delete-rounded />
+													<icon-material-symbols-delete-rounded />
 												</template>
 											</el-button>
 										</template>

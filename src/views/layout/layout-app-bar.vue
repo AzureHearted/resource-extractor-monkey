@@ -8,7 +8,7 @@
 			@mouseenter="!isMobile && (navCollapse = false)"
 		>
 			<template #icon>
-				<i-ep-menu />
+				<icon-ep-menu />
 			</template>
 		</n-button>
 		<!-- ! 侧边导航菜单抽屉 -->
@@ -48,12 +48,12 @@
 				>
 					<n-radio-button value="grid">
 						<n-icon size="26px">
-							<i-prime-th-large />
+							<icon-prime-th-large />
 						</n-icon>
 					</n-radio-button>
 					<n-radio-button value="waterfall">
 						<n-icon size="26px">
-							<i-prime-objects-column />
+							<icon-prime-objects-column />
 						</n-icon>
 					</n-radio-button>
 				</n-radio-group>
@@ -70,7 +70,7 @@
 		>
 			<template #icon>
 				<n-icon size="24px">
-					<i-ant-design-close-circle-filled />
+					<icon-ant-design-close-circle-filled />
 				</n-icon>
 			</template>
 		</n-button>

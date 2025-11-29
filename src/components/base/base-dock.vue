@@ -28,7 +28,7 @@
 			<slot>
 				<n-button type="error" @click="show = false">
 					<template #icon>
-						<i-ep-close style="height: 100%; aspect-ratio: 1" />
+						<icon-ep-close style="height: 100%; aspect-ratio: 1" />
 					</template>
 				</n-button>
 			</slot>

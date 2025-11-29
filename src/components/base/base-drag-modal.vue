@@ -34,15 +34,15 @@
               class="header__button drag-modal__button-toggle-fullscreen"
               @click="toggleFullScreen"
             >
-              <i-material-symbols-fullscreen-rounded v-if="!isFullscreen" />
-              <i-material-symbols-close-fullscreen-rounded v-else />
+              <icon-material-symbols-fullscreen-rounded v-if="!isFullscreen" />
+              <icon-material-symbols-close-fullscreen-rounded v-else />
             </div>
             <!-- s 关闭按钮 -->
             <div
               class="header__button drag-modal__button-close"
               @click="show = false"
             >
-              <i-ant-design-close />
+              <icon-ant-design-close />
             </div>
           </div>
         </div>

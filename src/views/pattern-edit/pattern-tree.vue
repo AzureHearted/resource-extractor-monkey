@@ -5,13 +5,13 @@
         <n-button type="info" @click="createPattern">
           新建方案
           <template #icon>
-            <i-material-symbols-list-alt-add />
+            <icon-material-symbols-list-alt-add />
           </template>
         </n-button>
         <n-button type="primary" @click="pastePattern">
           粘贴方案
           <template #icon>
-            <i-material-symbols-content-paste-search-rounded />
+            <icon-material-symbols-content-paste-search-rounded />
           </template>
         </n-button>
       </n-button-group>

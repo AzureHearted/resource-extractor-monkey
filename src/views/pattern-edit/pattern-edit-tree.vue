@@ -5,13 +5,13 @@
 				<el-button-group class="pattern-tree__button-group">
 					<el-button type="primary" @click="createPattern">
 						<template #icon>
-							<i-material-symbols-list-alt-add />
+							<icon-material-symbols-list-alt-add />
 						</template>
 						新建方案
 					</el-button>
 					<el-button type="success" @click="pastePattern">
 						<template #icon>
-							<i-material-symbols-content-paste-search-rounded />
+							<icon-material-symbols-content-paste-search-rounded />
 						</template>
 						粘贴方案
 					</el-button>
@@ -58,7 +58,7 @@
 										:src="(data.rowData as Pattern).backup?.mainInfo.icon">
 									</BaseImg>
 									<el-icon v-if="data.type === 'rule'">
-										<i-material-symbols-regular-expression-rounded />
+										<icon-material-symbols-regular-expression-rounded />
 									</el-icon>
 								</span>
 								<!-- 节点名称 -->
@@ -85,7 +85,7 @@
 									circle
 									@click.stop="addRule(node, data)">
 									<template #icon>
-										<i-ep-plus />
+										<icon-ep-plus />
 									</template>
 								</el-button>
 								<!-- 删除按钮 -->
@@ -102,7 +102,7 @@
 									<template #reference>
 										<el-button type="danger" size="small" circle @click.stop>
 											<template #icon>
-												<i-material-symbols-delete-rounded />
+												<icon-material-symbols-delete-rounded />
 											</template>
 										</el-button>
 									</template>

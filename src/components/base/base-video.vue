@@ -43,7 +43,7 @@
         </template>
       </slot>
       <div v-if="!state.isError" class="play-icon">
-        <i-material-symbols-play-circle />
+        <icon-material-symbols-play-circle />
       </div>
     </div>
     <!-- 其他内容(插槽) -->

@@ -9,17 +9,17 @@
 			<template #icon>
 				<transition appear>
 					<slot name="un-checked" v-if="!isChecked">
-						<i-material-symbols-check-box-outline-blank />
+						<icon-material-symbols-check-box-outline-blank />
 					</slot>
 					<slot name="checked" v-else>
-						<i-material-symbols-check-box-rounded />
+						<icon-material-symbols-check-box-rounded />
 					</slot>
 				</transition>
 				<!-- <slot name="un-checked" v-if="!isChecked">
-					<i-material-symbols-check-box-outline-blank />
+					<icon-material-symbols-check-box-outline-blank />
 				</slot>
 				<slot name="checked" v-else>
-					<i-material-symbols-check-box-rounded />
+					<icon-material-symbols-check-box-rounded />
 				</slot> -->
 			</template>
 		</n-button>

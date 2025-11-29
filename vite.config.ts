@@ -67,14 +67,7 @@ export default defineConfig({
 				NaiveUiResolver(),
 				// 自动注册图标组件
 				IconsResolver({
-					// prefix: "Icon", //图标组件前缀,默认是“i”
-					enabledCollections: [
-						"ep",
-						"ant-design",
-						"mdi",
-						"prime",
-						"material-symbols",
-					],
+					prefix: "icon", //图标组件前缀,默认是“i”
 				}),
 			],
 			dts: "./types/components.d.ts",
