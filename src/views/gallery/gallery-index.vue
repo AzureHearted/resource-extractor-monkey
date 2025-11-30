@@ -6,12 +6,12 @@
 		<n-flex class="gallery__content-wrap">
 			<BaseTabs
 				style="width: 100%; height: 100%"
-				wrap-style="overflow:hidden;"
+				content-style="overflow:hidden;"
 				@tab-active="nowType = $event as any"
 			>
 				<!-- s 图片类 -->
 				<BaseTabPane name="image">
-					<template #tab>
+					<template #label>
 						<n-flex :size="4" align="center" :wrap="false">
 							<n-icon>
 								<icon-mdi-images />
@@ -35,7 +35,7 @@
 				</BaseTabPane>
 				<!-- s 视频类 -->
 				<BaseTabPane name="video">
-					<template #tab>
+					<template #label>
 						<n-flex :size="4" align="center" :wrap="false">
 							<n-icon>
 								<icon-material-symbols-animated-images-rounded />
@@ -59,7 +59,7 @@
 				</BaseTabPane>
 				<!-- s 压缩包类 -->
 				<BaseTabPane name="zip">
-					<template #tab>
+					<template #label>
 						<n-flex :size="4" align="center" :wrap="false">
 							<n-icon>
 								<icon-ant-design-file-zip-filled />
@@ -81,7 +81,7 @@
 				</BaseTabPane>
 				<!-- s 网页类 -->
 				<BaseTabPane name="html">
-					<template #tab>
+					<template #label>
 						<n-flex :size="4" align="center" :wrap="false">
 							<n-icon>
 								<icon-material-symbols-dataset-linked />
@@ -103,7 +103,7 @@
 				</BaseTabPane>
 				<!-- s 其他类 -->
 				<BaseTabPane name="other">
-					<template #tab>
+					<template #label>
 						<n-flex :size="4" align="center" :wrap="false">
 							<n-icon>
 								<icon-material-symbols-other-admission-outline />
@@ -216,14 +216,15 @@ function FancyboxBind(
 	overflow: hidden; // 必须要设置溢出隐藏
 }
 
-.tab-pane {
-	height: 100%;
-	overflow: hidden;
-	box-sizing: border-box;
-}
-
 :deep(.wic2-n-tabs-tab) {
 	padding-left: 12px;
 	padding-right: 0px;
+}
+
+:deep(.base-tabs__tab-item) {
+	font-size: 14px;
+	padding: 0 10px;
+	height: 28px;
+	line-height: 28px;
 }
 </style>

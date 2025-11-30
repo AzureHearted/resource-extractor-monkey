@@ -1,345 +1,599 @@
 <template>
 	<div class="base-tabs__container">
-		<!-- s tab栏  -->
-		<div class="base-tabs__tabs">
+		<div ref="navRef" class="base-tabs__nav" @wheel.prevent="onNavWheel">
+			<!-- ? 向左切换控制条 -->
 			<div
-				class="base-tabs__tabs-wrap"
-				ref="tabsWrapDOM"
-				@mouseleave="updateHoverBar"
+				v-show="tabs.length"
+				class="base-tabs__nav-arrow base-tabs__nav-arrow-left"
+				@click="toggleTab('pre')"
 			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="24"
+					height="24"
+					viewBox="0 0 24 24"
+				>
+					<g fill="none" fill-rule="evenodd">
+						<path
+							d="M24 0v24H0V0zM12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.019-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"
+						/>
+						<path
+							fill="currentColor"
+							d="M8.293 12.707a1 1 0 0 1 0-1.414l5.657-5.657a1 1 0 1 1 1.414 1.414L10.414 12l4.95 4.95a1 1 0 0 1-1.414 1.414z"
+						/>
+					</g>
+				</svg>
+			</div>
+			<div ref="navWrapRef" class="base-tabs__nav-wrap">
+				<!-- s Tab列表标签 -->
 				<div
+					ref="tabRefs"
+					class="base-tabs__tab-item"
 					v-for="tab in tabs"
 					:key="tab.id"
-					ref="tabDOMs"
-					:title="tab.title"
-					:id="tab.id"
-					class="base-tabs__tab"
-					:class="{
-						'active-tab': tab.id === active,
-						'disable-tab': tab.disable,
+					:class="['tab', { active: activeTab === tab.name }]"
+					:style="{
+						pointerEvents: isNavDragging ? 'none' : 'auto',
 					}"
-					@mouseenter="!tab.disable && updateHoverBar($event)"
-					@click="handleActive(tab)"
+					@click.prevent="activeTab = tab.name"
 				>
-					<div class="base-tabs__tab__label">
-						<component
-							v-if="tab.customTab"
-							:is="tab.customTab"
-							:key="tab.customTab"
-						></component>
-						<template v-else>
-							{{ tab.title }}
-						</template>
-					</div>
+					<!-- 可渲染tab插槽或默认label -->
+					<component :is="tab.labelVNodes" :key="tab.id" />
 				</div>
 			</div>
-			<div class="base-tabs__other-bar-wrap" v-if="tabs.length">
-				<!-- s 浮动条 -->
-				<div class="base-tabs__hover-bar" :style="hoverBarStyle"></div>
-				<!-- s 激活条  -->
-				<div class="base-tabs__active-bar" :style="activeBarStyle"></div>
+			<!-- ? 向右切换控制条 -->
+			<div
+				v-show="tabs.length"
+				class="base-tabs__nav-arrow base-tabs__nav-arrow-right"
+				@click="toggleTab('next')"
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="24"
+					height="24"
+					viewBox="0 0 24 24"
+				>
+					<g fill="none" fill-rule="evenodd">
+						<path
+							d="M24 0v24H0V0zM12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.019-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"
+						/>
+						<path
+							fill="currentColor"
+							d="M15.707 11.293a1 1 0 0 1 0 1.414l-5.657 5.657a1 1 0 1 1-1.414-1.414l4.95-4.95l-4.95-4.95a1 1 0 0 1 1.414-1.414z"
+						/>
+					</g>
+				</svg>
 			</div>
 		</div>
-		<!-- s 内容区 -->
-		<div class="base-tabs__content-wrap" :style="[wrapStyle]">
-			<template v-for="tab in tabs" :key="tab">
+		<!-- 实际的渲染内容 -->
+		<div class="base-tabs__content" :style="[contentStyle]">
+			<!-- s Tab内容 -->
+			<template v-for="tab in tabs" :key="tab.id">
 				<keep-alive>
-					<component v-if="tab.id === active" :is="tab.vnode" :key="tab.id" />
+					<component
+						v-if="tab.name === activeTab"
+						:is="tab.defaultVNodes"
+						:key="tab.id"
+					/>
 				</keep-alive>
 			</template>
-			<BaseTabPane name="empty" v-if="!tabs.length">
-				<el-empty description="description" />
-			</BaseTabPane>
 		</div>
+		<teleport to="body">
+			<!-- 将节点传送到body防止污染dom -->
+			<div v-show="false">
+				<slot></slot>
+			</div>
+		</teleport>
 	</div>
 </template>
 
-<script setup lang="ts">
-import { useMutationObserver } from "@vueuse/core";
+<script lang="ts" setup>
 import {
-	ref,
 	computed,
-	onMounted,
-	watch,
-	onUnmounted,
-	onActivated,
-	useSlots,
 	nextTick,
+	onMounted,
+	onUnmounted,
+	provide,
+	reactive,
+	readonly,
+	ref,
+	shallowReactive,
+	useTemplateRef,
+	watch,
 } from "vue";
-import type { HtmlHTMLAttributes } from "vue";
-import type { VNode, HTMLAttributes } from "vue";
-import BaseTabPane from "./base-tab-pane.vue";
+import type { CSSProperties, HTMLAttributes, VNode } from "vue";
+import { symbol_BaseTabs } from "./base-tabs-symbol";
+import {
+	useDraggable,
+	useElementBounding,
+	useElementSize,
+	useMutationObserver,
+	useResizeObserver,
+	useScroll,
+} from "@vueuse/core";
+import type { UseElementBoundingReturn } from "@vueuse/core";
 
+// 组件基本信息
+defineOptions({
+	name: "base-tabs",
+});
+
+// props
 withDefaults(
 	defineProps<{
-		wrapStyle?: HtmlHTMLAttributes["style"];
+		contentStyle?: HTMLAttributes["style"];
 	}>(),
 	{}
 );
 
+// emits 定义
 const emits = defineEmits<{
-	(e: "tab-active", tabName: string): void;
+	change: [name: string];
 }>();
 
-const slots = useSlots();
+// s 激活的tab
+const activeTab = defineModel({ type: String, default: "" });
 
-// j 获取传入默认插槽中的tab-pane组件
-const tabPanes = computed(() => {
-	return slots.default
-		? slots
-				.default()
-				.filter(
-					({ props, type }) =>
-						props && (type as any)?.__name === "base-tab-pane"
-				)
-		: [];
+watch(activeTab, (newValue, oldValue) => {
+	if (newValue !== oldValue) {
+		// 当 activeTab 变化时发送 emits
+		emits("change", newValue);
+	}
 });
 
-// onMounted(() => {
-// 	console.log(tabPanes.value);
-// });
-
-interface Tab {
-	id: string;
+// t 未注册的tab数据
+export interface TabItem {
 	name: string;
-	title: string;
-	disable: boolean;
-	vnode: VNode;
-	customTab: Function | undefined;
+	label: string;
 }
 
-// j tabs选项
-const tabs = computed<Tab[]>(() => {
-	return tabPanes.value.map((vnode) => {
-		const { props, children } = vnode;
-		const { name, title, disable } = props!;
-		const { tab }: { tab: Function | undefined } = children || ({} as any);
-		return {
-			id: crypto.randomUUID(),
-			name,
-			title: title || name,
-			disable: disable === "" ? true : disable || false,
-			vnode,
-			customTab: tab,
-		};
-	});
-});
-
-// s 当前激活的tab
-const active = ref("");
-
-function handleActive(tab: Tab) {
-	if (!tab.disable) {
-		active.value = tab.id;
-	}
-}
-
-watch(active, (nowId) => {
-	if (!nowId.trim()) return;
-	const tab = tabs.value.find((c) => c.id === nowId);
-	if (!tab) return;
-	emits("tab-active", tab.name);
-});
-
-// 挂载后设置默认激活的tab
-onMounted(() => {
-	// console.log("slots", tabs.value, tabPanes.value);
-	if (tabs.value.length) {
-		active.value = tabs.value[0].id;
-	}
-	updateActiveBar();
-});
-
-// s tabs的容器DOM
-const tabsWrapDOM = ref<HTMLElement | null>(null);
-// s tabsDOM列表
-const tabDOMs = ref<HTMLElement[] | null>(null);
-
-// j 被激活的tabDOM
-const activeTabDOM = computed<HTMLElement | undefined>(() => {
-	if (!tabDOMs.value) return;
-	const index = tabs.value.findIndex((x) => x.id === active.value);
-	return tabDOMs.value[index];
-});
-// j 激活条样式
-const activeBarStyle = ref<HTMLAttributes["style"]>();
-
-onMounted(() => {
-	updateActiveBar(); // 挂载时立即刷新
-	onUnmounted(() => observer.stop()); // 卸载时停止监听器
-	onActivated(() => observer.reset()); // 当组件被激活时刷新
-	// s 创建监听器
-	const observer = createObserver();
-	// f 设置监听器
-	function createObserver() {
-		let stopFuncList: Function[] = [];
-		function set() {
-			const { stop } = useMutationObserver(
-				tabsWrapDOM.value,
-				() => {
-					updateActiveBar();
-				},
-				{
-					attributes: true,
-					// characterData: true,
-					subtree: true,
-				}
-			);
-			// f 记录监听器
-			stopFuncList.push(stop);
-			// console.log("创建监听器");
-		}
-		function reset() {
-			// console.log("重新设置监听器");
-			set();
-		}
-		function stop() {
-			// console.log("监听器卸载");
-			stopFuncList.forEach((f) => f());
-		}
-		reset();
-		return { reset, stop };
-	}
-});
-
-// f 更新激活条样式
-const updateActiveBar = () => {
-	if (!activeTabDOM.value || !tabsWrapDOM.value) return;
-	const { left: wrapLeft } = tabsWrapDOM.value.getBoundingClientRect();
-	const { width, left } = activeTabDOM.value.getBoundingClientRect();
-	activeBarStyle.value = {
-		width: `${width}px`,
-		left: `${left - wrapLeft}px`,
+// t 已注册的Tab数据
+interface TabItemRegistered extends TabItem {
+	id: string; // 注册后创建一个唯一id
+	// 默认插槽的VNodes
+	defaultVNodes: {
+		render: () => VNode | VNode[];
 	};
-	nextTick(() => {
-		updateHoverBar();
+	// label插槽的VNodes
+	labelVNodes: {
+		render: () => VNode | VNode[];
+	};
+}
+
+// s 所有注册过渡tab对象
+const tabs = reactive<TabItemRegistered[]>([]);
+
+// ? 由于组件尚未实现虚拟化列表所以限制最大tab数量
+const MAX_TAB_COUNT = 500;
+
+// s 所有tabDOM对象
+const tabDOMs = useTemplateRef("tabRefs");
+
+// f 切换标签
+function toggleTab(direction: "pre" | "next") {
+	const currentIndex = tabs.findIndex((t) => t.name === activeTab.value);
+	if (currentIndex < 0) return;
+	let targetIndex = currentIndex;
+	let scrollBehavior: ScrollOptions["behavior"] = "smooth";
+
+	if (direction === "pre") {
+		if (currentIndex > 0) {
+			targetIndex = currentIndex - 1;
+		} else {
+			targetIndex = tabs.length - 1;
+			scrollBehavior = "instant";
+		}
+	} else {
+		if (currentIndex < tabs.length - 1) {
+			targetIndex = currentIndex + 1;
+		} else {
+			targetIndex = 0;
+			scrollBehavior = "instant";
+		}
+	}
+
+	if (tabDOMs.value && currentIndex !== targetIndex) {
+		activeTab.value = tabs[targetIndex].name;
+		scrollIntoViewToTab(targetIndex, scrollBehavior);
+	}
+}
+
+// f 滚动到指定tab
+function scrollIntoViewToTab(
+	index: number,
+	behavior: ScrollOptions["behavior"] = "auto"
+) {
+	if (!tabDOMs.value) return;
+	const tabDOM = tabDOMs.value[index];
+	tabDOM?.scrollIntoView({
+		behavior,
+		inline: "center",
 	});
-};
+}
 
-// j 浮动条样式
-const hoverBarStyle = ref<HTMLAttributes["style"]>();
+// f tab注册函数
+function registerTab(tab: TabItemRegistered) {
+	if (tabs.length + 1 > MAX_TAB_COUNT) {
+		console.warn(
+			`[base-tab] 为保证性能，超出 ${MAX_TAB_COUNT} 个的 base-tab-pane 将被忽略`
+		);
+		return;
+	}
+	// 判断是否已经注册过
+	const index = tabs.findIndex((t) => t.name == tab.name);
+	// console.log(index);
+	// 如果已经注册过了就不重复注册
+	if (index > -1) return;
+	// 如果没有注册过就注册
+	tabs.push(tab);
+	// 然后下一个渲染时机判断是否指定默认的tab
+	requestAnimationFrame(() => {
+		if (tabs.length > 0 && !activeTab.value) {
+			// 如果默认Tab为空或不存在则指定首个Tab为默认Tab
+			activeTab.value = tabs[0].name;
+		}
+	});
+}
 
+// f 更新Tab
+async function updateTab(
+	id: string,
+	{ name: newName, label: newLabel }: Partial<TabItem>
+) {
+	await nextTick();
+	const tab = tabs.find((t) => t.id === id);
+	if (tab) {
+		// 先记录旧name
+		const oldName = tab.name;
+		// console.log(newName);
+		tab.name = newName ? newName : tab.name;
+		tab.label = newLabel ? newLabel : tab.label;
+		// 判断如果修改的是当前激活的tab的同时修改active
+		if (oldName === activeTab.value) {
+			activeTab.value = tab.name;
+		}
+	}
+}
+
+// f 取消Tab注册
+async function unregisterTab(id: string) {
+	await nextTick();
+	const index = tabs.findIndex((t) => t.id === id);
+	if (index >= 0) {
+		const [tab] = tabs.splice(index, 1);
+		// 如果删除的是当前激活的tab激活当前index-1位置的tab
+		const preTab = tabs[index - 1];
+		if (tab.name === activeTab.value && preTab) {
+			await nextTick();
+			activeTab.value = preTab.name;
+		}
+		// 如果tab列表为空则active置为空
+		if (!tabs.length) {
+			// await nextTick();
+			activeTab.value = "";
+		}
+
+		// 同步清除缓存
+		tabBoundingCache.delete(tab.name);
+
+		// 先取消悬浮条的过渡动画
+		hoverBarTransition.value = "";
+		requestAnimationFrame(() => {
+			// 下一帧再回复
+			hoverBarTransition.value = "0.5s ease";
+		});
+	}
+}
+
+// ? nav 相关
+const navDOM = useTemplateRef("navRef");
+const navSize = useElementSize(navDOM);
+const navScrollSize = shallowReactive({
+	width: 0,
+	height: 0,
+	left: 0,
+	top: 0,
+});
+
+// 监听nav尺寸
+useResizeObserver(navDOM, (entries) => {
+	const entry = entries[0];
+	if (!entry) return;
+	navScrollSize.width = entry.target.scrollWidth;
+	navScrollSize.height = entry.target.scrollHeight;
+	navScrollSize.left = entry.target.scrollLeft;
+	navScrollSize.top = entry.target.scrollTop;
+});
+
+// 监听nav内元素变动并更新scroll尺寸
+useMutationObserver(
+	navDOM,
+	() => {
+		if (!navDOM.value) return;
+		navScrollSize.width = navDOM.value.scrollWidth;
+		navScrollSize.height = navDOM.value.scrollHeight;
+		navScrollSize.left = navDOM.value.scrollLeft;
+		navScrollSize.top = navDOM.value.scrollTop;
+	},
+	{
+		childList: true,
+		subtree: true,
+		characterData: true,
+	}
+);
+
+// 监听nav的滚动并记录滚动位置
+const navScroll = useScroll(navDOM, {
+	behavior: "smooth",
+	onScroll() {
+		navScrollSize.left = navScroll.x.value;
+		navScrollSize.top = navScroll.y.value;
+	},
+});
+
+onUnmounted(() => {
+	// 组件卸载时取消监听
+	navSize.stop();
+});
+
+// 当鼠标在nav中滚动时的事件
+function onNavWheel(e: WheelEvent) {
+	if (navScroll.isScrolling.value) return;
+	navDOM.value?.scrollTo({
+		left: navScroll.x.value + e.deltaY,
+		behavior: "instant",
+	});
+}
+
+let isNavDragging = ref(false);
 onMounted(() => {
-	// s 挂载(激活)时将激活条的样式赋值给悬浮条
-	updateHoverBar();
-	onActivated(() => {
-		updateHoverBar();
+	let start = { x: 0, y: 0 };
+	let scrollStart = { left: 0, top: 0 };
+	useDraggable(navDOM, {
+		preventDefault: true,
+		stopPropagation: true,
+		onStart(_, _e) {
+			if (
+				navScrollSize.width <= Number(navSize.width.value.toFixed(0)) &&
+				navScrollSize.height <= Number(navSize.height.value.toFixed(0))
+			)
+				return;
+
+			const { x, y } = _e;
+			navScroll.measure();
+			start = { x, y };
+			scrollStart = { left: navScroll.x.value, top: navScroll.y.value };
+		},
+		onMove(_, _e) {
+			if (
+				navScrollSize.width <= Number(navSize.width.value.toFixed(0)) &&
+				navScrollSize.height <= Number(navSize.height.value.toFixed(0))
+			)
+				return;
+			isNavDragging.value = true;
+			const { x, y } = _e;
+			const deltaPos = {
+				x: start.x - x,
+				y: start.y - y,
+			};
+			navDOM.value?.scrollTo({
+				left: scrollStart.left + deltaPos.x,
+				top: scrollStart.top + deltaPos.y,
+				behavior: "instant",
+			});
+
+			if (
+				(navScrollSize.width != Number(navSize.width.value.toFixed(0)) &&
+					scrollStart.left + deltaPos.x >= 0) ||
+				(navScrollSize.height != Number(navSize.height.value.toFixed(0)) &&
+					scrollStart.top + deltaPos.y >= 0)
+			) {
+				document.body.style.cursor = "grab";
+			}
+		},
+		onEnd(_, _e) {
+			isNavDragging.value = false;
+			document.body.style.cursor = "";
+		},
 	});
 });
 
-watch(activeBarStyle, (value) => {
-	hoverBarStyle.value = value;
+// ? 底边悬浮条 hover-bar 相关
+const navWrapDOM = useTemplateRef("navWrapRef");
+const navWrapBounding = useElementBounding(navWrapDOM);
+const tabBoundingCache = shallowReactive(
+	new Map<string, UseElementBoundingReturn>()
+);
+// 被激活的tab的bounding尺寸
+const activeTabBounding = computed(() => {
+	if (!activeTab.value) return;
+	const index = tabs.findIndex((t) => t.name === activeTab.value);
+	if (index > -1) {
+		const name = tabs[index].name;
+		if (tabBoundingCache.has(name)) {
+			return tabBoundingCache.get(name);
+		} else {
+			if (!tabDOMs.value || !tabDOMs.value.length) return;
+			const tabDOM = tabDOMs.value[index];
+			const bounding = useElementBounding(tabDOM);
+			tabBoundingCache.set(name, bounding);
+			return bounding;
+		}
+	} else {
+		return;
+	}
 });
 
-// f 更新浮动条样式
-const updateHoverBar = (e?: MouseEvent) => {
-	if (!tabDOMs.value || !tabsWrapDOM.value || !activeTabDOM.value) return;
-	// console.log(hoverTabDOM.children);
-	const { left: wrapLeft } = tabsWrapDOM.value.getBoundingClientRect();
-	if (e && e.type === "mouseenter") {
-		// 选寻找被悬浮的元素
-		const hoverTabDOM = e.target as HTMLElement;
-		const hoverTabLabelDOM = hoverTabDOM.children[0];
-		const targetDOM = hoverTabLabelDOM || hoverTabLabelDOM;
-		const { width, left } = targetDOM.getBoundingClientRect();
-		hoverBarStyle.value = {
-			width: `${width}px`,
-			left: `${left - wrapLeft}px`,
+// hoverBar 的过渡属性
+const hoverBarTransition = ref<CSSProperties["transition"]>("");
+onMounted(async () => {
+	await nextTick();
+	hoverBarTransition.value = "0.5s ease";
+});
+
+// 动态计算 hover-bar 尺寸
+const hoverBarPosSize = computed(() => {
+	// 判断有没有激活元素
+	if (activeTabBounding.value) {
+		const { x, width } = activeTabBounding.value;
+		return {
+			left: x.value - navWrapBounding.x.value,
+			bottom: 0,
+			width: width.value,
+			height: 2,
 		};
 	} else {
-		// console.log(e.type);
-		if (!activeTabDOM.value) return;
-		const { width, left } = activeTabDOM.value.getBoundingClientRect();
-		hoverBarStyle.value = {
-			width: `${width}px`,
-			left: `${left - wrapLeft}px`,
-		};
+		return { left: 0, bottom: 0, width: 100, height: 2 };
 	}
+});
+
+// ? 提供给子组件base-tab-pane使用的方法和属性
+const provideObj = {
+	registerTab,
+	updateTab,
+	unregisterTab,
+	active: readonly(activeTab),
+	tabs: readonly(tabs),
 };
+// 导出提供的provide类型
+export type provideType = typeof provideObj;
+// 调用provide方法
+provide(symbol_BaseTabs, provideObj);
 </script>
 
 <style lang="scss" scoped>
 * {
 	box-sizing: border-box;
 }
-$active-color: rgb(24, 160, 88);
+
 .base-tabs__container {
-	// background: wheat;
 	display: flex;
-	flex-flow: column nowrap;
+	flex-direction: column;
+	flex-wrap: nowrap;
+	user-select: none;
 }
-// s tabs容器样式
-.base-tabs__tabs {
-	position: sticky;
-	top: 0;
-}
-// s tabs包裹容器
-.base-tabs__tabs-wrap {
+
+.base-tabs__nav {
 	display: flex;
-	flex-flow: row;
-}
-// s tab容器样式
-.base-tabs__tab {
-	padding: 2px 8px;
-	z-index: 1;
-	color: rgb(31, 34, 37);
+	overflow-x: auto;
+	overflow-y: hidden;
+	user-select: none;
 
-	transition: 0.3s ease-in-out;
-
-	&.active-tab {
-		color: $active-color;
+	&::-webkit-scrollbar {
+		display: none;
 	}
+}
 
-	&.disable-tab {
-		color: rgb(194, 194, 194);
-		cursor: not-allowed;
+.base-tabs__nav-wrap {
+	position: relative;
+	width: fit-content;
+	display: flex;
 
-		.base-tabs__tab__label {
-			cursor: not-allowed;
+	/* ? nav-wrap 的下方的装饰线 */
+	&::before {
+		content: "";
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		height: 1px;
+		background-color: #ccc;
+
+		/* 暗黑主题切换 */
+		@media (prefers-color-scheme: dark) {
+			background-color: hsl(228, 3%, 31%);
 		}
 	}
 
-	// s tab标签样式
-	.base-tabs__tab__label {
-		// border-bottom: 1px solid black;
-		font-size: 14px;
-		padding-bottom: 4px;
-		user-select: none;
-		cursor: pointer;
+	/* ? 底边悬浮条 */
+	&::after {
+		content: "";
+		position: absolute;
+		width: calc(v-bind("hoverBarPosSize.width") * 1px);
+		height: calc(v-bind("hoverBarPosSize.height") * 1px);
+		left: calc(v-bind("hoverBarPosSize.left") * 1px);
+		bottom: calc(v-bind("hoverBarPosSize.bottom") * 1px);
+		background-color: #409eff;
+		transition: v-bind("hoverBarTransition");
 	}
 }
 
-// s 辅助条包裹容器
-.base-tabs__other-bar-wrap {
-	z-index: -1;
-}
-
-// s 激活条样式
-.base-tabs__active-bar {
-	position: absolute;
-	pointer-events: none;
-	left: 0;
-	bottom: 0;
-	transition: 0.3s ease-in-out;
-}
-
-// s 浮动条样式
-.base-tabs__hover-bar {
-	position: absolute;
-	pointer-events: none;
-	left: 0;
-	bottom: 2px;
-	height: 100%;
-	border-bottom: 2px solid $active-color;
-	transition: 0.3s ease-in-out;
-	z-index: 1;
-}
-
-// s 主要内容区
-.base-tabs__content-wrap {
-	flex: 1; // 填满剩余空间
+/* 控制按钮 */
+.base-tabs__nav-arrow {
+	position: sticky;
+	/* background-color: #409eff; */
 	display: flex;
-	// background-color: rgb(255, 255, 255);
-	transition: 0.3s;
+	align-items: center;
+	justify-content: center;
+	/* z-index: 1; */
+	transition: 0.5s ease;
+
+	&::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		backdrop-filter: blur(4px);
+		transition: 0.5s ease;
+	}
+
+	svg {
+		z-index: 1;
+	}
+
+	&::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		opacity: 0;
+		transition: 0.5s ease;
+	}
+
+	&:hover::after {
+		opacity: 1;
+	}
+
+	&.base-tabs__nav-arrow-left {
+		left: 0;
+		z-index: 1;
+		&::after {
+			background: linear-gradient(
+				to right,
+				hsla(210, 100%, 63%, 0.8),
+				hsla(210, 100%, 63%, 0)
+			);
+		}
+	}
+	&.base-tabs__nav-arrow-right {
+		right: 0;
+		margin-left: auto;
+		&::after {
+			background: linear-gradient(
+				to left,
+				hsla(210, 100%, 63%, 0.8),
+				hsla(210, 100%, 63%, 0)
+			);
+		}
+	}
+}
+
+.base-tabs__tab-item {
+	padding: 0px 16px;
+	height: 36px;
+	line-height: 36px;
+	font-size: 16px;
+	text-wrap: nowrap;
+	cursor: pointer;
+	user-select: none;
+	/* background-color: wheat; */
+	/* border: 1px solid wheat; */
+}
+
+.base-tabs__tab-item.active {
+	color: #409eff;
+	/* border-bottom: 2px solid #409eff; */
+}
+
+.base-tabs__content {
+	flex: 1;
 }
 </style>
