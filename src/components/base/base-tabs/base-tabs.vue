@@ -3,9 +3,11 @@
 		<div ref="navRef" class="base-tabs__nav" @wheel.prevent="onNavWheel">
 			<!-- ? 向左切换控制条 -->
 			<div
-				v-show="tabs.length"
+				ref="navLeftButton"
+				:data-show="showButtons && tabs.length > 0"
 				class="base-tabs__nav-arrow base-tabs__nav-arrow-left"
 				@click="toggleTab('pre')"
+				@transitionend="onButtonTransitionend"
 			>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
@@ -43,7 +45,8 @@
 			</div>
 			<!-- ? 向右切换控制条 -->
 			<div
-				v-show="tabs.length"
+				ref="navRightButton"
+				:data-show="showButtons && tabs.length > 0"
 				class="base-tabs__nav-arrow base-tabs__nav-arrow-right"
 				@click="toggleTab('next')"
 			>
@@ -121,9 +124,14 @@ defineOptions({
 // props
 withDefaults(
 	defineProps<{
+		/** Tab `内容区` 的 `Style` */
 		contentStyle?: HTMLAttributes["style"];
+		/** 显示 Tab `切换按钮` @default true */
+		showButtons?: boolean;
 	}>(),
-	{}
+	{
+		showButtons: true,
+	}
 );
 
 // emits 定义
@@ -401,9 +409,20 @@ onMounted(() => {
 // ? 底边悬浮条 hover-bar 相关
 const navWrapDOM = useTemplateRef("navWrapRef");
 const navWrapBounding = useElementBounding(navWrapDOM);
+// f 按钮过渡结束后更新所有bounding
+async function onButtonTransitionend() {
+	await nextTick();
+	navWrapBounding.update();
+	tabBoundingCache.forEach((x) => {
+		x.update();
+	});
+}
+// bounding 缓存
 const tabBoundingCache = shallowReactive(
 	new Map<string, UseElementBoundingReturn>()
 );
+// 组件卸载时清除缓存
+onUnmounted(() => tabBoundingCache.clear());
 // 被激活的tab的bounding尺寸
 const activeTabBounding = computed(() => {
 	if (!activeTab.value) return;
@@ -528,16 +547,29 @@ provide(symbol_BaseTabs, provideObj);
 	/* z-index: 1; */
 	transition: 0.5s ease;
 
+	width: 0;
+	flex-shrink: 0;
+
+	cursor: pointer;
+
+	svg {
+		z-index: 1;
+		height: 0;
+	}
+
+	&[data-show="true"] {
+		width: 24px;
+		svg {
+			height: 100%;
+		}
+	}
+
 	&::before {
 		content: "";
 		position: absolute;
 		inset: 0;
 		backdrop-filter: blur(4px);
 		transition: 0.5s ease;
-	}
-
-	svg {
-		z-index: 1;
 	}
 
 	&::after {

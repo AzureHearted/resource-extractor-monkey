@@ -206,7 +206,6 @@
 import {
 	h,
 	ref,
-	watch,
 	reactive,
 	onMounted,
 	onUpdated,
@@ -219,9 +218,9 @@ import type { VNodeChild } from "vue";
 import { isMobile } from "@/utils/common";
 import type { SelectOption, SelectRenderTag } from "naive-ui";
 import { NEllipsis, NTag, NBadge, NFlex } from "naive-ui";
-import BaseTabs from "@/components/base/base-tabs.vue";
-import BaseTabPane from "@/components/base/base-tab-pane.vue";
 import BaseCardList from "./favorite-base-card-list.vue";
+import BaseTabs from "@/components/base/base-tabs/base-tabs.vue";
+import BaseTabPane from "@/components/base/base-tabs/base-tab-pane.vue";
 
 import { storeToRefs } from "pinia";
 

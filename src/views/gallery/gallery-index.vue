@@ -130,8 +130,6 @@
 
 <script setup lang="ts">
 import {
-	ref,
-	watch,
 	onMounted,
 	onUpdated,
 	onUnmounted,
@@ -141,8 +139,8 @@ import {
 } from "vue";
 import GalleryToolbar from "./gallery-toolbar.vue";
 import GalleryBaseWaterfall from "./gallery-base-card-list.vue";
-import BaseTabs from "@/components/base/base-tabs.vue";
-import BaseTabPane from "@/components/base/base-tab-pane.vue";
+import BaseTabs from "@/components/base/base-tabs/base-tabs.vue";
+import BaseTabPane from "@/components/base/base-tabs/base-tab-pane.vue";
 
 import { storeToRefs } from "pinia";
 

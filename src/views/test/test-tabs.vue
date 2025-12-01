@@ -26,8 +26,8 @@
 </template>
 
 <script setup lang="ts">
-	import BaseTabs from "@/components/base/base-tabs.vue";
-	import BaseTabPane from "@/components/base/base-tab-pane.vue";
+import BaseTabs from "@/components/base/base-tabs/base-tabs.vue";
+import BaseTabPane from "@/components/base/base-tabs/base-tab-pane.vue";
 </script>
 
 <style lang="scss" scoped></style>
