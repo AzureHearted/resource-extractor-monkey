@@ -7,7 +7,7 @@
 				:data-show="showButtons && tabs.length > 0"
 				class="base-tabs__nav-arrow base-tabs__nav-arrow-left"
 				@click="toggleTab('pre')"
-				@transitionend="onButtonTransitionend"
+				@transitionend="updateTabBounding()"
 			>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
@@ -113,6 +113,7 @@ import {
 	useMutationObserver,
 	useResizeObserver,
 	useScroll,
+	watchDebounced,
 } from "@vueuse/core";
 import type { UseElementBoundingReturn } from "@vueuse/core";
 
@@ -295,7 +296,21 @@ async function unregisterTab(id: string) {
 
 // ? nav 相关
 const navDOM = useTemplateRef("navRef");
+// s nav的尺寸
 const navSize = useElementSize(navDOM);
+
+// w 监听 nav 宽度 刷新 bounding
+watchDebounced(
+	[navSize.width],
+	() => {
+		updateTabBounding();
+	},
+	{
+		debounce: 300,
+	}
+);
+
+// s nav的Scroll尺寸
 const navScrollSize = shallowReactive({
 	width: 0,
 	height: 0,
@@ -406,17 +421,19 @@ onMounted(() => {
 	});
 });
 
-// ? 底边悬浮条 hover-bar 相关
-const navWrapDOM = useTemplateRef("navWrapRef");
-const navWrapBounding = useElementBounding(navWrapDOM);
-// f 按钮过渡结束后更新所有bounding
-async function onButtonTransitionend() {
+// f bounding更新函数
+async function updateTabBounding() {
 	await nextTick();
 	navWrapBounding.update();
 	tabBoundingCache.forEach((x) => {
 		x.update();
 	});
 }
+
+// ? 底边悬浮条 hover-bar 相关
+const navWrapDOM = useTemplateRef("navWrapRef");
+const navWrapBounding = useElementBounding(navWrapDOM);
+
 // bounding 缓存
 const tabBoundingCache = shallowReactive(
 	new Map<string, UseElementBoundingReturn>()
