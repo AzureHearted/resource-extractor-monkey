@@ -167,17 +167,13 @@ const waterfallItems = computed<Array<WaterfallItem>>(() => {
 		.map<WaterfallItem>((c) => {
 			const { id, source, preview } = c;
 			const { url: sourceSrc, meta: sourceMeta } = source;
-			const { url: previewSrc, meta: previewMeta } = preview;
+			const { meta: previewMeta } = preview;
 			const {
 				width: sourceWidth,
 				height: sourceHeight,
 				valid: sourceValid,
 			} = sourceMeta;
-			const {
-				width: previewWidth,
-				height: previewHeight,
-				valid: previewValid,
-			} = previewMeta;
+			const { width: previewWidth, height: previewHeight } = previewMeta;
 			return {
 				id,
 				src: sourceSrc,

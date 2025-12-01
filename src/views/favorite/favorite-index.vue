@@ -81,6 +81,7 @@
 			<BaseTabs
 				style="width: 100%; height: 100%"
 				content-style="overflow:hidden;"
+				:show-buttons="false"
 				@tab-active="nowType = $event as any"
 			>
 				<!-- s 图片类 -->
@@ -238,7 +239,6 @@ const {
 	extensionOptions,
 	sortInfo,
 	sizeRange,
-	allTags,
 } = storeToRefs(favoriteStore);
 
 const { refreshStore, updateMatchStatus } = favoriteStore;
@@ -262,8 +262,7 @@ const reFresh = async () => {
 	storeFilters.value.size.width[1] = sizeRange.value.width[1];
 	storeFilters.value.size.height[1] = sizeRange.value.height[1];
 };
-//* 挂载和激活时都进行一次filter刷新
-const mounted = ref(false);
+
 onMounted(() => {
 	nextTick(() => {
 		reFresh();

@@ -11,7 +11,7 @@
 			<BaseGrid :breakpoints="breakpoints" :gap="4">
 				<GalleryCard
 					class="grid-item"
-					v-for="(item, index) in cardList"
+					v-for="item in cardList"
 					:key="item.id"
 					style="aspect-ratio: 1"
 					v-model:data="(item as Card)"
@@ -59,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, useTemplateRef, onMounted, onActivated } from "vue";
+import { ref, computed, onMounted, onActivated } from "vue";
 import BaseScrollbar from "@/components/base/base-scrollbar.vue";
 import type { ImgReadyInfo } from "@/components/base/base-img.vue";
 import GalleryCard from "@/components/utils/gallery-card.vue";
@@ -96,8 +96,6 @@ const breakpoints = {
 	"1440": 7,
 };
 
-const container = useTemplateRef("container");
-
 // s 卡片仓库
 const cardStore = useCardStore();
 const { findCard, removeCard, downloadCards } = cardStore;
@@ -132,17 +130,13 @@ const waterfallItems = computed<Array<WaterfallItem>>(() => {
 		.map<WaterfallItem>((c) => {
 			const { id, source, preview } = c;
 			const { url: sourceSrc, meta: sourceMeta } = source;
-			const { url: previewSrc, meta: previewMeta } = preview;
+			const { meta: previewMeta } = preview;
 			const {
 				width: sourceWidth,
 				height: sourceHeight,
 				valid: sourceValid,
 			} = sourceMeta;
-			const {
-				width: previewWidth,
-				height: previewHeight,
-				valid: previewValid,
-			} = previewMeta;
+			const { width: previewWidth, height: previewHeight } = previewMeta;
 			return {
 				id,
 				src: sourceSrc,
