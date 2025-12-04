@@ -24,11 +24,36 @@
 // 		background: unset;
 // 	}
 // }
+
 .fancybox__dialog {
+	.fancybox__container {
+		--fancybox-backdrop-bg: rgba(24, 24, 27, 0.95);
+	}
+	.fancybox__container[theme="light"] {
+		--fancybox-backdrop-bg: rgba(255, 255, 255, 0.9);
+	}
+
 	.has-iframe .f-html {
 		background: unset;
 		padding: 0;
 		width: 95%;
 		height: 95%;
+	}
+
+	.has-html5video .f-html {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 95%;
+		height: 95%;
+		max-width: unset;
+		max-height: unset;
+		background: unset;
+
+		.fancybox__html5video {
+			display: block !important;
+			max-width: 100%;
+			max-height: 100%;
+		}
 	}
 }
