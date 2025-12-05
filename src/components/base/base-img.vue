@@ -1,9 +1,5 @@
 <template>
-	<div
-		ref="container"
-		class="img__container"
-		:class="{ loading: !state.loaded }"
-	>
+	<div ref="container" class="img__container">
 		<!-- ? 图片的wrap -->
 		<div
 			ref="imgWrapRef"
@@ -392,7 +388,7 @@ async function generateThumbnail<T = File | string>(
 		const img = new Image();
 
 		img.crossOrigin = "anonymous"; // 必须在设置 src 之前
-		img.decoding = "async";
+		// img.decoding = "async";
 
 		img.onload = function () {
 			const canvas = document.createElement("canvas");
@@ -430,8 +426,8 @@ async function generateThumbnail<T = File | string>(
 			}
 		};
 		img.onerror = function (error) {
-			resolve(source);
 			console.warn(error);
+			resolve(source);
 		};
 
 		if (typeof source === "string") {
@@ -464,95 +460,100 @@ async function generateThumbnail<T = File | string>(
 // ? 自定义指令
 const vLazy: Directive = {
 	mounted: () => {
-		let src: string = props.src; // 默认使用原图
+		setTimeout(() => {
+			let src: string = props.src; // 默认使用原图
 
-		if (props.initShow) {
-			loadImage(src);
-			return;
-		}
+			if (props.initShow) {
+				loadImage(src);
+				return;
+			}
 
-		if (!!slots.default || !src) {
-			// ? 用户向默认传入内容，则直接完成加载逻辑
-			state.loaded = true;
-			state.show = true;
-			state.isError = !!slots.default ? false : !src;
-			// ? 触发loaded事件,同时返回 info 对象
-			emits("loaded", {
-				meta: {
-					aspectRatio: 0,
-					height: 0,
-					width: 0,
-					valid: true,
-				},
-			});
-			return;
-		}
+			if (!!slots.default || !src) {
+				// ? 用户向默认传入内容，则直接完成加载逻辑
+				state.loaded = true;
+				state.show = true;
+				state.isError = !!slots.default ? false : !src;
+				// ? 触发loaded事件,同时返回 info 对象
+				emits("loaded", {
+					meta: {
+						aspectRatio: 0,
+						height: 0,
+						width: 0,
+						valid: true,
+					},
+				});
+				return;
+			}
 
-		// 监听回调
-		const handleIntersection = async (entries: IntersectionObserverEntry[]) => {
-			if (entries[0].isIntersecting) {
-				// ? 判断是否只监听一次
-				if (props.observerOnce) {
-					// 停止监听
-					observer.disconnect();
-				}
+			// 监听回调
+			const handleIntersection = async (
+				entries: IntersectionObserverEntry[]
+			) => {
+				// console.log(entries[0]);
+				if (entries[0].isIntersecting) {
+					// ? 判断是否只监听一次
+					if (props.observerOnce) {
+						// 停止监听
+						observer.disconnect();
+					}
 
-				// 判断是否已经被加载过了
-				if (state.loaded) {
-					// 如果已经被加载就让其显示
-					state.show = true;
-					return;
-				}
+					// 判断是否已经被加载过了
+					if (state.loaded) {
+						// 如果已经被加载就让其显示
+						state.show = true;
+						return;
+					}
 
-				let thumb = props.thumb;
-				// 这里判断是否使用缩略图
-				if (props.useThumb) {
-					// s 使用缩略图
-					if (thumb) {
-						// console.log("存在缩略图", thumb);
-						// 如果缩略图存在,就使用缩略图
-						src = thumb;
-					} else {
-						try {
-							// 如果没有缩略图,就使用原图生成
-							const res = await generateThumbnail(
-								props.src,
-								props.thumbMaxSize,
-								props.thumbMaxSize
-							);
-							if (typeof res === "string") {
-								thumb = res;
+					let thumb = props.thumb;
+					// 这里判断是否使用缩略图
+					if (props.useThumb) {
+						// s 使用缩略图
+						if (thumb) {
+							// console.log("存在缩略图", thumb);
+							// 如果缩略图存在,就使用缩略图
+							src = thumb;
+						} else {
+							try {
+								// 如果没有缩略图,就使用原图生成
+								const res = await generateThumbnail(
+									props.src,
+									props.thumbMaxSize,
+									props.thumbMaxSize
+								);
+								if (typeof res === "string") {
+									thumb = res;
+								}
+								if (typeof res === "object" && res.thumbnail) {
+									thumb = res.thumbnail;
+								}
+							} catch {
+								thumb = props.thumb;
 							}
-							if (typeof res === "object" && res.thumbnail) {
-								thumb = res.thumbnail;
-							}
-						} catch {
-							thumb = props.thumb;
 						}
 					}
+					// 执行加载函数
+					loadImage(src, thumb);
+				} else {
+					state.show = false; // 标记为不可见
 				}
-				// 执行加载函数
-				loadImage(src, thumb);
+			};
+
+			// 配置 IntersectionObserver
+			const options: IntersectionObserverInit = {
+				root: props.viewport,
+				rootMargin: props.viewRootMargin,
+				threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
+			};
+
+			// 创建 IntersectionObserver
+			const observer = new IntersectionObserver(handleIntersection, options);
+			// 开始监听
+			if (container.value) {
+				observer.observe(container.value);
 			} else {
-				state.show = false; // 标记为不可见
+				console.log("图片监听失效，未找到组件container");
 			}
-		};
-
-		// 配置 IntersectionObserver
-		const options: IntersectionObserverInit = {
-			root: props.viewport,
-			rootMargin: props.viewRootMargin,
-			threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
-		};
-
-		// 创建 IntersectionObserver
-		const observer = new IntersectionObserver(handleIntersection, options);
-		// 开始监听
-		if (container.value) {
-			observer.observe(container.value);
-		} else {
-			console.log("图片监听失效，未找到组件container");
-		}
+		}, 0);
 	},
 };
 </script>
