@@ -323,7 +323,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { computed } from "vue";
 import type { ComputedRef } from "vue";
 import BaseCard from "@/components/base/base-card.vue";
 import BaseImg from "@/components/base/base-img.vue";
@@ -334,21 +334,14 @@ import Card from "@/stores/CardStore/class/Card";
 import type { ImgReadyInfo } from "@/components/base/base-img.vue";
 import { GM_openInTab } from "$";
 import { ElMessageBox } from "@/plugin/element-plus";
-
 // 导入公用TS库
 import { byteAutoUnit, legalizationPathString } from "@/utils/common";
-
 // 导入svg
 import HtmlTypeImg from "@svg/html.svg";
-
 // 导入仓库
 import useGlobalStore from "@/stores/GlobalStore";
 
 const globalStore = useGlobalStore();
-
-const imgWrapRef = ref<HTMLElement | null>(null);
-// s 图片可见性
-// const isVisible = useElementVisibility(imgWrapRef);
 
 const data = defineModel<Card>("data", {
 	required: true,
@@ -378,16 +371,6 @@ const props = withDefaults(
 		showToLocateButton: true,
 	}
 );
-
-// onMounted(() => {
-// 	console.log("卡片被挂载", props.data.id);
-// });
-// onActivated(() => {
-// 	console.log("卡片被激活", props.data.id);
-// });
-// onDeactivated(() => {
-// 	console.log("卡片被冻结", props.data.id);
-// });
 
 // ? 定义emits
 const emits = defineEmits<{
@@ -519,9 +502,6 @@ const handleTagsSave = (newTags: string[]) => {
 
 <style lang="scss" scoped>
 // 卡片顶部
-// :deep(.base-card-header) {
-// 	overflow: hidden;
-// }
 .gallery-card-header {
 	position: relative;
 	display: flex;
