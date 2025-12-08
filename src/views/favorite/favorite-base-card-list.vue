@@ -65,9 +65,9 @@
 						v-model:data="(item.data as Card)"
 						:highlight-key="searchKeywords"
 						:is-mobile="state.isMobile"
-						:observer-once="false"
 						:show-to-locate-button="false"
 						:show-delete-button="false"
+						:data-aspectRatio="item.aspectRatio"
 						:show-download-button="(item.data as Card).source.meta.type!=='html'"
 						@change:selected="(item.data as Card).isSelected = $event"
 						@change:title="updateCard([item.data as Card])"
@@ -177,17 +177,19 @@ const virtualMasonryItem = computed<Array<VirtualMasonryItem>>(() => {
 		.filter((x) => x.isMatch)
 		.map<VirtualMasonryItem>((c) => {
 			const { id, source, preview } = c;
-			const { url: sourceSrc, meta: sourceMeta } = source;
+			const { url: sourceSrc } = source;
 			const { meta: previewMeta } = preview;
-			const {
-				width: sourceWidth,
-				height: sourceHeight,
-				valid: sourceValid,
-			} = sourceMeta;
+			const { valid: previewValid } = previewMeta;
+
 			const { width: previewWidth, height: previewHeight } = previewMeta;
-			const aspectRatio = sourceValid
-				? sourceWidth / sourceHeight
-				: previewWidth / previewHeight;
+
+			let aspectRatio = 1;
+			if (
+				(previewMeta.type === "image" || previewMeta.type === "video") &&
+				previewValid
+			) {
+				aspectRatio = previewWidth / previewHeight || 1;
+			}
 
 			return {
 				id,
@@ -224,14 +226,17 @@ const handleLoaded = async (id: string, info: ImgReadyInfo) => {
 	card.isLoaded = true; // s 置为加载成功
 	// console.count("卡片加载完成");
 	// s 刷新仓库对应卡片的preview.meta信息
-	card.preview.meta = { ...card.preview.meta, ...info.meta };
-	if (
-		isEqualUrl(card.preview.url, card.source.url) &&
-		(card.preview.meta.width > card.source.meta.width ||
-			card.preview.meta.height > card.source.meta.height)
-	) {
-		card.source.meta = card.preview.meta;
-		updateCard([card]);
+	// 需要返回的结果有效才进行更新
+	if (info.meta.valid) {
+		card.preview.meta = { ...card.preview.meta, ...info.meta };
+		if (
+			isEqualUrl(card.preview.url, card.source.url) &&
+			(card.preview.meta.width > card.source.meta.width ||
+				card.preview.meta.height > card.source.meta.height)
+		) {
+			card.source.meta = card.preview.meta;
+			updateCard([card]);
+		}
 	}
 };
 

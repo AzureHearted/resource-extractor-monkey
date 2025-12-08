@@ -47,7 +47,6 @@
 						v-model:data="(item.data as Card)"
 						:highlight-key="searchKeywords"
 						:is-mobile="state.isMobile"
-						:observer-once="false"
 						@change:selected="(item.data as Card).isSelected = $event"
 						@delete="removeCard([$event])"
 						@loaded="handleLoaded"
@@ -145,17 +144,19 @@ const virtualMasonryItem = computed<Array<VirtualMasonryItem>>(() => {
 		.filter((x) => x.isMatch)
 		.map<VirtualMasonryItem>((c) => {
 			const { id, source, preview } = c;
-			const { url: sourceSrc, meta: sourceMeta } = source;
+			const { url: sourceSrc } = source;
 			const { meta: previewMeta } = preview;
-			const {
-				width: sourceWidth,
-				height: sourceHeight,
-				valid: sourceValid,
-			} = sourceMeta;
+			const { valid: previewValid } = previewMeta;
+
 			const { width: previewWidth, height: previewHeight } = previewMeta;
-			const aspectRatio = sourceValid
-				? sourceWidth / sourceHeight
-				: previewWidth / previewHeight;
+
+			let aspectRatio = 1;
+			if (
+				(previewMeta.type === "image" || previewMeta.type === "video") &&
+				previewValid
+			) {
+				aspectRatio = previewWidth / previewHeight || 1;
+			}
 
 			return {
 				id,
@@ -175,9 +176,11 @@ const handleLoaded = async (id: string, info: ImgReadyInfo) => {
 	card.isLoaded = true; // s 置为加载成功
 	// console.log("卡片加载完成", info, findCard(id));
 	// s 刷新仓库对应卡片的preview.meta信息
-	card.preview.meta = { ...card.preview.meta, ...info.meta };
-	if (isEqualUrl(card.preview.url, card.source.url)) {
-		card.source.meta = card.preview.meta;
+	if (info.meta.valid) {
+		card.preview.meta = { ...card.preview.meta, ...info.meta };
+		if (isEqualUrl(card.preview.url, card.source.url)) {
+			card.source.meta = card.preview.meta;
+		}
 	}
 };
 
