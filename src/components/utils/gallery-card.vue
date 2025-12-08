@@ -134,8 +134,8 @@
 					<BaseImg
 						v-if="data.source.meta.type === 'image'"
 						:src="data.preview.url"
-						use-thumb
-						:thumb-max-size="1080"
+						decoding="async"
+						:show-loading-animation="!data.isLoaded"
 						:viewport="viewport"
 						:observer-once="observerOnce"
 						:init-width="data.preview.meta.width"
@@ -148,9 +148,9 @@
 					<!-- s 网页类型(封面图片) -->
 					<BaseImg
 						v-else
-						use-thumb
-						:thumb-max-size="1080"
 						:src="data.preview.url"
+						decoding="async"
+						:show-loading-animation="!data.isLoaded"
 						:viewport="viewport"
 						:observer-once="observerOnce"
 						:init-width="data.preview.meta.width"
@@ -324,7 +324,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, withDefaults } from "vue";
+import { ref, computed } from "vue";
 import type { ComputedRef } from "vue";
 import BaseCard from "@/components/base/base-card.vue";
 import BaseImg from "@/components/base/base-img.vue";
