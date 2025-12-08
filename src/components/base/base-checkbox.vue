@@ -27,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import { withDefaults, computed, defineEmits } from "vue";
+import { computed } from "vue";
 
 const props = withDefaults(
 	defineProps<{

@@ -3,7 +3,6 @@
 
 <script setup lang="ts">
 import {
-	defineProps,
 	inject,
 	getCurrentInstance,
 	markRaw,

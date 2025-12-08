@@ -73,14 +73,10 @@
 </template>
 
 <script lang="ts" setup>
-import { useSlots, defineAsyncComponent } from "vue";
+import { useSlots } from "vue";
 import type { HTMLAttributes } from "vue";
 import BaseScrollbar from "@/components/base/base-scrollbar.vue";
 import BaseDragDialog from "@/components/base/base-drag-dialog.vue";
-
-// const BaseDragDialog = defineAsyncComponent(
-// 	() => import("@/components/base/base-drag-dialog.vue")
-// );
 
 withDefaults(
 	defineProps<{

@@ -33,7 +33,7 @@
 </template>
 
 <script setup lang="ts">
-import { withDefaults, onMounted, ref, useTemplateRef } from "vue";
+import { onMounted, ref, useTemplateRef } from "vue";
 import type { CSSProperties } from "vue";
 import BaseImg from "./base-img.vue";
 import type { ImgReadyInfo } from "./base-img.vue";
