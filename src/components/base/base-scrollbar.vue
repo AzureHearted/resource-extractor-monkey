@@ -2,21 +2,13 @@
 	<div
 		ref="containerDOM"
 		class="base-scrollbar_container"
-		:class="{
-			'arrived-top': arrivedState.top && scrollbar.vertical.lengthPercent < 1,
-			'arrived-bottom':
-				arrivedState.bottom && scrollbar.vertical.lengthPercent < 1,
-			'arrived-left':
-				arrivedState.left && scrollbar.horizontal.lengthPercent < 1,
-			'arrived-right':
-				arrivedState.right && scrollbar.horizontal.lengthPercent < 1,
-		}"
 		:data-disable="disable"
 	>
 		<!-- s 视口区滚动区 -->
 		<div
 			ref="viewportDOM"
 			class="base-scrollbar__viewport"
+			tabindex="0"
 			:style="[viewportStyle]"
 		>
 			<!-- s 插槽出口 (内容) -->
@@ -33,14 +25,25 @@
 				<div
 					ref="verticalTrack"
 					class="base-scrollbar__track track__vertical"
-					:class="{ 'is-dragging': scrollbar.vertical.isDragging }"
+					:class="{
+						'is-dragging': scrollbar.vertical.isDragging,
+					}"
 					@click="onClickTrack('vertical', $event)"
 				>
 					<transition name="scrollbar">
 						<div
 							ref="verticalThumb"
 							class="base-scrollbar__thumb thumb__vertical"
-							v-show="verticalScrollbarVisible"
+							:class="{
+								'arrived-top':
+									showArrivedIndicator &&
+									arrivedState.top &&
+									scrollbar.vertical.lengthPercent < 1,
+								'arrived-bottom':
+									showArrivedIndicator &&
+									arrivedState.bottom &&
+									scrollbar.vertical.lengthPercent < 1,
+							}"
 							@mousedown.stop
 							@mouseup.stop
 							@click.stop
@@ -49,21 +52,42 @@
 								height: `${scrollbar.vertical.lengthPercent * 100}%`,
 								transform: `translateY(${verticalThumbTop}px)`,
 							}"
-						></div>
+						>
+							<!-- thumb 内容区 -->
+							<div
+								ref="verticalThumbContent"
+								class="base-scrollbar__thumb__content"
+								:style="[calcVerticalThumbContentStyle]"
+							>
+								<!-- 内容插槽 -->
+								<slot name="vertical-thumb-content"> </slot>
+							</div>
+						</div>
 					</transition>
 				</div>
 				<!-- t 水平滚动条 -->
 				<div
 					ref="horizontalTrack"
 					class="base-scrollbar__track track__horizontal"
+					:class="{
+						'is-dragging': scrollbar.horizontal.isDragging,
+					}"
 					@click="onClickTrack('horizontal', $event)"
 				>
 					<transition name="scrollbar">
 						<div
 							ref="horizontalThumb"
 							class="base-scrollbar__thumb thumb__horizontal"
-							:class="{ 'is-dragging': scrollbar.horizontal.isDragging }"
-							v-show="horizontalScrollbarVisible"
+							:class="{
+								'arrived-left':
+									showArrivedIndicator &&
+									arrivedState.left &&
+									scrollbar.horizontal.lengthPercent < 1,
+								'arrived-right':
+									showArrivedIndicator &&
+									arrivedState.right &&
+									scrollbar.horizontal.lengthPercent < 1,
+							}"
 							@mousedown.stop
 							@mouseup.stop
 							@click.stop
@@ -72,7 +96,17 @@
 								width: `${scrollbar.horizontal.lengthPercent * 100}%`,
 								transform: `translateX(${horizontalThumbLeft}px)`,
 							}"
-						></div>
+						>
+							<!-- thumb 内容区 -->
+							<div
+								ref="horizontalThumbContent"
+								class="base-scrollbar__thumb__content"
+								:style="[horizontalThumbContentStyle]"
+							>
+								<!-- 内容插槽 -->
+								<slot name="horizontal-thumb-content"> </slot>
+							</div>
+						</div>
 					</transition>
 				</div>
 			</teleport>
@@ -103,8 +137,6 @@
 import {
 	reactive,
 	computed,
-	defineProps,
-	withDefaults,
 	onActivated,
 	onDeactivated,
 	useTemplateRef,
@@ -127,36 +159,37 @@ import {
 // ? 告诉 Vue 不要自动将 attrs（包括 style, class, data-*等）应用到根元素
 defineOptions({
 	name: "base-scrollbar",
-	inheritAttrs: false,
 });
 
 // 定义props
 const props = withDefaults(
 	defineProps<{
-		/** 禁用虚拟滚动条（改用原生滚动条） */
+		/** 禁用虚拟滚动条（改用原生滚动条） @default false */
 		disable?: boolean;
-		/** 垂直方向的 overflow */
+		/** 垂直方向的 overflow @default "auto" */
 		overflowY?: CSSProperties["overflowY"];
-		/** 水平方向的 overflow */
+		/** 水平方向的 overflow @default "auto" */
 		overflowX?: CSSProperties["overflowX"];
-		/** 显示滚动条 */
+		/** 显示滚动条 @default true */
 		showScrollbar?: boolean;
-		/** 显示回到顶部按钮？ */
+		/** 显示回到顶部按钮？  @default false */
 		showBackTopButton?: boolean;
-		/** 显示回到顶部按钮？ */
+		/** 显示回到顶部的滚动行为 @default "auto" */
 		backToTopBehavior?: ScrollBehavior;
-		/** 滚动条的track尺寸（宽度） */
+		/** 滚动条的track尺寸（宽度） @default 12 */
 		trackSize?: number;
-		/** 滚动条的track的padding尺寸（宽度）会影响thumb的视觉尺寸 */
+		/** 滚动条的track的padding尺寸（宽度）会影响thumb的视觉尺寸 @default 2 */
 		thumbPadding?: number;
-		/** 鼠标悬浮在track上时padding尺寸（宽度）会影响thumb的视觉尺寸 */
+		/** 鼠标悬浮在track上时padding尺寸（宽度）会影响thumb的视觉尺寸 @default 0 */
 		hoverThumbPadding?: number;
-		/** 滚动条偏移量 [ `垂直滚动条的横向偏移`px , `水平滚动条的纵向偏移`px ] */
+		/** 滚动条偏移量 [ `垂直滚动条的横向偏移`px , `水平滚动条的纵向偏移`px ] @default [1,1] */
 		offset?: [number, number];
-		/** 将滚动条传送到指定元素 (默认false不传送) */
+		/** 将滚动条传送到指定元素 @default false */
 		teleportTo?: TeleportProps["to"] | false;
-		/** 视口样式，为防止计算出错请勿设置 padding 和 margin */
+		/** 视口样式，为防止计算出错请勿设置 padding 和 margin  */
 		viewportStyle?: HTMLAttributes["style"];
+		/** 显示抵达指示器 @default false */
+		showArrivedIndicator?: boolean;
 	}>(),
 	{
 		overflowX: "auto",
@@ -401,12 +434,26 @@ const {
 	},
 });
 
+// j 滚动进度百分比
+const scrollPercent = computed(() => {
+	const yThumbLen =
+		verticalTrackInfo.height.value * scrollbar.vertical.lengthPercent;
+	const xThumbLen =
+		horizontalTrackInfo.width.value * scrollbar.horizontal.lengthPercent;
+	return {
+		y: verticalThumbTop.value / (verticalTrackInfo.height.value - yThumbLen),
+		x:
+			horizontalThumbLeft.value / (horizontalTrackInfo.width.value - xThumbLen),
+	};
+});
+
 // s 滚动条轨道DOM (垂直)
 const verticalTrackDOM = useTemplateRef("verticalTrack");
 // s 滚动条轨道尺寸信息 (垂直)
 const verticalTrackInfo = useElementBounding(verticalTrackDOM);
 // s 滚动条DOM (垂直)
 const verticalThumbDOM = useTemplateRef("verticalThumb");
+
 const { y: verticalThumbTop } = useDraggable(verticalThumbDOM, {
 	axis: "y", // 限制垂直拖拽
 	containerElement: verticalTrackDOM, // 设置父容器
@@ -416,14 +463,26 @@ const { y: verticalThumbTop } = useDraggable(verticalThumbDOM, {
 	},
 	onMove({ y: _y }) {
 		const { clientHeight, scrollHeight } = viewportDOM.value!;
+		// console.log(verticalThumbDOM.value?.getBoundingClientRect().height);
+
+		// track 总长
+		const trackLen = Math.floor(verticalTrackInfo.height.value);
+
+		// 计算滚动条高度
+		const thumbHeight = trackLen * scrollbar.vertical.lengthPercent;
+
 		// 计算可滚动长度
-		const remainTrackLen =
-			Math.floor(verticalTrackInfo.height.value) *
-			(1 - scrollbar.vertical.lengthPercent);
+		const remainTrackLen = trackLen * (1 - scrollbar.vertical.lengthPercent);
+
+		// 防止超出边界
+		if (verticalThumbTop.value + thumbHeight > trackLen) {
+			verticalThumbTop.value = trackLen - thumbHeight;
+		}
 
 		// 计算滚动高度
 		const scrollTop =
 			verticalThumbTop.value * ((scrollHeight - clientHeight) / remainTrackLen);
+
 		viewportScrollY.value = scrollTop;
 	},
 	async onEnd({ y: _y }) {
@@ -441,6 +500,22 @@ const verticalScrollbarVisible = computed<boolean>(() => {
 		props.showScrollbar &&
 		(props.overflowY === "auto" || props.overflowY === "scroll")
 	);
+});
+
+// j 滑块内容的样式
+const calcVerticalThumbContentStyle = computed(() => {
+	// 滑块总长
+	const thumbLen =
+		verticalTrackInfo.height.value * scrollbar.vertical.lengthPercent;
+
+	const transform = `translateY(calc(-${scrollPercent.value.y * 100}% + ${
+		thumbLen * scrollPercent.value.y
+	}px))`;
+
+	return {
+		minWidth: thumbLen < 20 ? "16px" : "0",
+		transform,
+	} as HTMLAttributes["style"];
 });
 
 // s 滚动条轨道DOM (水平)
@@ -489,6 +564,22 @@ const horizontalScrollbarVisible = computed<boolean>(() => {
 		props.showScrollbar &&
 		(props.overflowX === "auto" || props.overflowX === "scroll")
 	);
+});
+
+// j 滑块内容的样式
+const horizontalThumbContentStyle = computed(() => {
+	// 滑块总长
+	const thumbLen =
+		horizontalTrackInfo.width.value * scrollbar.horizontal.lengthPercent;
+
+	const transform = `translateX(calc(-${scrollPercent.value.x * 100}% + ${
+		thumbLen * scrollPercent.value.x
+	}px))`;
+
+	return {
+		minHeight: thumbLen < 20 ? "16px" : "0",
+		transform,
+	} as HTMLAttributes["style"];
 });
 
 // f 计算滚动条尺寸
@@ -628,6 +719,14 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
+*,
+*::after,
+*::before {
+	box-sizing: border-box;
+	margin: unset;
+	padding: unset;
+}
+
 // s 组件容器
 .base-scrollbar_container {
 	box-sizing: border-box;
@@ -636,34 +735,6 @@ defineExpose({
 	height: 100%;
 	max-width: 100%;
 	max-height: 100%;
-	/* overflow: hidden; */
-
-	&::after {
-		position: absolute;
-		content: "";
-		opacity: 0;
-		transition: 0.5s ease;
-	}
-
-	&.arrived-top {
-	}
-	&.arrived-left {
-	}
-	&.arrived-right {
-	}
-	&.arrived-bottom {
-		&::after {
-			/* position: absolute; */
-			/* opacity: 1; */
-			content: "到底部了！";
-			bottom: 0;
-			width: 100%;
-			height: 20px;
-			text-align: center;
-			background-color: hsla(189, 100%, 50%, 0.5);
-			/* transition: 0.5s ease 0.5s; */
-		}
-	}
 }
 
 // s 视口
@@ -677,6 +748,10 @@ defineExpose({
 	overflow-y: v-bind("props.overflowY");
 	overflow-x: v-bind("props.overflowX");
 	/* transition: 0.5 ease; */
+
+	&:focus {
+		outline: unset;
+	}
 }
 
 // ? 去除原生滚动条样式
@@ -696,6 +771,7 @@ $track-hover-padding: v-bind("$props.hoverThumbPadding");
 .base-scrollbar__track {
 	position: absolute;
 	/* background: rgba(255, 166, 0, 0.573); */
+	outline: unset;
 
 	user-select: none;
 	-webkit-user-select: none;
@@ -704,17 +780,23 @@ $track-hover-padding: v-bind("$props.hoverThumbPadding");
 	.base-scrollbar__thumb {
 		position: absolute;
 		inset: 0;
+		outline: unset;
+
 		/* background: rgba(255, 0, 0, 0.5); */
 
 		// ? 滚动条thumb视觉区域
 		&::after {
-			border-radius: 10px;
-			-webkit-box-shadow: inset 0 0 2px rgba(255, 255, 255, 0.5),
-				0 0 2px rgb(0, 0, 0, 1);
-			box-shadow: inset 0 0 2px rgba(255, 255, 255, 0.5),
-				0 0 2px rgb(0, 0, 0, 1);
+			position: absolute;
+			content: "";
 
+			border-radius: calc($track-size * 1px - $track-padding * 1px);
+			inset: calc($track-padding * 1px);
 			background: rgb(85, 170, 255);
+
+			// ? 拟物阴影效果
+			/* box-shadow: inset 1px 1px 1px 1px hsla(0, 0%, 100%, 0.5),
+					inset -1px -1px 1px 1px hsla(0, 0%, 0%, 0.5); */
+
 			opacity: 1;
 			z-index: 1;
 
@@ -722,16 +804,64 @@ $track-hover-padding: v-bind("$props.hoverThumbPadding");
 				right 0.5s ease, top 0.5s ease, bottom 0.5s ease, inset 0.5s ease;
 		}
 
-		&:hover,
-		&.is-dragging {
+		// ? 滚动条边界指示器
+		&::before {
+			position: absolute;
+			content: "";
+			inset: calc($track-padding * 1px);
+			border-radius: calc($track-size * 1px - $track-padding * 1px);
+			transition: inset 0.5s ease, background 0.5s ease;
+			z-index: 2;
+		}
+
+		&.arrived-top,
+		&.arrived-bottom,
+		&.arrived-left,
+		&.arrived-right {
+			&::before {
+				background: hsl(25, 100%, 50%);
+			}
+		}
+
+		$arrived-size: calc($track-size * 1px);
+
+		&.arrived-top::before {
+			bottom: calc(100% - $arrived-size);
+		}
+
+		&.arrived-bottom::before {
+			top: calc(100% - $arrived-size);
+		}
+
+		&.arrived-left::before {
+			right: calc(100% - $arrived-size);
+		}
+
+		&.arrived-right::before {
+			left: calc(100% - $arrived-size);
+		}
+
+		&:hover {
 			&::after {
 				background: rgba(64, 160, 255);
 			}
 		}
+
 		&:active {
 			&::after {
 				background: rgb(26, 139, 252);
 			}
+		}
+	}
+
+	// ? 当：鼠标悬浮track上、正在被拖拽，thumb的样式
+	&:hover .base-scrollbar__thumb,
+	&.is-dragging .base-scrollbar__thumb {
+		&::after {
+			inset: 0;
+		}
+		&::before {
+			border-radius: calc($track-size * 1px - $track-padding * 1px);
 		}
 	}
 
@@ -754,69 +884,129 @@ $track-hover-padding: v-bind("$props.hoverThumbPadding");
 
 // z 虚拟滚动条track (垂直)
 .track__vertical {
-	top: 0;
+	// 留出1px距离
+	top: 1px;
 	right: 0;
-	width: calc($track-size * 1px);
+	width: 0;
 	height: 100%;
 
+	* {
+		visibility: hidden;
+	}
+
 	transform: translateX(calc(v-bind("props.offset[0]") * -1px));
+
+	transition: width 0.5s ease;
 
 	// z 虚拟滚动条thumb(垂直)
 	.thumb__vertical {
 		top: 0;
 		transition: height 0.5s ease;
 
-		// ? 滚动条thumb视觉区域
-		&::after {
+		// z 插槽内容区样式
+		.base-scrollbar__thumb__content {
 			position: absolute;
-			content: "";
-			inset: calc($track-padding * 1px);
+			right: 100%;
+			border-radius: 4px;
+			min-width: 0;
+			min-height: 0;
+			overflow: hidden;
+			background-color: #409eff;
+
+			scale: 0;
+			transition: scale 0.3s ease 1.5s, min-height 0.3s ease 1s,
+				min-width 0.3s ease 1s;
 		}
 	}
 
-	&:hover .thumb__vertical::after,
-	&.is-dragging .thumb__vertical::after {
-		inset: calc($track-hover-padding * 1px);
+	& > .thumb__vertical:active > .base-scrollbar__thumb__content,
+	&:hover > .thumb__vertical > .base-scrollbar__thumb__content {
+		min-width: 16px;
+		min-height: 50px;
+		scale: 1;
+		transition: scale 0.3s ease, min-height 0.3s ease 0.3s, min-width 0.3s ease;
+	}
+}
+
+[data-show-vertical-scrollbar="true"] {
+	& > .track__vertical {
+		width: calc($track-size * 1px);
+		height: calc(100% - 1px);
+		* {
+			visibility: visible;
+		}
 	}
 }
 
 // z 虚拟滚动条track (水平)
 .track__horizontal {
-	left: 0;
+	// 留出1px距离
+	left: 1px;
 	bottom: 0;
 	width: 100%;
-	height: calc($track-size * 1px);
+	height: 0;
 	/* 必须设置，否则当水平滚动条滚动到最底部时会无法点击 */
 	z-index: 1;
 
+	* {
+		visibility: hidden;
+	}
+
 	transform: translateY(calc(v-bind("props.offset[1]") * -1px));
+	transition: height 0.5s ease;
 
 	// z 虚拟滚动条(水平)
 	.thumb__horizontal {
 		left: 0;
 		transition: width 0.5s ease;
 
-		// ? 滚动条thumb视觉区域
-		&::after {
+		// z 插槽内容区样式
+		.base-scrollbar__thumb__content {
 			position: absolute;
-			content: "";
-			inset: calc($track-padding * 1px);
+			bottom: 100%;
+			border-radius: 4px;
+			min-height: 0;
+			min-width: 0;
+			overflow: hidden;
+			background-color: #409eff;
+
+			scale: 0;
+			transition: scale 0.3s ease 1.5s, min-height 0.3s ease 1s,
+				min-width 0.3s ease 1s;
 		}
 	}
 
-	// ? thumb 的拖拽和hover样式
-	&:hover .thumb__horizontal::after,
-	&.is-dragging .thumb__horizontal::after {
-		inset: calc($track-hover-padding * 1px);
+	& > .thumb__horizontal:active > .base-scrollbar__thumb__content,
+	&:hover > .thumb__horizontal > .base-scrollbar__thumb__content {
+		min-height: 16px;
+		min-width: 50px;
+		scale: 1;
+		transition: scale 0.3s ease, min-height 0.3s ease, min-width 0.3s ease 0.3s;
+	}
+}
+
+[data-show-horizontal-scrollbar="true"] {
+	& > .track__horizontal {
+		height: calc($track-size * 1px);
+		width: calc(100% - 1px);
+		* {
+			visibility: visible;
+		}
 	}
 }
 
 // ? 处理滚动条交叉
-[data-show-vertical-scrollbar="true"] > .track__horizontal {
-	width: calc(100% - ($track-size * 1px + 1px));
-}
-[data-show-horizontal-scrollbar="true"] > .track__vertical {
-	height: calc(100% - ($track-size * 1px + 1px));
+[data-show-vertical-scrollbar="true"][data-show-horizontal-scrollbar="true"] {
+	& > .track__horizontal {
+		width: calc(
+			100% - ($track-size * 1px + 1px + v-bind("props.offset[0]") * 1px)
+		);
+	}
+	& > .track__vertical {
+		height: calc(
+			100% - ($track-size * 1px + 1px + v-bind("props.offset[1]") * 1px)
+		);
+	}
 }
 
 // s 返回顶部按钮样式
