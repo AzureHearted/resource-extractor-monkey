@@ -548,7 +548,7 @@ const vLazy: Directive = {
 			if (container.value) {
 				observer.observe(container.value);
 			} else {
-				console.log("图片监听失效，未找到组件container");
+				// console.log("图片监听失效，未找到组件container");
 			}
 		}, 0);
 	},
