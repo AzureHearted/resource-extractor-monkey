@@ -119,6 +119,7 @@
 		<template #default>
 			<div
 				ref="imgWrapRef"
+				style="height: 100%"
 				:data-fancybox="data.isMatch ? `web-img-collector` : undefined"
 				:data-id="data.id"
 				:href="data.source.url"
@@ -134,7 +135,6 @@
 					<BaseImg
 						v-if="data.source.meta.type === 'image'"
 						:src="data.preview.url"
-						decoding="async"
 						:show-loading-animation="!data.isLoaded"
 						:viewport="viewport"
 						:observer-once="observerOnce"
@@ -149,7 +149,6 @@
 					<BaseImg
 						v-else
 						:src="data.preview.url"
-						decoding="async"
 						:show-loading-animation="!data.isLoaded"
 						:viewport="viewport"
 						:observer-once="observerOnce"
