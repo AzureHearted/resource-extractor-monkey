@@ -34,10 +34,10 @@
 	}
 
 	.has-iframe .f-html {
-		background: unset;
 		padding: 0;
 		width: 95%;
 		height: 95%;
+		box-shadow: 0 0 10px inset black;
 	}
 
 	.has-html5video .f-html {
