@@ -126,7 +126,7 @@
 					<BaseCardList
 						:card-list="filterCardList.video"
 						:search-keywords="filterKeyword"
-						:layout="galleyLayout"
+						layout="waterfall"
 					/>
 				</BaseTabPane>
 				<!-- s 压缩包类 -->

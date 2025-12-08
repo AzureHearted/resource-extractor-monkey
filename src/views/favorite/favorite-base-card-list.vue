@@ -1,48 +1,56 @@
 <template>
 	<BaseScrollbar
-		:disable="!showScrollbar"
+		:disable="!state.showScrollbar"
 		show-back-top-button
 		overflow-x="hidden"
 		auto-hidden
+		ref="container"
 	>
 		<!-- f 普通网格布局 -->
 		<div v-if="layout === 'grid'" style="padding: 10px">
-			<BaseGrid :gap="4" :breakpoints="breakpoints">
-				<GalleryCard
-					class="grid-item"
-					v-for="(item, index) in cardList"
-					:key="item.id"
-					v-model:data="cardList[index]"
-					:highlight-key="searchKeywords"
-					img-object-fit="cover"
-					:set-aspect-ratio="1"
-					:is-mobile="isMobile"
-					:observer-once="false"
-					:show-to-locate-button="false"
-					:show-delete-button="false"
-					:show-download-button="item.source.meta.type !== 'html'"
-					@change:selected="item.isSelected = $event"
-					@change:title="updateCard([item])"
-					@loaded="handleLoaded"
-					@download="handleDownload"
-					@toggle-favorite="handleToggleFavorite(item)"
-					@save:tags="handleTagsSave(item)"
-					@delete="deleteCard([item])"
-				>
-					<template #custom-button="{ openUrl }">
-						<el-button
-							type="warning"
-							@click="openUrl((item as Card).source.originUrls![0])"
-							title="打开卡片对应的来源地址"
-							v-ripple
-						>
-							<template #icon>
-								<icon-material-symbols-open-in-new-down-rounded />
-							</template>
-						</el-button>
-					</template>
-				</GalleryCard>
-			</BaseGrid>
+			<BaseVirtualGrid
+				:items="cardList"
+				:gap="4"
+				:columns="state.columns"
+				allow-item-transition
+				:scroll-container="container?.viewportDOM"
+			>
+				<template #="{ item, index }">
+					<GalleryCard
+						class="grid-item"
+						:key="(item as Card).id"
+						v-model:data="cardList[index]"
+						:highlight-key="searchKeywords"
+						img-object-fit="cover"
+						:set-aspect-ratio="1"
+						:is-mobile="state.isMobile"
+						:observer-once="false"
+						:show-to-locate-button="false"
+						:show-delete-button="false"
+						:show-download-button="(item as Card).source.meta.type !== 'html'"
+						@change:selected="(item as Card).isSelected = $event"
+						@change:title="updateCard([item as Card])"
+						@loaded="handleLoaded"
+						@download="handleDownload"
+						@toggle-favorite="handleToggleFavorite(item as Card)"
+						@save:tags="handleTagsSave(item as Card)"
+						@delete="deleteCard([item as Card])"
+					>
+						<template #custom-button="{ openUrl }">
+							<el-button
+								type="warning"
+								@click="openUrl((item as Card).source.originUrls![0])"
+								title="打开卡片对应的来源地址"
+								v-ripple
+							>
+								<template #icon>
+									<icon-material-symbols-open-in-new-down-rounded />
+								</template>
+							</el-button>
+						</template>
+					</GalleryCard>
+				</template>
+			</BaseVirtualGrid>
 		</div>
 		<!-- f 瀑布流布局 -->
 		<div v-if="layout === 'waterfall'" style="padding: 10px">
@@ -56,7 +64,7 @@
 						class="waterfall-item"
 						v-model:data="(item.data as Card)"
 						:highlight-key="searchKeywords"
-						:is-mobile="isMobile"
+						:is-mobile="state.isMobile"
 						:observer-once="false"
 						:show-to-locate-button="false"
 						:show-delete-button="false"
@@ -96,15 +104,15 @@
 
 <script setup lang="ts">
 import {
-	ref,
-	defineProps,
-	withDefaults,
 	onMounted,
 	onActivated,
 	computed,
+	reactive,
+	useTemplateRef,
+	onUnmounted,
 } from "vue";
 import BaseScrollbar from "@/components/base/base-scrollbar.vue";
-import BaseGrid from "@/components/base/base-grid.vue";
+import BaseVirtualGrid from "@/components/base/base-virtual-grid/base-virtual-grid.vue";
 import BaseWaterfall from "@/components/base/base-waterfall.vue";
 import type { Item as WaterfallItem } from "@/components/base/base-waterfall.vue";
 import GalleryCard from "@/components/utils/gallery-card.vue";
@@ -135,6 +143,17 @@ const props = withDefaults(
 	}
 );
 
+const container = useTemplateRef("container");
+
+const state = reactive({
+	// 列数
+	columns: 5,
+	// s 是否显示滚动条
+	showScrollbar: true,
+	// s 移动端标识符
+	isMobile: false,
+});
+
 const breakpoints = {
 	"0": 1,
 	"320": 2,
@@ -145,19 +164,14 @@ const breakpoints = {
 	"1440": 7,
 };
 
-// s 是否显示滚动条
-const showScrollbar = ref(true);
-
-// s 移动端标识符
-const isMobile = ref(false);
 onMounted(() => {
-	isMobile.value = judgeIsMobile();
-	showScrollbar.value = !isMobile.value;
+	state.isMobile = judgeIsMobile();
+	state.showScrollbar = !state.isMobile;
 });
 
 onActivated(() => {
-	isMobile.value = judgeIsMobile();
-	showScrollbar.value = !isMobile.value;
+	state.isMobile = judgeIsMobile();
+	state.showScrollbar = !state.isMobile;
 });
 
 // j 转为适用于瀑布流的数据
@@ -227,6 +241,33 @@ const handleLoaded = async (id: string, info: ImgReadyInfo) => {
 const handleTagsSave = async (card: Card) => {
 	updateCard([card]);
 };
+
+onMounted(() => {
+	container.value?.viewportDOM?.addEventListener("wheel", onMouseWheel, {
+		passive: false,
+	});
+
+	onUnmounted(() => {
+		container.value?.viewportDOM?.removeEventListener("wheel", onMouseWheel);
+	});
+});
+
+// f 按住Ctrl滚动鼠标时改变列数
+function onMouseWheel(e: WheelEvent) {
+	console.log("改变列数");
+	if (e.ctrlKey) {
+		e.preventDefault();
+		if (e.deltaY < 0) {
+			if (state.columns - 1 > 0) {
+				state.columns--;
+			}
+		} else {
+			if (state.columns + 1 < 15) {
+				state.columns++;
+			}
+		}
+	}
+}
 </script>
 
 <style lang="scss" scoped>

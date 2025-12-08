@@ -54,7 +54,7 @@
 						<GalleryBaseWaterfall
 							:card-list="filterCardList.video"
 							:search-keywords="filters.keyword"
-							:layout="galleyLayout"
+							layout="waterfall"
 						/>
 					</keep-alive>
 				</BaseTabPane>

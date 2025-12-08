@@ -1,6 +1,6 @@
 <template>
 	<BaseScrollbar
-		:disable="!showScrollbar"
+		:disable="!state.showScrollbar"
 		show-back-top-button
 		overflow-x="hidden"
 		auto-hidden
@@ -8,24 +8,31 @@
 	>
 		<!-- f 普通网格布局 -->
 		<div v-if="layout === 'grid'" style="padding: 10px">
-			<BaseGrid :breakpoints="breakpoints" :gap="4">
-				<GalleryCard
-					class="grid-item"
-					v-for="item in cardList"
-					:key="item.id"
-					style="aspect-ratio: 1"
-					v-model:data="(item as Card)"
-					:highlight-key="searchKeywords"
-					:is-mobile="isMobile"
-					:observer-once="false"
-					@change:selected="item.isSelected = $event"
-					@delete="removeCard([$event])"
-					@loaded="handleLoaded"
-					@error="handleError"
-					@download="handleDownload"
-					@toggle-favorite="handleToFavorite(item.id, $event)"
-				/>
-			</BaseGrid>
+			<BaseVirtualGrid
+				:items="cardList"
+				:gap="4"
+				:columns="state.columns"
+				allow-item-transition
+				:scroll-container="container?.viewportDOM"
+			>
+				<template #="{ item, index }">
+					<GalleryCard
+						class="grid-item"
+						:key="(item as Card).id"
+						style="aspect-ratio: 1"
+						v-model:data="(item as Card)"
+						:highlight-key="searchKeywords"
+						:is-mobile="state.isMobile"
+						:observer-once="false"
+						@change:selected="(item as Card).isSelected = $event"
+						@delete="removeCard([$event])"
+						@loaded="handleLoaded"
+						@error="handleError"
+						@download="handleDownload"
+						@toggle-favorite="handleToFavorite((item as Card).id, $event)"
+					/>
+				</template>
+			</BaseVirtualGrid>
 		</div>
 		<!-- f 瀑布流布局 -->
 		<div v-if="layout === 'waterfall'" style="padding: 10px">
@@ -38,7 +45,7 @@
 					<GalleryCard
 						v-model:data="(item.data as Card)"
 						:highlight-key="searchKeywords"
-						:is-mobile="isMobile"
+						:is-mobile="state.isMobile"
 						:observer-once="false"
 						@change:selected="item.data.isSelected = $event"
 						@delete="removeCard([$event])"
@@ -59,13 +66,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onActivated } from "vue";
+import {
+	computed,
+	onMounted,
+	onActivated,
+	useTemplateRef,
+	reactive,
+	onUnmounted,
+} from "vue";
 import BaseScrollbar from "@/components/base/base-scrollbar.vue";
 import type { ImgReadyInfo } from "@/components/base/base-img.vue";
 import GalleryCard from "@/components/utils/gallery-card.vue";
 import Card from "@/stores/CardStore/class/Card";
 import BaseWaterfall from "@/components/base/base-waterfall.vue";
-import BaseGrid from "@/components/base/base-grid.vue";
+import BaseVirtualGrid from "@/components/base/base-virtual-grid/base-virtual-grid.vue";
 
 import type { Item as WaterfallItem } from "@/components/base/base-waterfall.vue";
 
@@ -96,6 +110,8 @@ const breakpoints = {
 	"1440": 7,
 };
 
+const container = useTemplateRef("container");
+
 // s 卡片仓库
 const cardStore = useCardStore();
 const { findCard, removeCard, downloadCards } = cardStore;
@@ -108,19 +124,23 @@ const {
 	unFavoriteCard,
 } = favoriteStore;
 
-// s 是否显示滚动条
-const showScrollbar = ref(true);
+const state = reactive({
+	// 列数
+	columns: 5,
+	// s 是否显示滚动条
+	showScrollbar: true,
+	// s 移动端标识符
+	isMobile: false,
+});
 
-// s 移动端标识符
-const isMobile = ref(false);
 onMounted(() => {
-	isMobile.value = judgeIsMobile();
-	showScrollbar.value = !isMobile.value;
+	state.isMobile = judgeIsMobile();
+	state.showScrollbar = !state.isMobile;
 });
 
 onActivated(() => {
-	isMobile.value = judgeIsMobile();
-	showScrollbar.value = !isMobile.value;
+	state.isMobile = judgeIsMobile();
+	state.showScrollbar = !state.isMobile;
 });
 
 // j 转为适用于瀑布流的数据
@@ -201,6 +221,33 @@ onActivated(() => {
 		});
 	});
 });
+
+onMounted(() => {
+	container.value?.viewportDOM?.addEventListener("wheel", onMouseWheel, {
+		passive: false,
+	});
+
+	onUnmounted(() => {
+		container.value?.viewportDOM?.removeEventListener("wheel", onMouseWheel);
+	});
+});
+
+// f 按住Ctrl滚动鼠标时改变列数
+function onMouseWheel(e: WheelEvent) {
+	console.log("改变列数");
+	if (e.ctrlKey) {
+		e.preventDefault();
+		if (e.deltaY < 0) {
+			if (state.columns - 1 > 0) {
+				state.columns--;
+			}
+		} else {
+			if (state.columns + 1 < 15) {
+				state.columns++;
+			}
+		}
+	}
+}
 </script>
 
 <style lang="scss" scoped>
