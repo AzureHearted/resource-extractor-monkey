@@ -422,8 +422,9 @@ async function generateThumbnail<T = File | string>(
 				resolve();
 			}
 		};
-		img.onerror = function (error) {
-			console.warn(error);
+
+		img.onerror = function (_error) {
+			// console.warn("[generateThumbnail] onerror", source, error);
 			resolve(source);
 		};
 
