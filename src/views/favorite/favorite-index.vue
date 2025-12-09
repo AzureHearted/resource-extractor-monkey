@@ -104,7 +104,7 @@
 					<BaseCardList
 						:card-list="filterCardList.image"
 						:search-keywords="filterKeyword"
-						:layout="galleyLayout"
+						:layout="galleryState.galleyLayout"
 					/>
 				</BaseTabPane>
 				<!-- s 视频类 -->
@@ -149,7 +149,7 @@
 					<BaseCardList
 						:card-list="filterCardList.zip"
 						:search-keywords="filterKeyword"
-						:layout="galleyLayout"
+						:layout="galleryState.galleyLayout"
 					/>
 				</BaseTabPane>
 				<!-- s 网页类 -->
@@ -172,7 +172,7 @@
 					<BaseCardList
 						:card-list="filterCardList.html"
 						:search-keywords="filterKeyword"
-						:layout="galleyLayout"
+						:layout="galleryState.galleyLayout"
 					/>
 				</BaseTabPane>
 				<!-- s 其他类 -->
@@ -195,7 +195,7 @@
 					<BaseCardList
 						:card-list="filterCardList.other"
 						:search-keywords="filterKeyword"
-						:layout="galleyLayout"
+						:layout="galleryState.galleyLayout"
 					/>
 				</BaseTabPane>
 			</BaseTabs>
@@ -227,7 +227,7 @@ import { storeToRefs } from "pinia";
 
 import useGlobalStore from "@/stores/GlobalStore";
 const globalStore = useGlobalStore();
-const { galleyLayout } = storeToRefs(globalStore);
+const { galleryState } = storeToRefs(globalStore);
 
 import useFavoriteStore from "@/stores/FavoriteStore";
 const favoriteStore = useFavoriteStore();

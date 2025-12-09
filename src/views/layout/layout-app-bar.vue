@@ -42,7 +42,7 @@
 			<div class="app-bar__title__right">
 				<!-- s 布局切换按钮 -->
 				<n-radio-group
-					v-model:value="galleyLayout"
+					v-model:value="galleryState.galleyLayout"
 					size="small"
 					style="margin-left: auto"
 				>
@@ -86,7 +86,7 @@ import NavMenu from "./layout-nav-menu.vue";
 
 import { isMobile as judgeIsMobile } from "@/utils/common";
 const globalStore = useGlobalStore();
-const { navCollapse, galleyLayout } = storeToRefs(globalStore);
+const { navCollapse, galleryState } = storeToRefs(globalStore);
 const VERSION = GM_info.script.version; // 导入版本号
 
 const isMobile = ref(false);

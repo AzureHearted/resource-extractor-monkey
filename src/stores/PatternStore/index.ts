@@ -12,34 +12,18 @@ import { ElNotification } from "@/plugin/element-plus";
 export default defineStore("PatternStore", () => {
 	// s 方案列表
 	const list = ref<Pattern[]>([defaultPattern]);
+
 	// f 获取用户方案信息
 	function getUserPatternInfo() {
 		list.value = [defaultPattern];
-		// 用户方案数据
 		const userPatternList: Pattern[] = getUserPatternList();
-		console.log(
-			"%c[日志]%cWebImgCollector2:",
-			"color: #800081; background: #FFFF00; font-size: 14px;font-weight: bold; padding: 0 5px;",
-			"color: #00FF00; font-size: 14px; padding: 0 5px;margin:5px",
-			"读取用户方案",
-			userPatternList
-		);
 		list.value.push(...userPatternList);
 	}
+
 	// f 保存(设置)用户方案信息
 	function saveUserPatternInfo() {
 		// s 使用备份数据进行存储
-		const rowDataList = list.value
-			.slice(1)
-			.map((p) => p.getRowData({ type: "backup" }));
-		console.log(
-			"%c[日志]%cWebImgCollector2:",
-			"color: #800080; background: #FFFF00; font-size: 14px;font-weight: bold; padding: 0 5px;",
-			"color: #00FF00; font-size: 14px; padding: 0 5px;margin:5px",
-			"存储用户方案",
-			rowDataList
-		);
-		setUserPatternList(rowDataList);
+		setUserPatternList(list.value);
 	}
 
 	// 当前使用的方案信息
@@ -262,7 +246,6 @@ export default defineStore("PatternStore", () => {
 	function deletePattern(id: string) {
 		// 获取按方案下标
 		const index = list.value.findIndex((pattern) => pattern.id === id);
-		// console.log(index);
 		if (index >= 0) {
 			const pattern = list.value.splice(index, 1)[0];
 			// 如果被删除的方案是正在使用的方案则重新设置初始方案

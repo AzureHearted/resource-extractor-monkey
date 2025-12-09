@@ -139,7 +139,7 @@
 						:init-show="data.isLoaded"
 						:viewport="viewport"
 						decoding="async"
-						use-thumb
+						:use-thumb="galleryState.allowImgCreateThumb"
 						:thumb-max-size="1080"
 						:observer-once="observerOnce"
 						@mounted="emits('mounted')"
@@ -155,7 +155,7 @@
 						:init-show="data.isLoaded"
 						:viewport="viewport"
 						decoding="async"
-						use-thumb
+						:use-thumb="galleryState.allowImgCreateThumb"
 						:thumb-max-size="1080"
 						:observer-once="observerOnce"
 						@mounted="emits('mounted')"
@@ -344,8 +344,10 @@ import { byteAutoUnit, legalizationPathString } from "@/utils/common";
 import HtmlTypeImg from "@svg/html.svg";
 // 导入仓库
 import useGlobalStore from "@/stores/GlobalStore";
+import { storeToRefs } from "pinia";
 
 const globalStore = useGlobalStore();
+const { galleryState } = storeToRefs(globalStore);
 
 const data = defineModel<Card>("data", {
 	required: true,

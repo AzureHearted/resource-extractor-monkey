@@ -30,7 +30,7 @@
 						<GalleryBaseWaterfall
 							:card-list="filterCardList.image"
 							:search-keywords="filters.keyword"
-							:layout="galleyLayout"
+							:layout="galleryState.galleyLayout"
 						/>
 					</keep-alive>
 				</BaseTabPane>
@@ -77,7 +77,7 @@
 					<GalleryBaseWaterfall
 						:card-list="filterCardList.zip"
 						:search-keywords="filters.keyword"
-						:layout="galleyLayout"
+						:layout="galleryState.galleyLayout"
 					/>
 				</BaseTabPane>
 				<!-- s 网页类 -->
@@ -99,7 +99,7 @@
 					<GalleryBaseWaterfall
 						:card-list="filterCardList.html"
 						:search-keywords="filters.keyword"
-						:layout="galleyLayout"
+						:layout="galleryState.galleyLayout"
 					/>
 				</BaseTabPane>
 				<!-- s 其他类 -->
@@ -121,7 +121,7 @@
 					<GalleryBaseWaterfall
 						:card-list="filterCardList.other"
 						:search-keywords="filters.keyword"
-						:layout="galleyLayout"
+						:layout="galleryState.galleyLayout"
 					/>
 				</BaseTabPane>
 			</BaseTabs>
@@ -147,7 +147,7 @@ import { storeToRefs } from "pinia";
 
 import useGlobalStore from "@/stores/GlobalStore";
 const globalStore = useGlobalStore();
-const { galleyLayout } = storeToRefs(globalStore);
+const { galleryState } = storeToRefs(globalStore);
 
 import useCardStore from "@/stores/CardStore";
 const cardStore = useCardStore();
