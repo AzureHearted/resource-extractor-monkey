@@ -5,6 +5,7 @@
 		overflow-x="hidden"
 		auto-hidden
 		ref="scrollBarRef"
+		back-to-top-behavior="smooth"
 	>
 		<!-- f 普通网格布局 -->
 		<div v-if="layout === 'grid'" style="padding: 10px">
