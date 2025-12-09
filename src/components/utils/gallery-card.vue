@@ -90,7 +90,7 @@
 										data.preview.meta.type === 'video') &&
 									showDownloadButton
 								"
-								:loading="data.loading"
+								:loading="data.downloading"
 								type="success"
 								title="下载"
 								@click="emits('download', data.id)"
@@ -120,7 +120,7 @@
 			<div
 				ref="imgWrapRef"
 				style="height: 100%"
-				:data-fancybox="data.isMatch ? `web-img-collector` : undefined"
+				data-fancybox="web-img-collector"
 				:data-id="data.id"
 				:href="data.source.url"
 				:data-type="showType"
@@ -208,7 +208,7 @@
 		<template #footer>
 			<div class="gallery-card-footer" align="center" :size="2">
 				<!-- s 额外标签 -->
-				<div v-if="data.isLoaded" class="extra-tag-list">
+				<div v-if="false" class="extra-tag-list">
 					<BaseLineOverFlowList
 						:list="tags"
 						model-to=".web-img-collector__top-container"
@@ -343,30 +343,36 @@ import { byteAutoUnit, legalizationPathString } from "@/utils/common";
 // 导入svg
 import HtmlTypeImg from "@svg/html.svg";
 // 导入仓库
-import useGlobalStore from "@/stores/GlobalStore";
+import { useGlobalStore } from "@/stores";
 import { storeToRefs } from "pinia";
 
 const globalStore = useGlobalStore();
 const { galleryState } = storeToRefs(globalStore);
 
-const data = defineModel<Card>("data", {
-	required: true,
-	default: () => new Card(),
-});
+// s 卡片数据
+const data = defineModel<Card>("data", { required: true });
 
 const props = withDefaults(
 	defineProps<{
-		// data: Card;
 		viewport?: IntersectionObserverInit["root"];
-		/** 是否只监听一次 (默认：true) */
+		/** 图片视口检测是否只检测一次  @default true */
 		observerOnce?: boolean;
+		/** 显示CheckBox  @default true */
 		showCheckBox?: boolean;
+		/** 显示删除按钮  @default true */
 		showDeleteButton?: boolean;
+		/** 显示下载按钮  @default true */
 		showDownloadButton?: boolean;
+		/** 显示收藏按钮  @default true */
 		showFavoriteButton?: boolean;
+		/** 显示定位按钮  @default true */
 		showToLocateButton?: boolean;
-		isMobile?: boolean; // s 移动端标识
-		highlightKey?: string; // s 高亮关键词
+		/** 移动端标识 (判断是否是移动端) @default false */
+		isMobile?: boolean;
+		/** 要高亮的关键词 */
+		highlightKey?: string;
+		/** 下载标识符 */
+		downloading?: boolean;
 	}>(),
 	{
 		observerOnce: true,
@@ -375,6 +381,7 @@ const props = withDefaults(
 		showDownloadButton: true,
 		showFavoriteButton: true,
 		showToLocateButton: true,
+		downloading: false,
 	}
 );
 
@@ -387,7 +394,6 @@ const emits = defineEmits<{
 	(e: "error", id: string): Promise<void>; // 卡片加载失败事件
 	(e: "download", id: string): Promise<void>; // 下载事件
 	(e: "delete", id: string): Promise<void>; // 删除事件
-	(e: "change:visible", val: boolean): Promise<void>; // 可见性发生变化
 	(e: "save:tags", id: string, newTags: string[]): Promise<void>; // 卡片tags保存事件
 	(e: "mounted"): void;
 }>();
@@ -528,20 +534,9 @@ const handleTagsSave = (newTags: string[]) => {
 	}
 }
 
-:deep(.base-card__header) {
-	overflow: unset;
-}
 // header左侧
 .gallery-card-header-left {
 	flex: 0;
-	// transform: translateY(-150%);
-	transition: transform 0.3s;
-}
-.gallery-card[data-show="true"] .gallery-card-header-left,
-.gallery-card:hover .gallery-card-header-left,
-.gallery-card[data-checked="true"] .gallery-card-header-left {
-	transform: translateY(0);
-	transition: transform 0.3s;
 }
 
 // header右侧
@@ -552,35 +547,26 @@ const handleTagsSave = (newTags: string[]) => {
 	align-items: center;
 }
 
+// 卡片按钮组样式
 .card-button-group {
 	height: fit-content;
 	display: flex;
 	gap: 4px;
-	opacity: 0;
 	pointer-events: none;
-	// transform: translateY(-150%);
 	transform: rotateX(-90deg);
 
 	opacity: 0;
 	visibility: hidden;
 	transform: scale(0.8); /* 可加轻微缩放效果 */
-	transition: transform 0.3s, opacity 0.3s ease, visibility 0.3s ease;
-	/* transition: transform 0.2s, opacity 0.2s; */
+	transition: transform 0.5s ease, opacity 0.5s ease, visibility 0s ease 0.5s;
 }
 
+// 卡片悬浮时才显示按钮组
 .gallery-card:hover .gallery-card-header-right .card-button-group {
 	opacity: 1;
 	visibility: visible;
 	transform: scale(1); /* hover 放大到原始大小 */
-}
-
-.gallery-card[data-show="true"] .gallery-card-header-right .card-button-group,
-.gallery-card:hover .gallery-card-header-right .card-button-group {
-	pointer-events: auto;
-	// transform: translateY(0);
-	transform: rotateX(0deg);
-	opacity: 1;
-	transition: transform 0.2s, opacity 0.2s;
+	transition: transform 0.3s ease, opacity 0.3s ease, visibility 0s ease;
 }
 
 .card-checkbox {
@@ -593,9 +579,9 @@ const handleTagsSave = (newTags: string[]) => {
 }
 
 // 卡片底部
-:deep(.base-card-footer) {
+/* :deep(.base-card-footer) {
 	overflow: hidden;
-}
+} */
 
 .gallery-card-footer {
 	display: flex;
@@ -667,6 +653,7 @@ const handleTagsSave = (newTags: string[]) => {
 	opacity: 1;
 	visibility: visible;
 	transform: scale(1); /* hover 放大到原始大小 */
+	/* transition: transform 0.3s ease 0.3s, opacity 0.3s ease 0.3s, visibility 0.3s ease 0.3s; */
 }
 
 .gallery-card[data-show="true"] .gallery-card-footer,

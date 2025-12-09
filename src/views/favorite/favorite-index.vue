@@ -25,11 +25,7 @@
 				max-tag-count="responsive"
 			/>
 			<!-- s 关键词过滤 -->
-			<n-badge
-				:value="filterCardList.all.filter((x) => x.isMatch).length"
-				:max="999"
-				type="info"
-			>
+			<n-badge :value="filterCardList.all.length" :max="999" type="info">
 				<n-input
 					style="width: 180px"
 					v-model:value="filterKeyword"
@@ -241,7 +237,7 @@ const {
 	sizeRange,
 } = storeToRefs(favoriteStore);
 
-const { refreshStore, updateMatchStatus } = favoriteStore;
+const { refreshStore } = favoriteStore;
 
 // s 过滤器定义(组件内过滤器)
 const filters = reactive({
@@ -329,7 +325,6 @@ const handleKeywordFilter = (value?: string) => {
 	const keyword = value !== undefined ? value : filterKeyword.value;
 	console.log("触发关键词过滤", keyword);
 	filterKeyword.value = keyword;
-	updateMatchStatus();
 };
 
 const containerDOM = ref<InstanceType<typeof NFlex> | null>(null);

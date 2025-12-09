@@ -267,6 +267,8 @@ export default defineStore("FavoriteStore", () => {
 	const filterCardList = computed<{
 		[key in CardType]: Card[];
 	}>(() => {
+		const keywords = filterKeyword.value.trim().toLocaleLowerCase();
+
 		const image = [] as Card[],
 			video = [] as Card[],
 			audio = [] as Card[],
@@ -309,14 +311,16 @@ export default defineStore("FavoriteStore", () => {
 				break;
 		}
 		// s 再过滤
-		all = all.filter((c) => {
+		all = all.filter((card) => {
 			// console.log(c.source.meta.width, filters.size.width[1]);
+			const { tags } = card;
+			const { title } = card.description;
 			const {
 				type: sType,
 				width: sWidth,
 				height: sHeight,
 				ext: sExt,
-			} = c.source.meta;
+			} = card.source.meta;
 			// s 是否扩展名是否匹配
 			const isExtensionMatch =
 				filters.extension.length > 0
@@ -330,28 +334,31 @@ export default defineStore("FavoriteStore", () => {
 					  sHeight <= filters.size.height[1] &&
 					  sHeight >= filters.size.height[0]
 					: true;
+			const isMatchKeyWords =
+				isKeywordsMatch(title, keywords) || isKeywordsMatch(tags, keywords);
+
 			// s 判断是否所有条件都匹配
-			const isMatch = isExtensionMatch && isSizeMatch;
-			if (!isMatch) c.isSelected = false; // 如果不匹配的需要将选中状态设置为false
+			const isMatch = isExtensionMatch && isSizeMatch && isMatchKeyWords;
+			if (!isMatch) card.isSelected = false; // 如果不匹配的需要将选中状态设置为false
 			if (isMatch) {
 				switch (sType) {
 					case "image":
-						image.push(c);
+						image.push(card);
 						break;
 					case "video":
-						video.push(c);
+						video.push(card);
 						break;
 					case "audio":
-						audio.push(c);
+						audio.push(card);
 						break;
 					case "html":
-						html.push(c);
+						html.push(card);
 						break;
 					case "zip":
-						zip.push(c);
+						zip.push(card);
 						break;
 					default:
-						other.push(c);
+						other.push(card);
 						break;
 				}
 			}
@@ -362,29 +369,14 @@ export default defineStore("FavoriteStore", () => {
 		return { all, image, video, audio, zip, html, other };
 	});
 
-	// f 更新匹配状态
-	function updateMatchStatus() {
-		filterCardList.value.all.forEach((card) => {
-			const { tags } = card;
-			const { title } = card.description;
-			card.isMatch = isKeywordsMatch(title) || isKeywordsMatch(tags);
-		});
-	}
-
 	// f 匹配判断函数
-	function isKeywordsMatch(str: string | string[]) {
+	function isKeywordsMatch(str: string | string[], keywords: string) {
 		if (str instanceof Object) {
 			return str.some((tag) => {
-				return tag
-					.trim()
-					.toLocaleLowerCase()
-					.includes(filterKeyword.value.trim().toLocaleLowerCase());
+				return tag.trim().toLocaleLowerCase().includes(keywords);
 			});
 		} else {
-			return str
-				.trim()
-				.toLocaleLowerCase()
-				.includes(filterKeyword.value.trim().toLocaleLowerCase());
+			return str.trim().toLocaleLowerCase().includes(keywords);
 		}
 	}
 
@@ -417,7 +409,6 @@ export default defineStore("FavoriteStore", () => {
 							description,
 							tags,
 							isFavorite: true,
-							isMatch: oldCard ? oldCard.isMatch : true,
 							isLoaded: oldCard ? oldCard.isLoaded : undefined,
 							isSelected: oldCard ? oldCard.isSelected : undefined,
 						})
@@ -663,6 +654,5 @@ export default defineStore("FavoriteStore", () => {
 		findCardsById,
 		isExist,
 		downloadCards: cardStore.downloadCards,
-		updateMatchStatus,
 	};
 });

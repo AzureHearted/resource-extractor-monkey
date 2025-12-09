@@ -1,39 +1,39 @@
 <template>
-  <div class="main__container">
-    <n-layout class="main__layout" has-sider>
-      <n-layout-sider
-        v-if="false"
-        style="z-index: 10"
-        collapse-mode="width"
-        :collapsed-width="isMobile ? 0 : 64"
-        width="130"
-        :collapsed="collapsed"
-        show-trigger
-        :trigger-style="{
-          transition: '0.5s',
-          zIndex: 10000,
-          scale: isMobile ? 1.5 : 1,
-        }"
-        :collapsed-trigger-style="
-          isMobile
-            ? {
-                transform: ' translateX(60%) translateY(-50%) ',
-                scale: 1.5,
-              }
-            : {}
-        "
-        @collapse="collapsed = true"
-        @expand="collapsed = false"
-      >
-        <NavMenu />
-      </n-layout-sider>
-      <n-layout class="main__content">
-        <keep-alive :include="/gallery|pattern|favorite|setting/i">
-          <component :is="nowPage" />
-        </keep-alive>
-      </n-layout>
-    </n-layout>
-  </div>
+	<div class="main__container">
+		<n-layout class="main__layout" has-sider>
+			<n-layout-sider
+				v-if="false"
+				style="z-index: 10"
+				collapse-mode="width"
+				:collapsed-width="isMobile ? 0 : 64"
+				width="130"
+				:collapsed="collapsed"
+				show-trigger
+				:trigger-style="{
+					transition: '0.5s',
+					zIndex: 10000,
+					scale: isMobile ? 1.5 : 1,
+				}"
+				:collapsed-trigger-style="
+					isMobile
+						? {
+								transform: ' translateX(60%) translateY(-50%) ',
+								scale: 1.5,
+						  }
+						: {}
+				"
+				@collapse="collapsed = true"
+				@expand="collapsed = false"
+			>
+				<NavMenu />
+			</n-layout-sider>
+			<n-layout class="main__content">
+				<keep-alive :include="/gallery|pattern|favorite|setting/i">
+					<component :is="nowPage" />
+				</keep-alive>
+			</n-layout>
+		</n-layout>
+	</div>
 </template>
 
 <script setup lang="ts">
@@ -59,46 +59,46 @@ const { tab: activeKey, navCollapse: collapsed } = storeToRefs(globalStore);
 // s 移动端标识符
 const isMobile = ref(false);
 onMounted(() => {
-  isMobile.value = judgeIsMobile();
+	isMobile.value = judgeIsMobile();
 });
 
 // 组件键值对
 const views: { [key: string]: Component } = {
-  Gallery,
-  PatternEdit,
-  Favorite,
-  AutoPage,
-  Setting,
-  Test,
+	Gallery,
+	PatternEdit,
+	Favorite,
+	AutoPage,
+	Setting,
+	Test,
 };
 // 动态组件
 const nowPage = computed(() => {
-  return views[activeKey.value];
+	return views[activeKey.value];
 });
 </script>
 
 <style lang="scss" scoped>
 .main__container {
-  position: relative;
-  box-sizing: border-box;
-  width: 100%;
-  height: 100%;
-  // padding: 4px;
-  // background: orange;
-  overflow: hidden;
-  display: flex;
-  // gap: 4px;
+	position: relative;
+	box-sizing: border-box;
+	width: 100%;
+	height: 100%;
+	// padding: 4px;
+	// background: orange;
+	overflow: hidden;
+	display: flex;
+	// gap: 4px;
 }
 
 :deep(.wic2-n-layout) {
-  background: unset;
+	background: unset;
 
-  .wic2-n-layout-sider {
-    background: rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(10px);
-  }
-  .wic2-n-card {
-    background: unset;
-  }
+	.wic2-n-layout-sider {
+		background: rgba(255, 255, 255, 0.3);
+		backdrop-filter: blur(10px);
+	}
+	.wic2-n-card {
+		background: unset;
+	}
 }
 </style>

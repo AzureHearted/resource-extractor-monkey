@@ -47,10 +47,10 @@
 </template>
 
 <script setup lang="ts">
-import { h, ref, computed } from "vue";
+import { h, ref, computed, useTemplateRef } from "vue";
 import { NButton } from "naive-ui";
-import type { TreeOption, TreeInst, TreeDropInfo, TreeProps } from "naive-ui";
-import { DeleteFilled, Plus, Right } from "@element-plus/icons-vue";
+import type { TreeOption, TreeDropInfo, TreeProps } from "naive-ui";
+import { DeleteFilled, Plus } from "@element-plus/icons-vue";
 import { ElButton, ElPopconfirm } from "element-plus";
 import { Pattern } from "@/stores/PatternStore/class/Pattern";
 import { Rule } from "@/stores/PatternStore/class/Rule";
@@ -68,19 +68,12 @@ const {
 	moveRuleToPattern,
 } = patternStore;
 
-const treeRef = ref<TreeInst | null>(null);
+const treeRef = useTemplateRef("treeRef");
 
 const keyword = ref(""); //关键词
 const showIrrelevantNodes = ref(false); //展示无关节点
 const defaultExpandedKeys = ref<string[]>([patternStore.editing.pid]); // 默认展开的节点
 const defaultSelectedKeys = ref<string[]>([patternStore.editing.rid]); // 默认选中的节点
-
-// onMounted(()=>{
-
-// })
-// onActivated(()=>{
-
-// })
 
 // 关键数据结构定义
 interface PatternNode extends TreeOption {

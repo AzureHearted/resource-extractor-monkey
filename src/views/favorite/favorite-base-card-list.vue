@@ -13,17 +13,14 @@
 				:items="cardList"
 				:gap="4"
 				:columns="state.columns"
-				allow-item-transition
+				:allow-item-transition="galleryState.allowTransition"
 				:scroll-container="scrollBarRef?.viewportDOM"
 			>
 				<template #="{ item }">
 					<GalleryCard
-						class="grid-item"
 						:key="(item as Card).id"
 						v-model:data="(item as Card)"
 						:highlight-key="searchKeywords"
-						img-object-fit="cover"
-						:set-aspect-ratio="1"
 						:is-mobile="state.isMobile"
 						:show-to-locate-button="false"
 						:show-delete-button="false"
@@ -34,7 +31,6 @@
 						@download="handleDownload"
 						@toggle-favorite="handleToggleFavorite(item as Card)"
 						@save:tags="handleTagsSave(item as Card)"
-						@delete="deleteCard([item as Card])"
 					>
 						<template #custom-button="{ openUrl }">
 							<el-button
@@ -58,7 +54,7 @@
 				:items="virtualMasonryItem"
 				:gap="4"
 				:columns="state.columns"
-				allow-item-transition
+				:allow-item-transition="galleryState.allowTransition"
 				:scroll-container="scrollBarRef?.viewportDOM"
 			>
 				<template #="{ item }">
@@ -68,7 +64,6 @@
 						:is-mobile="state.isMobile"
 						:show-to-locate-button="false"
 						:show-delete-button="false"
-						:data-aspectRatio="item.aspectRatio"
 						:show-download-button="(item.data as Card).source.meta.type!=='html'"
 						@change:selected="(item.data as Card).isSelected = $event"
 						@change:title="updateCard([item.data as Card])"
@@ -76,7 +71,6 @@
 						@download="handleDownload"
 						@toggle-favorite="handleToggleFavorite(item.data as Card)"
 						@save:tags="handleTagsSave(item.data as Card)"
-						@delete="deleteCard([item.data as Card])"
 					>
 						<template #custom-button="{ openUrl }">
 							<el-button
@@ -114,15 +108,17 @@ import type { Item as VirtualMasonryItem } from "@/components/base/base-virtual-
 import GalleryCard from "@/components/utils/gallery-card.vue";
 import Card from "@/stores/CardStore/class/Card";
 import type { ImgReadyInfo } from "@/components/base/base-img.vue";
-
-import useCardStore from "@/stores/CardStore";
-import useFavoriteStore from "@/stores/FavoriteStore";
 import { isEqualUrl, isMobile as judgeIsMobile } from "@/utils/common";
 
+import { storeToRefs } from "pinia";
+import { useGlobalStore, useCardStore, useFavoriteStore } from "@/stores";
+
+const globalStore = useGlobalStore();
 const cardStore = useCardStore();
 const favoriteStore = useFavoriteStore();
 
-const { updateCard, deleteCard, unFavoriteCard, refreshStore, findCardById } =
+const { galleryState } = storeToRefs(globalStore);
+const { updateCard, unFavoriteCard, refreshStore, findCardById } =
 	favoriteStore;
 const { downloadCards } = cardStore;
 
@@ -174,31 +170,29 @@ onActivated(() => {
 
 // j 转为适用于虚拟瀑布流的数据列表
 const virtualMasonryItem = computed<Array<VirtualMasonryItem>>(() => {
-	return props.cardList
-		.filter((x) => x.isMatch)
-		.map<VirtualMasonryItem>((c) => {
-			const { id, source, preview } = c;
-			const { url: sourceSrc } = source;
-			const { meta: previewMeta } = preview;
-			const { valid: previewValid } = previewMeta;
+	return props.cardList.map<VirtualMasonryItem>((c) => {
+		const { id, source, preview } = c;
+		const { url: sourceSrc } = source;
+		const { meta: previewMeta } = preview;
+		const { valid: previewValid } = previewMeta;
 
-			const { width: previewWidth, height: previewHeight } = previewMeta;
+		const { width: previewWidth, height: previewHeight } = previewMeta;
 
-			let aspectRatio = 1;
-			if (
-				(previewMeta.type === "image" || previewMeta.type === "video") &&
-				previewValid
-			) {
-				aspectRatio = previewWidth / previewHeight || 1;
-			}
+		let aspectRatio = 1;
+		if (
+			(previewMeta.type === "image" || previewMeta.type === "video") &&
+			previewValid
+		) {
+			aspectRatio = previewWidth / previewHeight || 1;
+		}
 
-			return {
-				id,
-				src: sourceSrc,
-				aspectRatio,
-				data: c,
-			};
-		});
+		return {
+			id,
+			src: sourceSrc,
+			aspectRatio,
+			data: c,
+		};
+	});
 });
 
 // f 处理卡片下载

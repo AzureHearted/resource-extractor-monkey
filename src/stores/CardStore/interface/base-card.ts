@@ -22,11 +22,10 @@ export interface BaseCardRowData extends Partial<BaseState> {
 
 // t 基础信息接口
 export interface BaseState {
-	isMatch: boolean; //? 匹配标识符
 	isSelected: boolean; //? 选中标识符
 	isLoaded: boolean; //? 加载完成标识符
-	loading: boolean; //? 加载中标识符
 	isFavorite: boolean; //? 收藏标识符
+	downloading: boolean; //? 下载中的标识符
 }
 
 // t 元信息接口

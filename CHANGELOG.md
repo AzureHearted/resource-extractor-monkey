@@ -1,3 +1,24 @@
+## [1.5.0] - 2025-12-10
+
+### 新增
+
+- 设置页面新增 `全局设置`
+  - 新增选择框：允许自动生成缩略图
+  - 新增选择框：允许过渡动画允许自动生成缩略图
+
+### 优化
+
+- 优化、调整 `CardStore` 和 `FavoriteStore` 内部代表逻辑
+  - 移除了卡片的 `isMatch` 属性 (原因：该属性可能在图库中筛选时会导致触发频繁产生性能问题)；
+  - 移除了 `updateMatchStatus` 方法并将匹配逻辑合并到 `filterCardList` 中，匹配结果不再依赖于 `Card` 上的 `isMatch` 从而避免了性能问题，关键词筛选的性能大幅度提升；
+  - 优化 `getPageCard` 方法，不再实时 `push` 卡片到 `data.cardList` 中 （因为这样会频繁触发图库视图更新，导致性能问题），而改为使用新定义的数组 `newCardList` 在 `onCardGet` 过程中实时接收，并在 `getCard` 结束后一次性 `push` 到 `data.cardList` 中；
+  - 移除了 `validCardList` 计算属性
+- `gallery-card` 组件
+  - 由于性能原因暂时禁用`额外标签`区域及内部组件 (组件`base-line-over-flow-list`可能存在严重的性能问题待后续重构组件)
+  - 调整`css`样式，并删除不必要`css`样式
+  - 为`props`添加`jsdoc`风格的注释
+- 优化了大量组件的代码结构
+
 ## [1.4.45] - 2025-12-08
 
 ### 新增

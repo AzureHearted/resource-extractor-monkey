@@ -1,56 +1,44 @@
 <template>
-	<div class="base-checkbox__container" @click="isChecked = !isChecked">
+	<div class="base-checkbox__container" @click="checked = !checked">
 		<n-button
-			:type="isChecked ? 'success' : 'default'"
-			:color="isChecked ? checkedColor : unCheckedColor"
+			:type="checked ? 'success' : 'default'"
+			:color="checked ? checkedColor : unCheckedColor"
 			text
 			block
 		>
 			<template #icon>
 				<transition appear>
-					<slot name="un-checked" v-if="!isChecked">
+					<slot name="un-checked" v-if="!checked">
 						<icon-material-symbols-check-box-outline-blank />
 					</slot>
 					<slot name="checked" v-else>
 						<icon-material-symbols-check-box-rounded />
 					</slot>
 				</transition>
-				<!-- <slot name="un-checked" v-if="!isChecked">
-					<icon-material-symbols-check-box-outline-blank />
-				</slot>
-				<slot name="checked" v-else>
-					<icon-material-symbols-check-box-rounded />
-				</slot> -->
 			</template>
 		</n-button>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { watch } from "vue";
 
 const props = withDefaults(
 	defineProps<{
-		checked: boolean;
 		checkedColor?: string;
 		unCheckedColor?: string;
 	}>(),
-	{
-		checked: false,
-	}
+	{}
 );
 
 const emits = defineEmits<{
 	(e: "change", val: boolean): void;
 }>();
 
-const isChecked = computed({
-	get() {
-		return props.checked;
-	},
-	set(val) {
-		emits("change", val);
-	},
+const checked = defineModel<boolean>("checked", { default: false });
+
+watch(checked, (val) => {
+	emits("change", val);
 });
 </script>
 

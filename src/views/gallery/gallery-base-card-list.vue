@@ -13,14 +13,12 @@
 				:items="cardList"
 				:gap="4"
 				:columns="state.columns"
-				allow-item-transition
+				:allow-item-transition="galleryState.allowTransition"
 				:scroll-container="scrollBarRef?.viewportDOM"
 			>
 				<template #="{ item }">
 					<GalleryCard
-						class="grid-item"
 						:key="(item as Card).id"
-						style="aspect-ratio: 1"
 						v-model:data="(item as Card)"
 						:highlight-key="searchKeywords"
 						:is-mobile="state.isMobile"
@@ -40,7 +38,7 @@
 				:items="virtualMasonryItem"
 				:gap="4"
 				:columns="state.columns"
-				allow-item-transition
+				:allow-item-transition="galleryState.allowTransition"
 				:scroll-container="scrollBarRef?.viewportDOM"
 			>
 				<template #="{ item }">
@@ -79,9 +77,11 @@ import type { Item as VirtualMasonryItem } from "@/components/base/base-virtual-
 
 import { isEqualUrl, isMobile as judgeIsMobile } from "@/utils/common";
 // ? 导入仓库
-import useCardStore from "@/stores/CardStore";
-import useFavoriteStore from "@/stores/FavoriteStore";
+import { storeToRefs } from "pinia";
+import { useGlobalStore, useCardStore, useFavoriteStore } from "@/stores";
 
+const globalStore = useGlobalStore();
+const { galleryState } = storeToRefs(globalStore);
 // s 卡片仓库
 const cardStore = useCardStore();
 const { findCard, removeCard, downloadCards } = cardStore;
@@ -141,31 +141,29 @@ onActivated(() => {
 
 // j 转为适用于虚拟瀑布流的数据列表
 const virtualMasonryItem = computed<Array<VirtualMasonryItem>>(() => {
-	return props.cardList
-		.filter((x) => x.isMatch)
-		.map<VirtualMasonryItem>((c) => {
-			const { id, source, preview } = c;
-			const { url: sourceSrc } = source;
-			const { meta: previewMeta } = preview;
-			const { valid: previewValid } = previewMeta;
+	return props.cardList.map<VirtualMasonryItem>((c) => {
+		const { id, source, preview } = c;
+		const { url: sourceSrc } = source;
+		const { meta: previewMeta } = preview;
+		const { valid: previewValid } = previewMeta;
 
-			const { width: previewWidth, height: previewHeight } = previewMeta;
+		const { width: previewWidth, height: previewHeight } = previewMeta;
 
-			let aspectRatio = 1;
-			if (
-				(previewMeta.type === "image" || previewMeta.type === "video") &&
-				previewValid
-			) {
-				aspectRatio = previewWidth / previewHeight || 1;
-			}
+		let aspectRatio = 1;
+		if (
+			(previewMeta.type === "image" || previewMeta.type === "video") &&
+			previewValid
+		) {
+			aspectRatio = previewWidth / previewHeight || 1;
+		}
 
-			return {
-				id,
-				src: sourceSrc,
-				aspectRatio,
-				data: c,
-			};
-		});
+		return {
+			id,
+			src: sourceSrc,
+			aspectRatio,
+			data: c,
+		};
+	});
 });
 
 // f 卡片加载成功完成事件( 1.更新cardStore的尺寸范围信息;2.判断卡片是否被收藏 )
@@ -216,9 +214,11 @@ const handleToFavorite = async (id: string, val: boolean) => {
 // * 激活时进行比对所有卡片收藏状态
 onActivated(() => {
 	requestAnimationFrame(async () => {
+		// 先属性收藏仓库
 		await refreshFavoriteStore();
-		props.cardList.forEach(async (c) => {
-			c.isFavorite = await isFavorite(c);
+		// 更新收藏状态
+		props.cardList.forEach(async (card) => {
+			card.isFavorite = await isFavorite(card);
 		});
 	});
 });

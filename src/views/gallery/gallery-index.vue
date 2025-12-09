@@ -19,7 +19,7 @@
 							</n-icon>
 							图片
 							<n-badge
-								:value="filterCardList.image.filter((x) => x.isMatch).length"
+								:value="filterCardList.image.length"
 								:max="999"
 								type="default"
 							>
@@ -43,7 +43,7 @@
 							</n-icon>
 							视频
 							<n-badge
-								:value="filterCardList.video.filter((x) => x.isMatch).length"
+								:value="filterCardList.video.length"
 								:max="999"
 								type="default"
 							>
@@ -67,7 +67,7 @@
 							</n-icon>
 							压缩包
 							<n-badge
-								:value="filterCardList.zip.filter((x) => x.isMatch).length"
+								:value="filterCardList.zip.length"
 								:max="999"
 								type="default"
 							>
@@ -89,7 +89,7 @@
 							</n-icon>
 							网页
 							<n-badge
-								:value="filterCardList.html.filter((x) => x.isMatch).length"
+								:value="filterCardList.html.length"
 								:max="999"
 								type="default"
 							>
@@ -111,7 +111,7 @@
 							</n-icon>
 							其他
 							<n-badge
-								:value="filterCardList.other.filter((x) => x.isMatch).length"
+								:value="filterCardList.other.length"
 								:max="999"
 								type="default"
 							>
