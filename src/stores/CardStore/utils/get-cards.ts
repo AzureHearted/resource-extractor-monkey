@@ -1052,10 +1052,10 @@ async function getDOMNaturalSize(dom: HTMLElement): Promise<{
 // 推断链接类型
 function inferUrlType(url: URL) {
 	// 推测链接类型
-	const imageRegex = /\.(jpg|jpeg|png|gif|webp|bmp|icon|svg)$/gi;
+	const imageRegex = /\.(jpg|jpeg|png|gif|webp|bmp|icon|svg|avif)$/gi;
 	const imageBase64Regex = /^data:image\/.+?;base64,/gi;
 	const videoRegex =
-		/\.(mp4|avi|mov|mkv|mpeg|mpg|wmv|3gp|flv|f4v|rmvb|webm|ts|webp|ogv)$/gi;
+		/\.(mp4|avi|mov|mkv|mpeg|mpg|wmv|3gp|3g2|flv|f4v|rmvb|webm|ts|ogv|m4v|asf|divx|xvid|ogm|vob|m2ts|mts|m3u8)$/gi;
 	const audioRegex = /\.(mp3|wav|ogg|aac|flac)$/gi;
 	const zipRegex = /\.(zip|rar|7z|tar|gz|bz2|xz)$/gi; // 压缩包类型
 
