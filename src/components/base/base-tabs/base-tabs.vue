@@ -127,11 +127,11 @@ withDefaults(
 	defineProps<{
 		/** Tab `内容区` 的 `Style` */
 		contentStyle?: HTMLAttributes["style"];
-		/** 显示 Tab `切换按钮` @default true */
+		/** 显示 Tab `切换按钮` @default false */
 		showButtons?: boolean;
 	}>(),
 	{
-		showButtons: true,
+		showButtons: false,
 	}
 );
 
