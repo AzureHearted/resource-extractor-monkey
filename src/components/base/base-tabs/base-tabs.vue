@@ -1,6 +1,6 @@
 <template>
 	<div class="base-tabs__container">
-		<div ref="navRef" class="base-tabs__nav" @wheel.prevent="onNavWheel">
+		<div ref="navRef" class="base-tabs__nav">
 			<!-- ? 向左切换控制条 -->
 			<div
 				ref="navLeftButton"
@@ -359,12 +359,26 @@ onUnmounted(() => {
 	navSize.stop();
 });
 
+// w 挂载时注册tabs的nav栏滚动事件
+onMounted(() => {
+	navDOM.value?.addEventListener("wheel", onNavWheel, {
+		// 告诉浏览器 onNavWheel 接下来要阻止默认事件
+		passive: false,
+	});
+
+	onUnmounted(() => {
+		navDOM.value?.removeEventListener("wheel", onNavWheel);
+	});
+});
+
 // 当鼠标在nav中滚动时的事件
 function onNavWheel(e: WheelEvent) {
+	// 阻止默认的滚动事件
+	e.preventDefault();
 	if (navScroll.isScrolling.value) return;
 	navDOM.value?.scrollTo({
 		left: navScroll.x.value + e.deltaY,
-		behavior: "instant",
+		behavior: "smooth",
 	});
 }
 
@@ -506,10 +520,10 @@ provide(symbol_BaseTabs, provideObj);
 	display: flex;
 	flex-direction: column;
 	flex-wrap: nowrap;
-	user-select: none;
 }
 
 .base-tabs__nav {
+	flex-shrink: 0;
 	display: flex;
 	overflow-x: auto;
 	overflow-y: hidden;
@@ -644,5 +658,6 @@ provide(symbol_BaseTabs, provideObj);
 
 .base-tabs__content {
 	flex: 1;
+	overflow: auto;
 }
 </style>
