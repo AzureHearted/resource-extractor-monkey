@@ -28,7 +28,7 @@
 					padding: '0',
 				}"
 			>
-				<NavMenu @select="navCollapse = true" />
+				<NavMenu @select="navCollapse = true" style="user-select: none" />
 			</n-drawer-content>
 		</n-drawer>
 		<!-- s 标题 -->
