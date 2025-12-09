@@ -749,6 +749,9 @@ defineExpose({
 	overflow-x: v-bind("props.overflowX");
 	/* transition: 0.5 ease; */
 
+	/* ? 阻止滚动溢出到父级 */
+	overscroll-behavior: contain;
+
 	&:focus {
 		outline: unset;
 	}
