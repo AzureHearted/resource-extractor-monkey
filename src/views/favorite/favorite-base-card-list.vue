@@ -271,7 +271,7 @@ function onMouseWheel(e: WheelEvent) {
 <style lang="scss" scoped>
 /* 修改虚拟Grid布局内的卡片样式 */
 :deep(.base-virtual-grid__wrap) {
-	.img__container > .img__wrap {
+	.base-img__container > .base-img__wrap {
 		aspect-ratio: 1;
 		img {
 			object-fit: cover;
@@ -287,9 +287,9 @@ function onMouseWheel(e: WheelEvent) {
 		.base-card__content {
 			flex-grow: 1;
 		}
-		.img__container {
+		.base-img__container {
 			height: 100%;
-			.img__wrap {
+			.base-img__wrap {
 				height: 100%;
 				img {
 					object-fit: cover;

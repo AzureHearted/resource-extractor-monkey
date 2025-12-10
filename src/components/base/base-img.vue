@@ -1,10 +1,10 @@
 <template>
-	<div ref="container" class="img__container">
+	<div ref="containerDOM" class="base-img__container">
 		<!-- ? 图片的wrap -->
 		<div
 			ref="imgWrapRef"
 			:data-show-loading-animation="showLoadingAnimation"
-			class="img__wrap"
+			class="base-img__wrap"
 			v-lazy
 			:class="{
 				loading: !state.loaded,
@@ -22,7 +22,7 @@
 					:draggable="draggable"
 					v-bind="attrs"
 				/>
-				<div v-if="state.isError" class="error-img">
+				<div v-if="state.isError" class="base-img__error-img">
 					<svg
 						class="icon"
 						viewBox="0 0 1024 1024"
@@ -52,7 +52,7 @@
 			</slot>
 		</div>
 
-		<div class="img__other">
+		<div class="base-img__other">
 			<!-- ? 插槽：其他内容 -->
 			<slot name="other"></slot>
 		</div>
@@ -119,7 +119,6 @@ const props = withDefaults(
 // ? 定义emits
 const emits = defineEmits<{
 	loaded: [info: ImgReadyInfo];
-	ready: [info: ImgReadyInfo];
 	mounted: [];
 	error: [];
 }>();
@@ -140,7 +139,7 @@ onMounted(() => {
 });
 
 // ? 组件容器Ref
-const container = useTemplateRef("container");
+const containerDOM = useTemplateRef("containerDOM");
 
 // ? 监听src的变化
 watch(
@@ -153,9 +152,9 @@ watch(
 
 // s 组件状态信息
 const state = reactive({
-	isError: ref(false),
-	loaded: ref(false),
-	show: ref(false),
+	isError: false,
+	loaded: false,
+	show: false,
 });
 
 // ? imgWrap的Ref
@@ -190,8 +189,8 @@ onMounted(() => {
  */
 function fixStyleBug() {
 	requestAnimationFrame(() => {
-		if (container.value) {
-			container.value.style.display = "block";
+		if (containerDOM.value) {
+			containerDOM.value.style.display = "block";
 		}
 		if (imgWrapRef.value) {
 			imgWrapRef.value.style.display = "block";
@@ -355,9 +354,9 @@ const loadImage = async (src: string, thumb: string = "") => {
 					},
 					dom: img,
 				};
-				// ? 判断是否需要用户手动加载
+				// ? 判断是否需要外部手动加载
 				if (!props.manualControl) {
-					// ? 如果用户不需要手动加载就立即加载
+					// ? 如果外部不需要手动加载就立即加载
 					handleShow();
 					emits("loaded", info);
 					return;
@@ -422,9 +421,8 @@ async function generateThumbnail<T = File | string>(
 				resolve();
 			}
 		};
-
 		img.onerror = function (_error) {
-			// console.warn("[generateThumbnail] onerror", source, error);
+			// console.warn(error);
 			resolve(source);
 		};
 
@@ -546,8 +544,8 @@ const vLazy: Directive = {
 			// 创建 IntersectionObserver
 			const observer = new IntersectionObserver(handleIntersection, options);
 			// 开始监听
-			if (container.value) {
-				observer.observe(container.value);
+			if (containerDOM.value) {
+				observer.observe(containerDOM.value);
 			} else {
 				// console.log("图片监听失效，未找到组件container");
 			}
@@ -557,14 +555,14 @@ const vLazy: Directive = {
 </script>
 
 <style lang="scss" scoped>
-.img__container {
+.base-img__container {
 	box-sizing: border-box; // 盒子模型，确保边框不会影响内容的大小。
 	* {
 		box-sizing: border-box;
 	}
 }
 
-.img__wrap {
+.base-img__wrap {
 	img {
 		/** 默认不显示 */
 		opacity: 0;
@@ -574,7 +572,7 @@ const vLazy: Directive = {
 }
 
 // 加载完成且可见的样式
-.img__wrap.show {
+.base-img__wrap.show {
 	img {
 		opacity: 1;
 		visibility: visible;
@@ -582,7 +580,7 @@ const vLazy: Directive = {
 	}
 }
 // 加载错误的样式
-.img__wrap.error {
+.base-img__wrap.error {
 	img {
 		opacity: 0;
 		transform: scale(0.8);
@@ -592,11 +590,12 @@ const vLazy: Directive = {
 }
 
 /* 加载错误时候的图标样式 */
-.error-img {
+.base-img__error-img {
 	position: absolute;
 	inset: 0;
 	svg {
 		fill: black;
+		transition: 0.5s ease;
 	}
 	/* 暗黑主题切换 */
 	@media (prefers-color-scheme: dark) {
@@ -608,7 +607,7 @@ const vLazy: Directive = {
 }
 
 /* 图片样式 */
-.img__wrap img {
+.base-img__wrap img {
 	display: block;
 
 	&:not([width]) {
@@ -630,7 +629,7 @@ const vLazy: Directive = {
 }
 
 /* 图片加载动画 */
-.img__wrap[data-show-loading-animation="true"] {
+.base-img__wrap[data-show-loading-animation="true"] {
 	position: relative;
 	&.loading::before {
 		content: "";

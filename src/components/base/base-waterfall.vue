@@ -540,7 +540,7 @@ defineExpose({
 	}
 }
 
-:deep(.img__container) {
+:deep(.base-img__container) {
 	width: 100%;
 }
 
@@ -591,7 +591,7 @@ defineExpose({
 		}
 	}
 
-	:deep(.img__container) {
+	:deep(.base-img__container) {
 		transition: 0.5s ease;
 	}
 }
