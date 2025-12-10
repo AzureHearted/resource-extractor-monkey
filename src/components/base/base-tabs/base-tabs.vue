@@ -33,7 +33,6 @@
 					class="base-tabs__tab-item"
 					v-for="tab in tabs"
 					:key="tab.id"
-					:class="['tab', { active: activeTab === tab.name }]"
 					:style="{
 						pointerEvents: isNavDragging ? 'none' : 'auto',
 					}"
