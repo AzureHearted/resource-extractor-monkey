@@ -280,7 +280,7 @@ const { stop: stopMutationObserver } = useMutationObserver(
 		attributes: true,
 	}
 );
-// 卸载组件是取消监听
+// 卸载组件时取消监听
 onUnmounted(() => stopMutationObserver());
 
 let scheduled = false;
@@ -415,6 +415,11 @@ onActivated(async () => {
 	freeze.value = false;
 });
 
+// ? 定义事件
+const emits = defineEmits<{
+	scroll: [x: number, y: number, xPercent: number, yPercent: number];
+}>();
+
 // ? 可滚动对象
 const {
 	x: viewportScrollX,
@@ -430,6 +435,13 @@ const {
 			measure();
 			calcThumbSize();
 			updateThumbPosition();
+			emits(
+				"scroll",
+				viewportScrollX.value,
+				viewportScrollY.value,
+				scrollPercent.value.x,
+				scrollPercent.value.y
+			);
 		});
 	},
 });
@@ -463,27 +475,29 @@ const { y: verticalThumbTop } = useDraggable(verticalThumbDOM, {
 	},
 	onMove({ y: _y }) {
 		const { clientHeight, scrollHeight } = viewportDOM.value!;
-		// console.log(verticalThumbDOM.value?.getBoundingClientRect().height);
-
 		// track 总长
 		const trackLen = Math.floor(verticalTrackInfo.height.value);
-
-		// 计算滚动条高度
-		const thumbHeight = trackLen * scrollbar.vertical.lengthPercent;
-
+		// 计算滚动条长度
+		const thumbLen = trackLen * scrollbar.vertical.lengthPercent;
 		// 计算可滚动长度
 		const remainTrackLen = trackLen * (1 - scrollbar.vertical.lengthPercent);
-
 		// 防止超出边界
-		if (verticalThumbTop.value + thumbHeight > trackLen) {
-			verticalThumbTop.value = trackLen - thumbHeight;
+		if (verticalThumbTop.value + thumbLen > trackLen) {
+			verticalThumbTop.value = trackLen - thumbLen;
 		}
-
 		// 计算滚动高度
-		const scrollTop =
+		const scrollY =
 			verticalThumbTop.value * ((scrollHeight - clientHeight) / remainTrackLen);
-
-		viewportScrollY.value = scrollTop;
+		// 更新滚动位置
+		viewportScrollY.value = scrollY;
+		// 发送事件
+		emits(
+			"scroll",
+			viewportScrollX.value,
+			viewportScrollY.value,
+			scrollPercent.value.x,
+			scrollPercent.value.y
+		);
 	},
 	async onEnd({ y: _y }) {
 		scrollbar.vertical.isDragging = false;
@@ -533,21 +547,30 @@ const { x: horizontalThumbLeft } = useDraggable(horizontalThumbDOM, {
 	},
 	onMove({ x: _x }) {
 		const { clientWidth, scrollWidth } = viewportDOM.value!;
-		horizontalTrackInfo.update();
+		// track 总长
+		const trackLen = Math.floor(horizontalTrackInfo.width.value);
+		// 计算滚动条长度
+		const thumbLen = trackLen * scrollbar.horizontal.lengthPercent;
 		// 计算可滚动长度
-		const remainTrackLen =
-			Math.floor(horizontalTrackInfo.width.value) *
-			(1 - scrollbar.horizontal.lengthPercent);
-		// 计算滚动left
-		const ScrollX =
-			(horizontalThumbLeft.value / remainTrackLen) *
-			(scrollWidth - clientWidth);
-
-		viewportScrollX.value = ScrollX;
-		// console.log(arrivedState);
-		requestAnimationFrame(() => {
-			updateThumbPosition();
-		});
+		const remainTrackLen = trackLen * (1 - scrollbar.horizontal.lengthPercent);
+		// 防止超出边界
+		if (horizontalThumbLeft.value + thumbLen > trackLen) {
+			horizontalThumbLeft.value = trackLen - thumbLen;
+		}
+		// 计算滚动 left
+		const scrollX =
+			horizontalThumbLeft.value *
+			((scrollWidth - clientWidth) / remainTrackLen);
+		// 更新滚动位置
+		viewportScrollX.value = scrollX;
+		// 发送事件
+		emits(
+			"scroll",
+			viewportScrollX.value,
+			viewportScrollY.value,
+			scrollPercent.value.x,
+			scrollPercent.value.y
+		);
 	},
 	async onEnd({ x: _x }) {
 		scrollbar.horizontal.isDragging = false;
@@ -688,12 +711,12 @@ const bakctopShow = computed<Boolean>(() => {
 // f 执行回到顶部
 function backToTop() {
 	requestAnimationFrame(() =>
-		updateScrollPosition({ y: 0, behavior: props.backToTopBehavior })
+		scrollTo({ y: 0, behavior: props.backToTopBehavior })
 	);
 }
 
-// f 设置scroll区域的滚动位置
-function updateScrollPosition(options: {
+// f 滚动到指定位置
+function scrollTo(options: {
 	x?: number;
 	y?: number;
 	behavior?: ScrollBehavior;
@@ -713,8 +736,42 @@ function updateScrollPosition(options: {
 	}
 }
 
+// f 滚动到指定百分比
+function scrollToPercent(options: {
+	x?: number;
+	y?: number;
+	behavior?: ScrollBehavior;
+}) {
+	if (!viewportDOM.value) return;
+	const { scrollWidth, scrollHeight, clientWidth, clientHeight } =
+		viewportDOM.value;
+	const { x, y, behavior } = options;
+	let scrollX: number | undefined, scrollY: number | undefined;
+	if (x !== undefined) {
+		const horizontalTrackLen = horizontalTrackInfo.width.value;
+		const remainTrackLen =
+			horizontalTrackLen * (1 - scrollbar.horizontal.lengthPercent);
+		const left = remainTrackLen * x;
+		scrollX = left / (remainTrackLen / (scrollWidth - clientWidth));
+	}
+	if (y !== undefined) {
+		const verticalTrackLen = verticalTrackInfo.height.value;
+		const remainTrackLen =
+			verticalTrackLen * (1 - scrollbar.vertical.lengthPercent);
+		const top = remainTrackLen * y;
+		scrollY = top / (remainTrackLen / (scrollHeight - clientHeight));
+	}
+	scrollTo({ x: scrollX, y: scrollY, behavior });
+}
+
 defineExpose({
 	viewportDOM,
+	x: viewportScrollX,
+	y: viewportScrollY,
+	scrollPercent,
+	arrivedState,
+	scrollTo,
+	scrollToPercent,
 });
 </script>
 

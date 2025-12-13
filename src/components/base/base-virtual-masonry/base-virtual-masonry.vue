@@ -4,7 +4,7 @@
 		class="base-virtual-masonry__container"
 		:style="{
 			height: !scrollContainer ? '100%' : '',
-			overflow: !scrollContainer ? 'auto' : '',
+			overflow: !scrollContainer ? 'hidden auto' : '',
 		}"
 	>
 		<!-- 包裹容器 -->
@@ -123,50 +123,11 @@ const state = reactive({
 		height: 0,
 	},
 	scrollState: useScroll(containerDOM),
-	visibleState: {
-		startY: 0,
-		endY: 0,
-		startIndex: 0,
-		endIndex: 0,
-	},
 });
 
 // j 滚动容器的DOM
 const scrollContainerDOM = computed(() => {
-	return props.scrollContainer ? props.scrollContainer : containerDOM;
-});
-
-// w 组件挂载后重新绑定滚动容器 (因为挂载前可能传入scrollContainer还未挂载)
-onMounted(async () => {
-	await nextTick();
-
-	// 当计算结果不等于组件容器DOM时候则重新使用useScroll
-	state.scrollState = reactive(
-		useScroll(scrollContainerDOM.value, {
-			onScroll(_e) {
-				computeVisibleState();
-			},
-		})
-	);
-
-	// ? 监听滚动容器的尺寸
-	useResizeObserver(scrollContainerDOM.value, (entries) => {
-		if (state.isFreeze) return;
-
-		state.viewportState.width = entries[0].contentRect.width;
-		state.viewportState.height = entries[0].contentRect.height;
-		state.viewportState.scrollWidth = entries[0].target.scrollWidth;
-		state.viewportState.scrollHeight = entries[0].target.scrollHeight;
-
-		state.viewportState.paddingTop = Math.floor(
-			(wrapDOM.value?.getBoundingClientRect().y || 0) +
-				state.scrollState.y -
-				(props.scrollContainer?.getBoundingClientRect().y || 0)
-		);
-
-		state.wrapState.width = wrapDOM.value?.clientWidth || 0;
-		computedItemPosDebounce(props.items);
-	});
+	return props.scrollContainer ? props.scrollContainer : containerDOM.value;
 });
 
 // j 每列列宽
@@ -220,6 +181,36 @@ async function init() {
 		(!!props.scrollContainer
 			? containerDOM.value?.clientWidth
 			: state.wrapState.width) || 0;
+
+	// ? 组件挂载后重新绑定滚动容器 (因为挂载前可能传入scrollContainer还未挂载)
+	state.scrollState = reactive(
+		useScroll(scrollContainerDOM.value, {
+			onScroll(_e) {
+				computeVisibleStateRAF();
+			},
+		})
+	);
+
+	// ? 监听滚动容器的尺寸
+	useResizeObserver(scrollContainerDOM.value, (entries) => {
+		if (state.isFreeze) return;
+
+		state.viewportState.width = entries[0].contentRect.width;
+		state.viewportState.height = entries[0].contentRect.height;
+		state.viewportState.scrollWidth = entries[0].target.scrollWidth;
+		state.viewportState.scrollHeight = entries[0].target.scrollHeight;
+
+		state.viewportState.paddingTop = Math.floor(
+			(wrapDOM.value?.getBoundingClientRect().y || 0) +
+				state.scrollState.y -
+				(props.scrollContainer?.getBoundingClientRect().y || 0)
+		);
+
+		state.wrapState.width = wrapDOM.value?.clientWidth || 0;
+		computedItemPosDebounce(props.items);
+	});
+
+	// ? 初始化完成后立即执行一次布局计算
 	computedItemPosDebounce(props.items);
 }
 
@@ -236,7 +227,7 @@ watch(
 const computedItemPosDebounce = useDebounceFn((list: Item[]) => {
 	requestAnimationFrame(async () => {
 		await computedItemPos(list);
-		computeVisibleState();
+		computeVisibleStateRAF();
 	});
 }, 100);
 
@@ -291,8 +282,8 @@ async function computedItemPos(list: Item[]) {
 
 		columnPosList[minCol].push(pos);
 
-		// 更新该列高度
-		colHeights[minCol] += height + gap;
+		// 更新该列高度 (如果是排列最后一个则不需要加gap)
+		colHeights[minCol] += height + (index < list.length - 1 ? gap : 0);
 	}
 
 	// 批量替换响应式
@@ -303,6 +294,18 @@ async function computedItemPos(list: Item[]) {
 	// 整体高度 = 所有列高度中的最大值
 	state.wrapState.height = Math.max(...colHeights);
 }
+
+// 使用 rAF 封装
+let ticking = false;
+const computeVisibleStateRAF = () => {
+	if (!ticking) {
+		requestAnimationFrame(() => {
+			computeVisibleState();
+			ticking = false;
+		});
+		ticking = true;
+	}
+};
 
 // f 计算可见可见状态
 function computeVisibleState() {
@@ -368,6 +371,11 @@ onDeactivated(() => {
 onActivated(() => {
 	state.isFreeze = false;
 });
+
+// ? 暴露方法和属性
+defineExpose({
+	scrollContainerDOM,
+});
 </script>
 
 <style lang="scss" scoped>
@@ -387,6 +395,7 @@ onActivated(() => {
 		/* overflow: hidden; */
 		/* background-color: rgba(126, 126, 126, 0.3); */
 		&__allow-transition {
+			will-change: transform;
 			transition: 0.5s ease;
 		}
 	}
