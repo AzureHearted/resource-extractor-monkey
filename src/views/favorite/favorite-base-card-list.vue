@@ -275,6 +275,7 @@ function onMouseWheel(e: WheelEvent) {
 		aspect-ratio: 1;
 		img {
 			object-fit: cover;
+			object-position: top;
 			height: 100%;
 		}
 	}
@@ -293,6 +294,7 @@ function onMouseWheel(e: WheelEvent) {
 				height: 100%;
 				img {
 					object-fit: cover;
+					object-position: top;
 					height: 100%;
 				}
 			}
