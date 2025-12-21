@@ -26,7 +26,7 @@
 					ref="verticalTrack"
 					class="base-scrollbar__track track__vertical"
 					:class="{
-						'is-dragging': scrollbar.vertical.isDragging,
+						'is-dragging': state.vertical.isDragging,
 					}"
 					@click="onClickTrack('vertical', $event)"
 				>
@@ -38,18 +38,18 @@
 								'arrived-top':
 									showArrivedIndicator &&
 									arrivedState.top &&
-									scrollbar.vertical.lengthPercent < 1,
+									state.vertical.lengthPercent < 1,
 								'arrived-bottom':
 									showArrivedIndicator &&
 									arrivedState.bottom &&
-									scrollbar.vertical.lengthPercent < 1,
+									state.vertical.lengthPercent < 1,
 							}"
 							@mousedown.stop
 							@mouseup.stop
 							@click.stop
 							@touchend.stop
 							:style="{
-								height: `${scrollbar.vertical.lengthPercent * 100}%`,
+								height: `${state.vertical.lengthPercent * 100}%`,
 								transform: `translateY(${verticalThumbTop}px)`,
 							}"
 						>
@@ -70,7 +70,7 @@
 					ref="horizontalTrack"
 					class="base-scrollbar__track track__horizontal"
 					:class="{
-						'is-dragging': scrollbar.horizontal.isDragging,
+						'is-dragging': state.horizontal.isDragging,
 					}"
 					@click="onClickTrack('horizontal', $event)"
 				>
@@ -82,18 +82,18 @@
 								'arrived-left':
 									showArrivedIndicator &&
 									arrivedState.left &&
-									scrollbar.horizontal.lengthPercent < 1,
+									state.horizontal.lengthPercent < 1,
 								'arrived-right':
 									showArrivedIndicator &&
 									arrivedState.right &&
-									scrollbar.horizontal.lengthPercent < 1,
+									state.horizontal.lengthPercent < 1,
 							}"
 							@mousedown.stop
 							@mouseup.stop
 							@click.stop
 							@touchend.stop
 							:style="{
-								width: `${scrollbar.horizontal.lengthPercent * 100}%`,
+								width: `${state.horizontal.lengthPercent * 100}%`,
 								transform: `translateX(${horizontalThumbLeft}px)`,
 							}"
 						>
@@ -144,6 +144,8 @@ import {
 	shallowRef,
 	shallowReactive,
 	nextTick,
+	onMounted,
+	watch,
 } from "vue";
 import type { CSSProperties, HTMLAttributes, TeleportProps } from "vue";
 
@@ -164,6 +166,8 @@ defineOptions({
 // 定义props
 const props = withDefaults(
 	defineProps<{
+		/** value 绑定值，可以是百分比或像素值，取决于 model-mode @default 'px' */
+		valueMode?: "percent" | "px";
 		/** 禁用虚拟滚动条（改用原生滚动条） @default false */
 		disable?: boolean;
 		/** 垂直方向的 overflow @default "auto" */
@@ -192,6 +196,7 @@ const props = withDefaults(
 		showArrivedIndicator?: boolean;
 	}>(),
 	{
+		valueMode: "px",
 		overflowX: "auto",
 		overflowY: "auto",
 		showScrollbar: true,
@@ -202,6 +207,43 @@ const props = withDefaults(
 		hoverThumbPadding: 0,
 		offset: () => [1, 1],
 		teleportTo: false,
+	}
+);
+
+// s 滚动条滚动位置
+const modelValueScrollY = defineModel<number>("scrollY", { default: 0 });
+const modelValueScrollX = defineModel<number>("scrollX", { default: 0 });
+
+// w 初始化滚动条位置
+onMounted(async () => {
+	await nextTick();
+	if (props.valueMode === "percent") {
+		scrollToPercent({ y: modelValueScrollY.value, x: modelValueScrollX.value });
+	} else {
+		scrollTo({ y: modelValueScrollY.value, x: modelValueScrollX.value });
+	}
+});
+
+// w 监听model-value变化
+watch(
+	[() => modelValueScrollY.value, () => modelValueScrollX.value],
+	([newY, newX], [oldY, oldX]) => {
+		if (
+			!state.show ||
+			isScrolling.value ||
+			state.vertical.isDragging ||
+			state.horizontal.isDragging
+		)
+			return; // console.log('内部：触发滚动位置变化')
+		// console.log('外部：触发滚动位置发生')
+		let y = newY !== oldY ? newY : undefined;
+		let x = newX !== oldX ? newX : undefined;
+
+		if (props.valueMode === "percent") {
+			scrollToPercent({ y, x });
+		} else {
+			scrollTo({ y, x });
+		}
 	}
 );
 
@@ -265,6 +307,44 @@ useResizeObserver(viewportDOM, (entries) => {
 	viewportInfo.scrollWidth = entry.target.scrollWidth;
 
 	scheduleUpdateThumb();
+
+	// ? 发生滚动事件(因为有可能视口变化导致滚动位置变化)
+	emits(
+		"scroll",
+		viewportScrollX.value,
+		viewportScrollY.value,
+		scrollPercent.value.x,
+		scrollPercent.value.y
+	);
+	// ? 更新model-value
+	modelValueScrollY.value =
+		(props.valueMode === "percent"
+			? scrollPercent.value.y
+			: viewportScrollY.value) || modelValueScrollY.value;
+	modelValueScrollX.value =
+		(props.valueMode === "percent"
+			? scrollPercent.value.x
+			: viewportScrollX.value) || modelValueScrollY.value;
+});
+
+// s 滚动条状态数据
+const state = reactive({
+	show: true,
+	isScrolling: false,
+	vertical: {
+		isDragging: false,
+		lengthPercent: 0,
+	},
+	horizontal: {
+		isDragging: false,
+		lengthPercent: 0,
+	},
+});
+
+// w 挂载时计算一次
+onMounted(async () => {
+	await nextTick();
+	scheduleUpdateThumb();
 });
 
 // 监听视口的内 DOM 树的变更
@@ -288,7 +368,6 @@ function scheduleUpdateThumb() {
 	if (scheduled) return;
 	scheduled = true;
 	requestAnimationFrame(() => {
-		measure();
 		updateThumb();
 		scheduled = false;
 	});
@@ -300,19 +379,6 @@ function updateThumb() {
 	calcThumbSize(); //计算滚动条尺寸
 	updateThumbPosition(); //计算滚动条位置
 }
-
-// s 滚动条状态数据
-const scrollbar = reactive({
-	show: true,
-	vertical: {
-		isDragging: false,
-		lengthPercent: 0,
-	},
-	horizontal: {
-		isDragging: false,
-		lengthPercent: 0,
-	},
-});
 
 // ? 记录器: 用于记录冻结前的进度条百分比
 const stateCache = {
@@ -353,10 +419,10 @@ onDeactivated(() => {
 	}
 	stateCache.viewportInfo.scrollXPercent = scrollXPercent;
 
-	stateCache.vertical.lengthPercent = scrollbar.vertical.lengthPercent || 0;
+	stateCache.vertical.lengthPercent = state.vertical.lengthPercent || 0;
 	stateCache.vertical.trackLen = Math.floor(verticalTrackInfo.height.value);
 
-	stateCache.horizontal.lengthPercent = scrollbar.horizontal.lengthPercent || 0;
+	stateCache.horizontal.lengthPercent = state.horizontal.lengthPercent || 0;
 	stateCache.horizontal.trackLen = Math.floor(horizontalTrackInfo.width.value);
 
 	// console.log("冻结组件", stateCache);
@@ -424,38 +490,47 @@ const emits = defineEmits<{
 const {
 	x: viewportScrollX,
 	y: viewportScrollY,
-	measure,
 	arrivedState,
+	isScrolling,
 } = useScroll(viewportDOM, {
 	onScroll() {
-		requestAnimationFrame(() => {
-			if (scrollbar.vertical.isDragging || scrollbar.horizontal.isDragging)
-				return;
-			if (freeze.value) return;
-			measure();
-			calcThumbSize();
-			updateThumbPosition();
-			emits(
-				"scroll",
-				viewportScrollX.value,
-				viewportScrollY.value,
-				scrollPercent.value.x,
-				scrollPercent.value.y
-			);
-		});
+		if (state.vertical.isDragging || state.horizontal.isDragging) return;
+		if (freeze.value) return;
+		calcThumbSize();
+		updateThumbPosition();
+		// ? 发送事件
+		emits(
+			"scroll",
+			viewportScrollX.value,
+			viewportScrollY.value,
+			scrollPercent.value.x,
+			scrollPercent.value.y
+		);
+		// ? 更新model-value
+		modelValueScrollY.value =
+			(props.valueMode === "percent"
+				? scrollPercent.value.y
+				: viewportScrollY.value) || modelValueScrollY.value;
+		modelValueScrollX.value =
+			(props.valueMode === "percent"
+				? scrollPercent.value.x
+				: viewportScrollX.value) || modelValueScrollY.value;
 	},
 });
 
 // j 滚动进度百分比
 const scrollPercent = computed(() => {
-	const yThumbLen =
-		verticalTrackInfo.height.value * scrollbar.vertical.lengthPercent;
-	const xThumbLen =
-		horizontalTrackInfo.width.value * scrollbar.horizontal.lengthPercent;
+	const vTrackLen = Math.floor(
+		verticalTrackInfo.height.value || viewportInfo.height
+	);
+	const hTrackLen = Math.floor(
+		horizontalTrackInfo.width.value || viewportInfo.width
+	);
+	const yThumbLen = vTrackLen * state.vertical.lengthPercent;
+	const xThumbLen = hTrackLen * state.horizontal.lengthPercent;
 	return {
-		y: verticalThumbTop.value / (verticalTrackInfo.height.value - yThumbLen),
-		x:
-			horizontalThumbLeft.value / (horizontalTrackInfo.width.value - xThumbLen),
+		y: verticalThumbTop.value / (vTrackLen - yThumbLen),
+		x: horizontalThumbLeft.value / (hTrackLen - xThumbLen),
 	};
 });
 
@@ -471,16 +546,16 @@ const { y: verticalThumbTop } = useDraggable(verticalThumbDOM, {
 	containerElement: verticalTrackDOM, // 设置父容器
 	preventDefault: true,
 	onStart({ y: _y }) {
-		scrollbar.vertical.isDragging = true;
+		state.vertical.isDragging = true;
 	},
 	onMove({ y: _y }) {
 		const { clientHeight, scrollHeight } = viewportDOM.value!;
 		// track 总长
 		const trackLen = Math.floor(verticalTrackInfo.height.value);
 		// 计算滚动条长度
-		const thumbLen = trackLen * scrollbar.vertical.lengthPercent;
+		const thumbLen = trackLen * state.vertical.lengthPercent;
 		// 计算可滚动长度
-		const remainTrackLen = trackLen * (1 - scrollbar.vertical.lengthPercent);
+		const remainTrackLen = trackLen * (1 - state.vertical.lengthPercent);
 		// 防止超出边界
 		if (verticalThumbTop.value + thumbLen > trackLen) {
 			verticalThumbTop.value = trackLen - thumbLen;
@@ -490,7 +565,7 @@ const { y: verticalThumbTop } = useDraggable(verticalThumbDOM, {
 			verticalThumbTop.value * ((scrollHeight - clientHeight) / remainTrackLen);
 		// 更新滚动位置
 		viewportScrollY.value = scrollY;
-		// 发送事件
+		// ? 发送事件
 		emits(
 			"scroll",
 			viewportScrollX.value,
@@ -498,19 +573,28 @@ const { y: verticalThumbTop } = useDraggable(verticalThumbDOM, {
 			scrollPercent.value.x,
 			scrollPercent.value.y
 		);
+		// ? 更新model-value
+		modelValueScrollY.value =
+			(props.valueMode === "percent"
+				? scrollPercent.value.y
+				: viewportScrollY.value) || modelValueScrollY.value;
+		modelValueScrollX.value =
+			(props.valueMode === "percent"
+				? scrollPercent.value.x
+				: viewportScrollX.value) || modelValueScrollY.value;
 	},
 	async onEnd({ y: _y }) {
-		scrollbar.vertical.isDragging = false;
+		state.vertical.isDragging = false;
 	},
 });
 
 // j 垂直滚动条可见性
 const verticalScrollbarVisible = computed<boolean>(() => {
 	return (
-		((scrollbar.show &&
-			scrollbar.vertical.lengthPercent > 0 &&
-			scrollbar.vertical.lengthPercent < 1) ||
-			scrollbar.vertical.isDragging) &&
+		((state.show &&
+			state.vertical.lengthPercent > 0 &&
+			state.vertical.lengthPercent < 1) ||
+			state.vertical.isDragging) &&
 		props.showScrollbar &&
 		(props.overflowY === "auto" || props.overflowY === "scroll")
 	);
@@ -520,7 +604,7 @@ const verticalScrollbarVisible = computed<boolean>(() => {
 const calcVerticalThumbContentStyle = computed(() => {
 	// 滑块总长
 	const thumbLen =
-		verticalTrackInfo.height.value * scrollbar.vertical.lengthPercent;
+		verticalTrackInfo.height.value * state.vertical.lengthPercent;
 
 	const transform = `translateY(calc(-${scrollPercent.value.y * 100}% + ${
 		thumbLen * scrollPercent.value.y
@@ -543,16 +627,16 @@ const { x: horizontalThumbLeft } = useDraggable(horizontalThumbDOM, {
 	containerElement: horizontalTrackDOM, // 设置父容器
 	preventDefault: true,
 	onStart({ x: _x }) {
-		scrollbar.horizontal.isDragging = true;
+		state.horizontal.isDragging = true;
 	},
 	onMove({ x: _x }) {
 		const { clientWidth, scrollWidth } = viewportDOM.value!;
 		// track 总长
 		const trackLen = Math.floor(horizontalTrackInfo.width.value);
 		// 计算滚动条长度
-		const thumbLen = trackLen * scrollbar.horizontal.lengthPercent;
+		const thumbLen = trackLen * state.horizontal.lengthPercent;
 		// 计算可滚动长度
-		const remainTrackLen = trackLen * (1 - scrollbar.horizontal.lengthPercent);
+		const remainTrackLen = trackLen * (1 - state.horizontal.lengthPercent);
 		// 防止超出边界
 		if (horizontalThumbLeft.value + thumbLen > trackLen) {
 			horizontalThumbLeft.value = trackLen - thumbLen;
@@ -563,7 +647,7 @@ const { x: horizontalThumbLeft } = useDraggable(horizontalThumbDOM, {
 			((scrollWidth - clientWidth) / remainTrackLen);
 		// 更新滚动位置
 		viewportScrollX.value = scrollX;
-		// 发送事件
+		// ? 发送事件
 		emits(
 			"scroll",
 			viewportScrollX.value,
@@ -571,19 +655,28 @@ const { x: horizontalThumbLeft } = useDraggable(horizontalThumbDOM, {
 			scrollPercent.value.x,
 			scrollPercent.value.y
 		);
+		// ? 更新model-value
+		modelValueScrollY.value =
+			(props.valueMode === "percent"
+				? scrollPercent.value.y
+				: viewportScrollY.value) || modelValueScrollY.value;
+		modelValueScrollX.value =
+			(props.valueMode === "percent"
+				? scrollPercent.value.x
+				: viewportScrollX.value) || modelValueScrollY.value;
 	},
 	async onEnd({ x: _x }) {
-		scrollbar.horizontal.isDragging = false;
+		state.horizontal.isDragging = false;
 	},
 });
 
 // j 水平滚动条可见性
 const horizontalScrollbarVisible = computed<boolean>(() => {
 	return (
-		((scrollbar.show &&
-			scrollbar.horizontal.lengthPercent > 0 &&
-			scrollbar.horizontal.lengthPercent < 1) ||
-			scrollbar.horizontal.isDragging) &&
+		((state.show &&
+			state.horizontal.lengthPercent > 0 &&
+			state.horizontal.lengthPercent < 1) ||
+			state.horizontal.isDragging) &&
 		props.showScrollbar &&
 		(props.overflowX === "auto" || props.overflowX === "scroll")
 	);
@@ -593,7 +686,7 @@ const horizontalScrollbarVisible = computed<boolean>(() => {
 const horizontalThumbContentStyle = computed(() => {
 	// 滑块总长
 	const thumbLen =
-		horizontalTrackInfo.width.value * scrollbar.horizontal.lengthPercent;
+		horizontalTrackInfo.width.value * state.horizontal.lengthPercent;
 
 	const transform = `translateX(calc(-${scrollPercent.value.x * 100}% + ${
 		thumbLen * scrollPercent.value.x
@@ -613,24 +706,20 @@ function calcThumbSize() {
 		viewportDOM.value;
 
 	// 垂直滚动条track长度
-	const verticalTrackLen = Math.floor(verticalTrackInfo.height.value);
+	const vTrackLen = Math.floor(verticalTrackInfo.height.value || clientHeight);
 	// 垂直滚动条长度
-	let verticalThumbLen = verticalTrackLen * (clientHeight / scrollHeight);
-	// 限制滚动条最小长度
-	// verticalThumbLen = Math.max(verticalThumbLen, MIN_THUMB_LENGTH);
+	let verticalThumbLen = vTrackLen * (clientHeight / scrollHeight);
 	// 计算垂直滚动条占track的占比
-	const verticalThumbPercent = verticalThumbLen / verticalTrackLen;
-	scrollbar.vertical.lengthPercent = verticalThumbPercent;
+	const verticalThumbPercent = verticalThumbLen / vTrackLen;
+	state.vertical.lengthPercent = verticalThumbPercent;
 
 	// 水平滚动条track长度
-	const horizontalTrackLen = Math.floor(horizontalTrackInfo.width.value);
+	const hTrackLen = Math.floor(horizontalTrackInfo.width.value || clientWidth);
 	// 水平滚动条长度
-	let horizontalThumbLen = horizontalTrackLen * (clientWidth / scrollWidth);
-	// 限制滚动条最小长度
-	// horizontalThumbLen = Math.max(horizontalThumbLen, MIN_THUMB_LENGTH);
+	let horizontalThumbLen = hTrackLen * (clientWidth / scrollWidth);
 	// 计算水平滚动条占track的占比
-	const horizontalThumbPercent = horizontalThumbLen / horizontalTrackLen;
-	scrollbar.horizontal.lengthPercent = horizontalThumbPercent;
+	const horizontalThumbPercent = horizontalThumbLen / hTrackLen;
+	state.horizontal.lengthPercent = horizontalThumbPercent;
 }
 
 // f 设置滚动条位置
@@ -639,17 +728,15 @@ function updateThumbPosition() {
 	const { scrollWidth, scrollHeight, clientWidth, clientHeight } =
 		viewportDOM.value;
 	// 计算可滚动长度
-	const verticalTrackLen =
-		Math.floor(verticalTrackInfo.height.value) *
-		(1 - scrollbar.vertical.lengthPercent);
-	const horizontalTrackLen =
-		Math.floor(horizontalTrackInfo.width.value) *
-		(1 - scrollbar.horizontal.lengthPercent);
+	const vTrackLen =
+		Math.floor(verticalTrackInfo.height.value || clientHeight) *
+		(1 - state.vertical.lengthPercent);
+	const hTrackLen =
+		Math.floor(horizontalTrackInfo.width.value || clientWidth) *
+		(1 - state.horizontal.lengthPercent);
 
-	let top =
-		(verticalTrackLen / (scrollHeight - clientHeight)) * viewportScrollY.value;
-	let left =
-		(horizontalTrackLen / (scrollWidth - clientWidth)) * viewportScrollX.value;
+	let top = (vTrackLen / (scrollHeight - clientHeight)) * viewportScrollY.value;
+	let left = (hTrackLen / (scrollWidth - clientWidth)) * viewportScrollX.value;
 
 	// 更新滚动条位置
 	verticalThumbTop.value = top;
@@ -659,19 +746,19 @@ function updateThumbPosition() {
 // f 点击Track时的事件
 function onClickTrack(direction: "vertical" | "horizontal", e: MouseEvent) {
 	// ? 立即显示进度条
-	scrollbar.show = true;
+	state.show = true;
 	if (!viewportDOM.value) return;
 	const { scrollWidth, scrollHeight, clientWidth, clientHeight } =
 		viewportDOM.value; // 提取滚动容器内容区宽度
 
 	if (direction === "vertical") {
 		const clickPos = e.offsetY;
-		const { lengthPercent } = scrollbar.vertical;
+		const { lengthPercent } = state.vertical;
 		const oldThumbTop = verticalThumbTop.value;
 		// track总长
 		const trackLen = Math.floor(verticalTrackInfo.height.value);
 		// track - 滚动条 的剩余长度
-		const remainTrackLen = trackLen * (1 - scrollbar.vertical.lengthPercent);
+		const remainTrackLen = trackLen * (1 - state.vertical.lengthPercent);
 		// 计算滚动条长度
 		const length = lengthPercent * trackLen;
 		// 计算滑块移动的差值
@@ -684,12 +771,12 @@ function onClickTrack(direction: "vertical" | "horizontal", e: MouseEvent) {
 		viewportScrollY.value = scrollY;
 	} else {
 		const clickPos = e.offsetX;
-		const { lengthPercent } = scrollbar.horizontal;
+		const { lengthPercent } = state.horizontal;
 		const oldThumbLeft = horizontalThumbLeft.value;
 		// track总长
 		const trackLen = Math.floor(horizontalTrackInfo.width.value);
 		// track - 滚动条 的剩余长度
-		const remainTrackLen = trackLen * (1 - scrollbar.horizontal.lengthPercent);
+		const remainTrackLen = trackLen * (1 - state.horizontal.lengthPercent);
 		// 计算滚动条长度
 		const length = lengthPercent * trackLen;
 		// 计算滑块移动的差值
@@ -726,7 +813,6 @@ function scrollTo(options: {
 	if (behavior !== undefined) {
 		viewportDOM.value.scrollTo({ top: y, left: x, behavior });
 	} else {
-		measure();
 		if (x !== undefined) {
 			viewportScrollX.value = x;
 		}
@@ -748,16 +834,18 @@ function scrollToPercent(options: {
 	const { x, y, behavior } = options;
 	let scrollX: number | undefined, scrollY: number | undefined;
 	if (x !== undefined) {
-		const horizontalTrackLen = horizontalTrackInfo.width.value;
-		const remainTrackLen =
-			horizontalTrackLen * (1 - scrollbar.horizontal.lengthPercent);
+		const hTrackLen = Math.floor(
+			horizontalTrackInfo.width.value || clientWidth
+		);
+		const remainTrackLen = hTrackLen * (1 - state.horizontal.lengthPercent);
 		const left = remainTrackLen * x;
 		scrollX = left / (remainTrackLen / (scrollWidth - clientWidth));
 	}
 	if (y !== undefined) {
-		const verticalTrackLen = verticalTrackInfo.height.value;
-		const remainTrackLen =
-			verticalTrackLen * (1 - scrollbar.vertical.lengthPercent);
+		const vTrackLen = Math.floor(
+			verticalTrackInfo.height.value || clientHeight
+		);
+		const remainTrackLen = vTrackLen * (1 - state.vertical.lengthPercent);
 		const top = remainTrackLen * y;
 		scrollY = top / (remainTrackLen / (scrollHeight - clientHeight));
 	}
@@ -823,9 +911,9 @@ defineExpose({
 	}
 }
 
-$track-size: v-bind("$props.trackSize");
-$track-padding: v-bind("$props.thumbPadding");
-$track-hover-padding: v-bind("$props.hoverThumbPadding");
+$track-size: v-bind("props.trackSize");
+$track-padding: v-bind("props.thumbPadding");
+$track-hover-padding: v-bind("props.hoverThumbPadding");
 
 // z 虚拟滚动条track (共通样式)
 .base-scrollbar__track {
