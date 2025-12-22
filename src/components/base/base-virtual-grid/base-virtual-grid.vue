@@ -4,7 +4,7 @@
 		class="base-virtual-grid__container"
 		:style="{
 			height: !scrollContainer ? '100%' : '',
-			overflow: !scrollContainer ? 'auto' : '',
+			overflow: !scrollContainer ? 'hidden auto' : '',
 		}"
 	>
 		<!-- 包裹容器 -->
@@ -120,50 +120,11 @@ const state = reactive({
 		height: 0,
 	},
 	scrollState: useScroll(containerDOM),
-	visibleState: {
-		startY: 0,
-		endY: 0,
-		startIndex: 0,
-		endIndex: 0,
-	},
 });
 
 // j 滚动容器的DOM
 const scrollContainerDOM = computed(() => {
-	return props.scrollContainer ? props.scrollContainer : containerDOM;
-});
-
-// w 组件挂载后重新绑定滚动容器 (因为挂载前可能传入scrollContainer还未挂载)
-onMounted(async () => {
-	await nextTick();
-
-	// 当计算结果不等于组件容器DOM时候则重新使用useScroll
-	state.scrollState = reactive(
-		useScroll(scrollContainerDOM.value, {
-			onScroll(_e) {
-				computeVisibleState();
-			},
-		})
-	);
-
-	// ? 监听滚动容器的尺寸
-	useResizeObserver(scrollContainerDOM.value, (entries) => {
-		if (state.isFreeze) return;
-
-		state.viewportState.width = entries[0].contentRect.width;
-		state.viewportState.height = entries[0].contentRect.height;
-		state.viewportState.scrollWidth = entries[0].target.scrollWidth;
-		state.viewportState.scrollHeight = entries[0].target.scrollHeight;
-
-		state.viewportState.paddingTop = Math.floor(
-			(wrapDOM.value?.getBoundingClientRect().y || 0) +
-				state.scrollState.y -
-				(props.scrollContainer?.getBoundingClientRect().y || 0)
-		);
-
-		state.wrapState.width = wrapDOM.value?.clientWidth || 0;
-		computedItemPosDebounce(props.items);
-	});
+	return props.scrollContainer ? props.scrollContainer : containerDOM.value;
 });
 
 // j 每列列宽
@@ -212,11 +173,42 @@ onMounted(() => {
 // f 初始化
 async function init() {
 	await nextTick();
+
 	state.wrapState.width = wrapDOM.value?.clientWidth || 0;
 	state.viewportState.width =
 		(!!props.scrollContainer
 			? containerDOM.value?.clientWidth
 			: state.wrapState.width) || 0;
+
+	// ? 组件挂载后重新绑定滚动容器 (因为挂载前可能传入scrollContainer还未挂载)
+	state.scrollState = reactive(
+		useScroll(scrollContainerDOM.value, {
+			onScroll(_e) {
+				computeVisibleStateRAF();
+			},
+		})
+	);
+
+	// ? 监听滚动容器的尺寸
+	useResizeObserver(scrollContainerDOM.value, (entries) => {
+		if (state.isFreeze) return;
+
+		state.viewportState.width = entries[0].contentRect.width;
+		state.viewportState.height = entries[0].contentRect.height;
+		state.viewportState.scrollWidth = entries[0].target.scrollWidth;
+		state.viewportState.scrollHeight = entries[0].target.scrollHeight;
+
+		state.viewportState.paddingTop = Math.floor(
+			(wrapDOM.value?.getBoundingClientRect().y || 0) +
+				state.scrollState.y -
+				(props.scrollContainer?.getBoundingClientRect().y || 0)
+		);
+
+		state.wrapState.width = wrapDOM.value?.clientWidth || 0;
+		computedItemPosDebounce(props.items);
+	});
+
+	// ? 初始化完成后立即执行一次布局计算
 	computedItemPosDebounce(props.items);
 }
 
@@ -233,11 +225,11 @@ watch(
 const computedItemPosDebounce = useDebounceFn((list: Item[]) => {
 	requestAnimationFrame(async () => {
 		await computedItemPos(list);
-		computeVisibleState();
+		computeVisibleStateRAF();
 	});
 }, 100);
 
-// f 计算所有item地址
+// f 计算所有item位置
 async function computedItemPos(list: Item[]) {
 	await nextTick();
 	if (state.isFreeze) return;
@@ -272,6 +264,18 @@ async function computedItemPos(list: Item[]) {
 	state.wrapState.height = height * row + gap * (row - 1);
 }
 
+// 使用 rAF 封装
+let ticking = false;
+const computeVisibleStateRAF = () => {
+	if (!ticking) {
+		requestAnimationFrame(() => {
+			computeVisibleState();
+			ticking = false;
+		});
+		ticking = true;
+	}
+};
+
 // f 计算可见可见状态
 function computeVisibleState() {
 	if (state.isFreeze) return;
@@ -291,19 +295,43 @@ function computeVisibleState() {
 	const startRow = Math.floor(scrollY / h);
 	const endRow = Math.floor((scrollY + state.viewportState.height) / h);
 
-	state.visibleState.startIndex = startRow * cols;
-	state.visibleState.endIndex = Math.min(
-		(endRow + 1) * cols - 1,
-		state.list.length - 1
-	);
-	state.visibleList = state.list.slice(
-		state.visibleState.startIndex,
-		state.visibleState.endIndex + 1
-	);
-	state.visiblePosList = state.itemsPos.slice(
-		state.visibleState.startIndex,
-		state.visibleState.endIndex + 1
-	);
+	const startIndex = startRow * cols;
+	const endIndex = Math.min((endRow + 1) * cols - 1, state.list.length - 1);
+
+	state.visibleList = state.list.slice(startIndex, endIndex + 1);
+	state.visiblePosList = state.itemsPos.slice(startIndex, endIndex + 1);
+}
+
+/**
+ * f 滚动到指定元素位置
+ * @param id 元素id
+ */
+async function scrollToItem(id: string) {
+	await nextTick();
+	// 如果没有滚动容器则直接返回
+	if (!scrollContainerDOM.value) return;
+	const index = state.list.findIndex((item) => item.id === id);
+	// 如果找不到元素则直接返回
+	if (index < 0) return;
+	// 拿到元素位置信息
+	const pos = state.itemsPos[index];
+	// 如果找不到元素位置信息则直接返回
+	if (!pos) return;
+	const { left, top, width, height } = pos;
+	// 拿到滚动容器信息
+	const { scrollLeft, scrollTop, clientWidth, clientHeight } =
+		scrollContainerDOM.value;
+	// 计算目标滚动位置
+	const scrollLeftTarget = Math.max(0, left - (clientWidth - width) / 2);
+	const scrollTopTarget = Math.max(0, top - (clientHeight - height) / 2);
+	// 只有当目标位置与当前位置不同时才滚动
+	if (scrollLeft !== scrollLeftTarget || scrollTop !== scrollTopTarget) {
+		scrollContainerDOM.value.scrollTo({
+			left: scrollLeftTarget,
+			top: scrollTopTarget,
+			behavior: "smooth",
+		});
+	}
 }
 
 // w 当组件冻结时
@@ -313,6 +341,12 @@ onDeactivated(() => {
 // w 当组件激活时 (挂载时也会触发)
 onActivated(() => {
 	state.isFreeze = false;
+});
+
+// ? 暴露方法和属性
+defineExpose({
+	scrollContainerDOM,
+	scrollToItem,
 });
 </script>
 
@@ -333,6 +367,7 @@ onActivated(() => {
 		/* overflow: hidden; */
 		/* background-color: rgba(126, 126, 126, 0.3); */
 		&__allow-transition {
+			will-change: transform;
 			transition: 0.5s ease;
 		}
 	}

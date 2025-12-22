@@ -363,6 +363,38 @@ function binarySearch(list: Pos[], value: number) {
 	return low;
 }
 
+/**
+ * f 滚动到指定元素位置
+ * @param id 元素id
+ */
+async function scrollToItem(id: string) {
+	await nextTick();
+	// 如果没有滚动容器则直接返回
+	if (!scrollContainerDOM.value) return;
+	const index = state.list.findIndex((item) => item.id === id);
+	// 如果找不到元素则直接返回
+	if (index < 0) return;
+	// 拿到元素位置信息
+	const pos = state.itemsPos[index];
+	// 如果找不到元素位置信息则直接返回
+	if (!pos) return;
+	const { left, top, width, height } = pos;
+	// 拿到滚动容器信息
+	const { scrollLeft, scrollTop, clientWidth, clientHeight } =
+		scrollContainerDOM.value;
+	// 计算目标滚动位置
+	const scrollLeftTarget = Math.max(0, left - (clientWidth - width) / 2);
+	const scrollTopTarget = Math.max(0, top - (clientHeight - height) / 2);
+	// 只有当目标位置与当前位置不同时才滚动
+	if (scrollLeft !== scrollLeftTarget || scrollTop !== scrollTopTarget) {
+		scrollContainerDOM.value.scrollTo({
+			left: scrollLeftTarget,
+			top: scrollTopTarget,
+			behavior: "smooth",
+		});
+	}
+}
+
 // w 当组件冻结时
 onDeactivated(() => {
 	state.isFreeze = true;
@@ -375,6 +407,7 @@ onActivated(() => {
 // ? 暴露方法和属性
 defineExpose({
 	scrollContainerDOM,
+	scrollToItem,
 });
 </script>
 
