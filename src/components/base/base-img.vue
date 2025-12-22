@@ -20,7 +20,7 @@
 					ref="imgRef"
 					:decoding="decoding"
 					:draggable="draggable"
-					v-bind="attrs"
+					v-bind="imageAttrs"
 				/>
 				<div v-if="state.isError" class="base-img__error-img">
 					<svg
@@ -74,6 +74,11 @@ import {
 } from "vue";
 import type { Directive, ImgHTMLAttributes } from "vue";
 
+defineOptions({
+	name: "base-img",
+	inheritAttrs: false,
+});
+
 // ? 定义props
 const props = withDefaults(
 	defineProps<{
@@ -85,6 +90,8 @@ const props = withDefaults(
 		thumb?: string;
 		/** 缩略图最大尺寸 (当启用缩略图但没有传入有效 `thumb` 时生效, 会尝试自动生成缩略图，并且生成尺寸由该值决定，默认`400px`,传入`number`类型) @default 400 */
 		thumbMaxSize?: number;
+		/** 当缩略图存在时，是否将其作为最终显示结果（不再请求原图）。(条件：必须在 useThumb 为 true 时生效) @default false	*/
+		useThumbAsFinal?: boolean;
 		/** 监听视口 (用于设定监听视口，用于图片懒加载) */
 		viewport?: IntersectionObserverInit["root"];
 		/** 监听视口的Margin */
@@ -126,6 +133,11 @@ const emits = defineEmits<{
 // ? 用户传入的属性
 const attrs = useAttrs();
 
+// j 要传给img标签的属性
+const imageAttrs = computed(() => {
+	return attrs;
+});
+
 // ? 用户传入的插槽
 const slots = useSlots();
 
@@ -149,6 +161,17 @@ watch(
 		if (!slots?.default) loadImage(newSrc);
 	}
 );
+
+watch([() => props.useThumb, () => props.thumb], ([useThumb, thumb], [,]) => {
+	if (!imgRef.value) return;
+	if (useThumb && thumb) {
+		imgRef.value.src = thumb;
+	} else {
+		if (state.loaded) {
+			imgRef.value.src = props.src;
+		}
+	}
+});
 
 // s 组件状态信息
 const state = reactive({
@@ -272,12 +295,6 @@ export type ImgReadyInfo = {
 
 // f 加载图片
 const loadImage = async (src: string, thumb: string = "") => {
-	const img = new Image();
-	img.decoding = "async";
-	// img.referrerPolicy = "strict-origin-when-cross-origin";
-	// img.referrerPolicy = "no-referrer";
-	img.referrerPolicy = "no-referrer-when-downgrade";
-
 	// ? 定义：图片显示函数
 	const handleShow = () => {
 		if (imgRef.value) {
@@ -293,7 +310,7 @@ const loadImage = async (src: string, thumb: string = "") => {
 
 			/**
 			 * ! 由于Fancybox的一些特殊作用使用该组件可能会把这三个dom设置为display:none;
-			 * ? 因此手动设置dispaly
+			 * ? 因此手动设置 display
 			 */
 			fixStyleBug();
 		} else {
@@ -302,6 +319,19 @@ const loadImage = async (src: string, thumb: string = "") => {
 			state.isError = false;
 		}
 	};
+
+	// 当外部确认缩略图作为最终显示图像时，直接加载缩略图
+	if (props.useThumb && thumb != "" && props.useThumbAsFinal) {
+		// 由于是缩略图因此不向外抛出事件
+		handleShow();
+		return;
+	}
+
+	const img = new Image();
+	img.decoding = "async";
+	// img.referrerPolicy = "strict-origin-when-cross-origin";
+	// img.referrerPolicy = "no-referrer";
+	img.referrerPolicy = "no-referrer-when-downgrade";
 
 	// ? 将图片赋值给img对象(开始加载)
 	img.src = src;
@@ -421,8 +451,8 @@ async function generateThumbnail<T = File | string>(
 				resolve();
 			}
 		};
-		img.onerror = function (_error) {
-			// console.warn(error);
+		img.onerror = function (error) {
+			console.warn(error);
 			resolve(source);
 		};
 
@@ -456,102 +486,105 @@ async function generateThumbnail<T = File | string>(
 // ? 自定义指令
 const vLazy: Directive = {
 	mounted: () => {
-		setTimeout(() => {
-			let src: string = props.src; // 默认使用原图
-
-			if (props.initShow) {
-				loadImage(src);
-				return;
-			}
-
-			if (!!slots.default || !src) {
-				// ? 用户向默认传入内容，则直接完成加载逻辑
-				state.loaded = true;
-				state.show = true;
-				state.isError = !!slots.default ? false : !src;
-				// ? 触发loaded事件,同时返回 info 对象
-				emits("loaded", {
-					meta: {
-						aspectRatio: 0,
-						height: 0,
-						width: 0,
-						valid: true,
-					},
-				});
-				return;
-			}
-
-			// 监听回调
-			const handleIntersection = async (
-				entries: IntersectionObserverEntry[]
-			) => {
-				// console.log(entries[0]);
-				if (entries[0].isIntersecting) {
-					// ? 判断是否只监听一次
-					if (props.observerOnce) {
-						// 停止监听
-						observer.disconnect();
-					}
-
-					// 判断是否已经被加载过了
-					if (state.loaded) {
-						// 如果已经被加载就让其显示
-						state.show = true;
-						return;
-					}
-
-					let thumb = props.thumb;
-					// 这里判断是否使用缩略图
-					if (props.useThumb) {
-						// s 使用缩略图
-						if (thumb) {
-							// console.log("存在缩略图", thumb);
-							// 如果缩略图存在,就使用缩略图
-							src = thumb;
-						} else {
-							try {
-								// 如果没有缩略图,就使用原图生成
-								const res = await generateThumbnail(
-									props.src,
-									props.thumbMaxSize,
-									props.thumbMaxSize
-								);
-								if (typeof res === "string") {
-									thumb = res;
-								}
-								if (typeof res === "object" && res.thumbnail) {
-									thumb = res.thumbnail;
-								}
-							} catch {
-								thumb = props.thumb;
-							}
-						}
-					}
-					// 执行加载函数
-					loadImage(src, thumb);
-				} else {
-					state.show = false; // 标记为不可见
-				}
-			};
-
-			// 配置 IntersectionObserver
-			const options: IntersectionObserverInit = {
-				root: props.viewport,
-				rootMargin: props.viewRootMargin,
-				threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
-			};
-
-			// 创建 IntersectionObserver
-			const observer = new IntersectionObserver(handleIntersection, options);
-			// 开始监听
-			if (containerDOM.value) {
-				observer.observe(containerDOM.value);
-			} else {
-				// console.log("图片监听失效，未找到组件container");
-			}
-		}, 0);
+		useIntersectionObserver();
 	},
 };
+
+// 使用 IntersectionObserver 监听图片是否在可视范围内
+function useIntersectionObserver() {
+	setTimeout(() => {
+		let src: string = props.src; // 默认使用原图
+
+		if (props.initShow) {
+			loadImage(src);
+			return;
+		}
+
+		if (!!slots.default || !src) {
+			// ? 用户向默认传入内容，则直接完成加载逻辑
+			state.loaded = true;
+			state.show = true;
+			state.isError = !!slots.default ? false : !src;
+			// ? 触发loaded事件,同时返回 info 对象
+			emits("loaded", {
+				meta: {
+					aspectRatio: 0,
+					height: 0,
+					width: 0,
+					valid: true,
+				},
+			});
+			return;
+		}
+
+		// 监听回调
+		const handleIntersection = async (entries: IntersectionObserverEntry[]) => {
+			// console.log(entries[0]);
+			if (entries[0].isIntersecting) {
+				// ? 判断是否只监听一次
+				if (props.observerOnce) {
+					// 停止监听
+					observer.disconnect();
+				}
+
+				// 判断是否已经被加载过了
+				if (state.loaded) {
+					// 如果已经被加载就让其显示
+					state.show = true;
+					return;
+				}
+
+				// 默认不使用缩略图
+				let thumb = "";
+				// 这里判断是否使用缩略图
+				if (props.useThumb) {
+					// s 使用缩略图
+					if (props.thumb) {
+						// 如果缩略图存在,就使用缩略图
+						thumb = props.thumb;
+					} else {
+						try {
+							// 如果没有缩略图,就使用原图生成
+							const res = await generateThumbnail(
+								props.src,
+								props.thumbMaxSize,
+								props.thumbMaxSize
+							);
+							if (typeof res === "string") {
+								thumb = res;
+							}
+							if (typeof res === "object" && res.thumbnail) {
+								thumb = res.thumbnail;
+							}
+						} catch {
+							thumb = props.thumb;
+						}
+					}
+				}
+				// 执行加载函数
+				loadImage(src, thumb);
+			} else {
+				state.show = false; // 标记为不可见
+			}
+		};
+
+		// 配置 IntersectionObserver
+		const options: IntersectionObserverInit = {
+			root: props.viewport,
+			rootMargin: props.viewRootMargin,
+			threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
+		};
+
+		// 创建 IntersectionObserver
+		const observer = new IntersectionObserver(handleIntersection, options);
+		// 开始监听
+		if (containerDOM.value) {
+			observer.observe(containerDOM.value);
+		} else {
+			// console.log("图片监听失效，未找到组件container");
+		}
+	}, 0);
+}
 </script>
 
 <style lang="scss" scoped>
@@ -568,6 +601,28 @@ const vLazy: Directive = {
 		opacity: 0;
 		visibility: hidden;
 		transition: opacity 0.25s ease-out, visibility 0s linear 0s;
+	}
+
+	/* 图片样式 */
+	img {
+		display: block;
+
+		&:not([width]) {
+			width: 100%;
+		}
+		&:not([height]) {
+			height: auto;
+		}
+
+		padding: 0;
+		border: unset;
+		outline: unset;
+		object-fit: contain;
+		background: transparent;
+		/* 禁止选中文字 */
+		user-select: none;
+		/* 禁止图文拖拽 */
+		-webkit-user-drag: none;
 	}
 }
 
@@ -593,6 +648,7 @@ const vLazy: Directive = {
 .base-img__error-img {
 	position: absolute;
 	inset: 0;
+
 	svg {
 		fill: black;
 		transition: 0.5s ease;
@@ -604,28 +660,6 @@ const vLazy: Directive = {
 			fill: hsl(0, 0%, 80%);
 		}
 	}
-}
-
-/* 图片样式 */
-.base-img__wrap img {
-	display: block;
-
-	&:not([width]) {
-		width: 100%;
-	}
-	&:not([height]) {
-		height: auto;
-	}
-
-	padding: 0;
-	border: unset;
-	outline: unset;
-	object-fit: contain;
-	background: transparent;
-	/* 禁止选中文字 */
-	user-select: none;
-	/* 禁止图文拖拽 */
-	-webkit-user-drag: none;
 }
 
 /* 图片加载动画 */
