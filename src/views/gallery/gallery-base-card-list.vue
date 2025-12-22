@@ -10,6 +10,7 @@
 		<!-- f 普通网格布局 -->
 		<div v-if="layout === 'grid'" style="padding: 10px">
 			<BaseVirtualGrid
+				ref="gridRef"
 				:items="cardList"
 				:gap="4"
 				:columns="state.columns"
@@ -28,6 +29,7 @@
 						@error="handleError"
 						@download="handleDownload"
 						@toggle-favorite="handleToFavorite((item as Card).id, $event)"
+						@dblclick="onCardDbClick((item as Card).id)"
 					/>
 				</template>
 			</BaseVirtualGrid>
@@ -35,6 +37,7 @@
 		<!-- f 瀑布流布局 -->
 		<div v-if="layout === 'waterfall'" style="padding: 10px">
 			<BaseVirtualMasonry
+				ref="masonryRef"
 				:items="virtualMasonryItem"
 				:gap="4"
 				:columns="state.columns"
@@ -51,6 +54,7 @@
 						@loaded="handleLoaded"
 						@download="handleDownload"
 						@toggle-favorite="handleToFavorite((item.data as Card).id, $event)"
+						@dblclick="onCardDbClick((item.data as Card).id)"
 					/>
 				</template>
 			</BaseVirtualMasonry>
@@ -66,6 +70,7 @@ import {
 	useTemplateRef,
 	reactive,
 	onUnmounted,
+	onDeactivated,
 } from "vue";
 import BaseScrollbar from "@/components/base/base-scrollbar.vue";
 import type { ImgReadyInfo } from "@/components/base/base-img.vue";
@@ -74,8 +79,11 @@ import Card from "@/stores/CardStore/class/Card";
 import BaseVirtualGrid from "@/components/base/base-virtual-grid/base-virtual-grid.vue";
 import BaseVirtualMasonry from "@/components/base/base-virtual-masonry/base-virtual-masonry.vue";
 import type { Item as VirtualMasonryItem } from "@/components/base/base-virtual-masonry/type";
-
 import { isEqualUrl, isMobile as judgeIsMobile } from "@/utils/common";
+
+import { Fancybox, configFancybox } from "@/plugin/fancyapps-ui";
+import type { CarouselSlide } from "@fancyapps/ui";
+
 // ? 导入仓库
 import { storeToRefs } from "pinia";
 import { useGlobalStore, useCardStore, useFavoriteStore } from "@/stores";
@@ -108,6 +116,8 @@ const props = withDefaults(
 
 // s 滚动条组件引用
 const scrollBarRef = useTemplateRef("scrollBarRef");
+const gridRef = useTemplateRef("gridRef");
+const masonryRef = useTemplateRef("masonryRef");
 
 // s 组件状态数据
 const state = reactive({
@@ -249,6 +259,123 @@ function onMouseWheel(e: WheelEvent) {
 		}
 	}
 }
+
+// 定义Fancybox的默认类型
+type FancyboxType =
+	| "image"
+	| "iframe"
+	| "youtube"
+	| "html"
+	| "ajax"
+	| "html5video"
+	| "inline"
+	| false;
+
+function getFancyboxType(
+	metaType: false | "image" | "video" | "audio" | "zip" | "html" | "other"
+) {
+	let type: FancyboxType = "iframe";
+	if (!metaType) return type;
+	switch (metaType) {
+		case "image":
+			type = "image";
+			break;
+		case "video":
+			type = "html5video";
+			break;
+		case "html":
+			type = "iframe";
+			break;
+		case "audio":
+		case "zip":
+		case "other":
+		default:
+			type = "inline";
+	}
+
+	return type;
+}
+
+// j 用于FancyBox的Item数据
+const fancyboxItems = computed(() => {
+	return props.cardList.map<Partial<CarouselSlide>>((card, index) => {
+		const aspectRatio = card.source.meta.aspectRatio || 1;
+		let type = getFancyboxType(card.source.meta.type);
+		return {
+			src: card.source.url,
+			aspectRatio:
+				type === "image" || type === "html5video"
+					? `${aspectRatio}`
+					: undefined,
+			thumbSrc: card.preview.url,
+			lazySrc: type === "html5video" ? card.preview.url : undefined,
+			type,
+			index,
+		};
+	});
+});
+
+// f 双击卡片的回调
+async function onCardDbClick(id: string) {
+	openFancybox(id);
+}
+
+// f 打开Fancybox
+async function openFancybox(startId: string) {
+	const index = props.cardList.findIndex((x) => x.id === startId);
+	if (index < 0) return;
+
+	const toolbar =
+		typeof configFancybox.Carousel?.Toolbar === "object"
+			? configFancybox.Carousel?.Toolbar
+			: {};
+
+	Fancybox.show(fancyboxItems.value, {
+		...configFancybox,
+		Carousel: {
+			...configFancybox.Carousel,
+			Toolbar: {
+				...toolbar,
+				items: {
+					...toolbar.items,
+					// f 定位按钮
+					toLocate: {
+						tpl: /*html*/ `
+								<button class="f-button" title="{{TO_LOCATE}}">
+									<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+									<path fill-rule="evenodd" clip-rule="evenodd" d="M12 19C15.866 19 19 15.866 19 12C19 8.13401 15.866 5 12 5C8.13401 5 5 8.13401 5 12C5 15.866 8.13401 19 12 19ZM12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" fill="#222222"/>
+									<path d="M12 5V3" stroke="#222222" stroke-width="2" stroke-linecap="round"/>
+									<path d="M19 12L21 12" stroke="#222222" stroke-width="2" stroke-linecap="round"/>
+									<path d="M12 21L12 19" stroke="#222222" stroke-width="2" stroke-linecap="round"/>
+									<path d="M3 12H5" stroke="#222222" stroke-width="2" stroke-linecap="round"/>
+									</svg>
+								</button>
+							`,
+						click(instance, _e) {
+							const index = instance.getPageIndex();
+							const slides = instance.getSlides();
+							console.log("定位元素", slides[index]);
+							// 关闭 Fancybox
+							Fancybox.close();
+							// 定位元素
+							if (props.layout === "grid") {
+								gridRef.value?.scrollToItem(props.cardList[index].id);
+							} else {
+								masonryRef.value?.scrollToItem(props.cardList[index].id);
+							}
+						},
+					},
+				},
+			},
+		},
+		parentEl: scrollBarRef.value?.$el,
+		startIndex: index,
+		hideScrollbar: false,
+	});
+}
+
+onUnmounted(() => Fancybox.close());
+onDeactivated(() => Fancybox.close());
 </script>
 
 <style lang="scss" scoped>
@@ -281,6 +408,9 @@ function onMouseWheel(e: WheelEvent) {
 					height: 100%;
 				}
 			}
+		}
+		.base-video__container {
+			height: 100%;
 		}
 	}
 }

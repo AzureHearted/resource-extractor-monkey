@@ -130,14 +130,6 @@
 </template>
 
 <script setup lang="ts">
-import {
-	onMounted,
-	onUpdated,
-	onUnmounted,
-	onActivated,
-	onDeactivated,
-	useTemplateRef,
-} from "vue";
 import GalleryToolbar from "./gallery-toolbar.vue";
 import GalleryBaseWaterfall from "./gallery-base-card-list.vue";
 import BaseTabs from "@/components/base/base-tabs/base-tabs.vue";
@@ -152,49 +144,6 @@ const { galleryState } = storeToRefs(globalStore);
 import useCardStore from "@/stores/CardStore";
 const cardStore = useCardStore();
 const { filterCardList, nowType, filters } = storeToRefs(cardStore);
-
-const containerDOM = useTemplateRef("containerDOM");
-// * 导入Fancybox和相关配置
-import { Fancybox, configFancybox } from "@/plugin/fancyapps-ui";
-onMounted(() =>
-	FancyboxBind(
-		containerDOM.value!,
-		"[data-fancybox=web-img-collector]",
-		containerDOM.value!
-	)
-);
-onActivated(() =>
-	FancyboxBind(
-		containerDOM.value!,
-		"[data-fancybox=web-img-collector]",
-		containerDOM.value!
-	)
-);
-onUnmounted(() => Fancybox.destroy());
-onDeactivated(() => Fancybox.destroy());
-
-onUpdated(() => {
-	Fancybox.unbind(containerDOM.value, "[data-fancybox=web-img-collector]");
-	Fancybox.close();
-	FancyboxBind(
-		containerDOM.value!,
-		"[data-fancybox=web-img-collector]",
-		containerDOM.value!
-	);
-});
-
-// f 执行FancyBox绑定
-function FancyboxBind(
-	listContainerDOM?: HTMLElement,
-	itemSelector: string = "[data-fancybox=web-img-collector]",
-	teleportToDOMs?: HTMLElement
-) {
-	Fancybox.bind(listContainerDOM!, itemSelector, {
-		...configFancybox,
-		parentEl: teleportToDOMs ? teleportToDOMs : listContainerDOM,
-		hideScrollbar: false,
-	});
-}
 </script>
 
 <style lang="scss" scoped>

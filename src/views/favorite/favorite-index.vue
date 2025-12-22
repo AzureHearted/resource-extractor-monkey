@@ -200,17 +200,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-	h,
-	ref,
-	reactive,
-	onMounted,
-	onUpdated,
-	onUnmounted,
-	onActivated,
-	onDeactivated,
-	nextTick,
-} from "vue";
+import { h, reactive, onMounted, onActivated, nextTick } from "vue";
 import type { VNodeChild } from "vue";
 import { isMobile } from "@/utils/common";
 import type { SelectOption, SelectRenderTag } from "naive-ui";
@@ -327,50 +317,7 @@ const handleKeywordFilter = (value?: string) => {
 	filterKeyword.value = keyword;
 };
 
-const containerDOM = ref<InstanceType<typeof NFlex> | null>(null);
-//* 导入Fancybox和相关配置
-import { Fancybox, configFancybox } from "@/plugin/fancyapps-ui";
-import toolbarConfig from "@/plugin/fancyapps-ui/toolbar";
-import carouselConfig from "@/plugin/fancyapps-ui/carousel";
-import type { ToolbarOptions } from "@fancyapps/ui";
-onMounted(() =>
-	FancyboxBind(containerDOM.value?.$el, "[data-fancybox=web-img-collector]")
-);
-onActivated(() =>
-	FancyboxBind(containerDOM.value?.$el, "[data-fancybox=web-img-collector]")
-);
-onUnmounted(() => Fancybox.destroy());
-onDeactivated(() => Fancybox.destroy());
-onUpdated(() => {
-	Fancybox.unbind(containerDOM.value?.$el);
-	Fancybox.close();
-	FancyboxBind(containerDOM.value?.$el, "[data-fancybox=web-img-collector]");
-});
-
-// f 执行FancyBox绑定
-function FancyboxBind(
-	listContainerDOM?: HTMLElement,
-	itemSelector: string = "[data-fancybox=web-img-collector]",
-	teleportToDOMs?: HTMLElement
-) {
-	Fancybox.bind(listContainerDOM!, itemSelector, {
-		...configFancybox,
-		parentEl: teleportToDOMs ? teleportToDOMs : listContainerDOM,
-		hideScrollbar: false,
-		Carousel: {
-			...carouselConfig,
-			Toolbar: {
-				...toolbarConfig,
-				display: {
-					...toolbarConfig.display,
-					right: ["thumbs", "close"],
-				} as ToolbarOptions["display"],
-			},
-		},
-	});
-}
-
-// 等待实现: 需要对收藏页面进行多级分类
+// todo 等待实现: 需要对收藏页面进行多级分类
 </script>
 
 <style lang="scss" scoped>
