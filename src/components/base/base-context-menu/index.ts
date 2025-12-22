@@ -21,6 +21,7 @@ type MaybeHTMLElementRef =
 // t 定义菜单项配置
 type BaseContextMenuOptions = {
 	root?: MaybeHTMLElementRef;
+	fontSize?: number;
 };
 
 /**
@@ -64,8 +65,8 @@ export function useBaseContextMenu(options?: BaseContextMenuOptions) {
 		// 重新添加到root元素中
 		rootDOM.value.appendChild(container);
 		// 创建 Vue App 实例
-		menuApp = createApp(ContextMenu);
-		// 挂载组件
+		menuApp = createApp(ContextMenu, { fontSize: options?.fontSize || 16 });
+		// 挂载组件i
 		instance = menuApp.mount(container) as InstanceType<typeof ContextMenu>;
 	}
 

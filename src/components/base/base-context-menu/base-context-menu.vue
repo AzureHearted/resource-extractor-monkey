@@ -13,7 +13,6 @@
 					class="base-context-menu__item"
 					:data-disable="item.disable"
 					@click="handleItemClick($event, index)"
-					@contextmenu.prevent.stop
 				>
 					{{ item.label }}
 				</div>
@@ -25,6 +24,16 @@
 <script lang="ts" setup>
 import { onClickOutside } from "@vueuse/core";
 import { shallowReactive, useTemplateRef } from "vue";
+
+const props = withDefaults(
+	defineProps<{
+		/** 字体大小 @default 14 */
+		fontSize?: number;
+	}>(),
+	{
+		fontSize: 14,
+	}
+);
 
 const contextMenuDOM = useTemplateRef("contextMenuDOM");
 
@@ -182,6 +191,9 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
+* {
+	box-sizing: border-box;
+}
 /* 菜单容器，覆盖全屏，用于点击隐藏 */
 .base-context-menu__overlay {
 	/* 默认隐藏 */
@@ -196,9 +208,10 @@ defineExpose({
 
 /* 菜单本体 */
 .base-context-menu__menu {
+	font-size: calc(v-bind("fontSize") * 1px);
 	position: absolute; /* 绝对定位，由 JS 设置 x, y */
 	list-style: none;
-	padding: 2px;
+	padding: 0.15em;
 	margin: 0;
 	min-width: 150px;
 	border-radius: 4px;
@@ -206,7 +219,6 @@ defineExpose({
 	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 
 	user-select: none;
-	overflow: hidden;
 
 	visibility: hidden;
 	transition: background 0.5s ease, border 0.5s ease, box-shadow 0.5s ease;
@@ -235,7 +247,7 @@ defineExpose({
 
 /* 菜单项 */
 .base-context-menu__item {
-	padding: 8px 15px;
+	padding: 0.5em 0.75em;
 	cursor: pointer;
 	white-space: nowrap;
 	color: black;

@@ -400,6 +400,7 @@ onDeactivated(() => Fancybox.close());
 // 使用函数式组件右键菜单
 const { showContextMenu } = useBaseContextMenu({
 	root: () => scrollBarRef.value?.$el,
+	fontSize: 14,
 });
 
 // f 卡片的右键菜单的回调
