@@ -1,4 +1,6 @@
-// f 降低原先页面中zIndex的值为最大值的元素的zIndex(放置这些元素z-index高于脚本容器)
+/**
+ * 降低原先页面中 `z-index` 的值为最大值的元素的 `z-index` (防止这些元素 `z-index` 值大于脚本页面的值)
+ */
 export function lowerHighZIndex() {
 	// 获取所有具有 z-index 属性的元素
 	const elementsWithZIndex: HTMLElement[] = Array.from(

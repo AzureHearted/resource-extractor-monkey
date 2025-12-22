@@ -1,5 +1,4 @@
-import _getDOM from "./get-dom";
-import _getDOMInfo from "./get-dom-info";
+import getDOM from "./get-dom";
+import getDOMInfo from "./get-dom-info";
 
-export const getDOM = _getDOM;
-export const getDOMInfo = _getDOMInfo;
+export { getDOM, getDOMInfo };
