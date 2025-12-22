@@ -1,6 +1,6 @@
 <template>
 	<BaseScrollbar
-		:disable="!state.showScrollbar"
+		:disable="!state.useCustomScrollbar"
 		show-back-top-button
 		overflow-x="hidden"
 		auto-hidden
@@ -33,6 +33,7 @@
 						@toggle-favorite="handleToggleFavorite(item as Card)"
 						@save:tags="handleTagsSave(item as Card)"
 						@dblclick="onCardDbClick((item as Card).id)"
+						@contextmenu="onCardContextMenu($event, (item as Card).id)"
 					>
 						<template #custom-button="{ openUrl }">
 							<el-button
@@ -75,6 +76,7 @@
 						@toggle-favorite="handleToggleFavorite(item.data as Card)"
 						@save:tags="handleTagsSave(item.data as Card)"
 						@dblclick="onCardDbClick((item.data as Card).id)"
+						@contextmenu="onCardContextMenu($event, (item.data as Card).id)"
 					>
 						<template #custom-button="{ openUrl }">
 							<el-button
@@ -113,11 +115,14 @@ import GalleryCard from "@/components/utils/gallery-card.vue";
 import Card from "@/stores/CardStore/class/Card";
 import type { ImgReadyInfo } from "@/components/base/base-img.vue";
 import { isEqualUrl, isMobile as judgeIsMobile } from "@/utils/common";
+import { useClipboard } from "@vueuse/core";
+import { ElNotification } from "element-plus";
 import { Fancybox, configFancybox } from "@/plugin/fancyapps-ui";
 import type { CarouselSlide } from "@fancyapps/ui";
 
 import { storeToRefs } from "pinia";
 import { useGlobalStore, useCardStore, useFavoriteStore } from "@/stores";
+import { useBaseContextMenu } from "@/components/base/base-context-menu";
 
 const globalStore = useGlobalStore();
 const cardStore = useCardStore();
@@ -150,9 +155,9 @@ const masonryRef = useTemplateRef("masonryRef");
 const state = reactive({
 	// 列数
 	columns: 5,
-	// s 是否显示滚动条
-	showScrollbar: true,
-	// s 移动端标识符
+	// 是否使用自定义滚动条
+	useCustomScrollbar: true,
+	// 移动端标识符
 	isMobile: false,
 	// 断点
 	breakpoints: {
@@ -168,12 +173,12 @@ const state = reactive({
 
 onMounted(() => {
 	state.isMobile = judgeIsMobile();
-	state.showScrollbar = !state.isMobile;
+	state.useCustomScrollbar = !state.isMobile;
 });
 
 onActivated(() => {
 	state.isMobile = judgeIsMobile();
-	state.showScrollbar = !state.isMobile;
+	state.useCustomScrollbar = !state.isMobile;
 });
 
 // j 转为适用于虚拟瀑布流的数据列表
@@ -391,6 +396,81 @@ async function openFancybox(startId: string) {
 
 onUnmounted(() => Fancybox.close());
 onDeactivated(() => Fancybox.close());
+
+// 使用函数式组件右键菜单
+const { showContextMenu } = useBaseContextMenu({
+	root: () => scrollBarRef.value?.$el,
+});
+
+// f 卡片的右键菜单的回调
+async function onCardContextMenu(event: PointerEvent, id: string) {
+	const card = props.cardList.find((x) => x.id === id);
+	if (!card) return;
+	const options: Parameters<typeof showContextMenu>[1] = [
+		{ label: "预览", command: "preview" },
+		{ label: "打开源链接", command: "openSource" },
+		{ label: "复制源链接", command: "copySource" },
+		{ label: "打开预览链接", command: "openPreview" },
+		{ label: "定位来源地址", command: "locateSourceAddress" },
+		{ label: "取消收藏", command: "unfavorite" },
+		{ label: "复制卡片数据", command: "copyCard" },
+		{ label: "下载", command: "download" },
+	] as const;
+
+	type resultType = (typeof options)[number]["command"] | null;
+	const result: resultType = await showContextMenu(event, options as any);
+	if (result) {
+		switch (result) {
+			case "preview":
+				openFancybox(id);
+				break;
+			case "openSource":
+				window.open(card.source.url, "_blank");
+				break;
+			case "openPreview":
+				window.open(card.preview.url, "_blank");
+				break;
+			case "locateSourceAddress":
+				const url = card.source.originUrls![0];
+				if (!url) break;
+				window.open(url, "_blank");
+				break;
+			case "copySource":
+			case "copyCard":
+				const { copy } = useClipboard();
+				copy(
+					result === "copySource"
+						? card.source.url
+						: JSON.stringify(card.getRowData())
+				)
+					.then(() => {
+						ElNotification({
+							type: "success",
+							title: "复制成功",
+							message:
+								result === "copySource"
+									? card.source.url
+									: `卡片数据：${card.description.title}`,
+							appendTo: ".web-img-collector__notification-container",
+						});
+					})
+					.catch(() => {
+						ElNotification({
+							type: "error",
+							title: "复制失败",
+							appendTo: ".web-img-collector__notification-container",
+						});
+					});
+				break;
+			case "unfavorite":
+				handleToggleFavorite(card);
+				break;
+			case "download":
+				handleDownload(id);
+				break;
+		}
+	}
+}
 </script>
 
 <style lang="scss" scoped>

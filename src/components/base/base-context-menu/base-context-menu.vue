@@ -4,7 +4,7 @@
 			ref="contextMenuDOM"
 			class="base-context-menu__menu"
 			:class="{
-				show: state.isVisible
+				show: state.isVisible,
 			}"
 		>
 			<template v-for="(item, index) in state.options" :key="index">
@@ -13,6 +13,7 @@
 					class="base-context-menu__item"
 					:data-disable="item.disable"
 					@click="handleItemClick($event, index)"
+					@contextmenu.prevent.stop
 				>
 					{{ item.label }}
 				</div>
@@ -22,19 +23,19 @@
 </template>
 
 <script lang="ts" setup>
-import { onClickOutside } from '@vueuse/core'
-import { shallowReactive, useTemplateRef } from 'vue'
+import { onClickOutside } from "@vueuse/core";
+import { shallowReactive, useTemplateRef } from "vue";
 
-const contextMenuDOM = useTemplateRef('contextMenuDOM')
+const contextMenuDOM = useTemplateRef("contextMenuDOM");
 
 // 状态数据
 const state = shallowReactive({
 	isVisible: false,
 	transitioning: false,
-	options: [] as Array<MenuOption>
-})
+	options: [] as Array<MenuOption>,
+});
 
-let resolveAction: Function | null = null // 用于存储 Promise 的 resolve 函数
+let resolveAction: Function | null = null; // 用于存储 Promise 的 resolve 函数
 
 /**
  * 外部调用的显示菜单函数
@@ -45,136 +46,139 @@ let resolveAction: Function | null = null // 用于存储 Promise 的 resolve �
 /**
  * 外部调用的显示菜单函数 (优化后)
  */
-function showMenu<T>(e: PointerEvent, menuOptions: Array<MenuOption<T>>): Promise<T | null> {
+function showMenu<T>(
+	e: PointerEvent,
+	menuOptions: Array<MenuOption<T>>
+): Promise<T | null> {
 	// 阻止默认右键菜单
-	e.preventDefault()
+	e.preventDefault();
 
 	// 显示菜单
 	return new Promise(async (resolve) => {
 		// 记录菜单项
-		state.options = menuOptions
+		state.options = menuOptions;
 		// 存储 resolve 函数
-		resolveAction = resolve
-		state.isVisible = true
+		resolveAction = resolve;
+		state.isVisible = true;
 		// 执行flip动画
-		handleShow(e)
-	})
+		handleShow(e);
+	});
 }
 
 // f 显示菜单的flip动画函数
 function handleShow(e: PointerEvent) {
-	const menuDOM = contextMenuDOM.value // 确保这是一个非 null 的 Ref<HTMLElement>
-	if (!menuDOM) return
+	const menuDOM = contextMenuDOM.value; // 确保这是一个非 null 的 Ref<HTMLElement>
+	if (!menuDOM) return;
 
-	const position = { x: e.clientX, y: e.clientY }
+	const position = { x: e.clientX, y: e.clientY };
 	// 记录起始位置
-	menuDOM.style.left = `${position.x}px`
-	menuDOM.style.top = `${position.y}px`
+	menuDOM.style.left = `${position.x}px`;
+	menuDOM.style.top = `${position.y}px`;
 
-	const startPos = { ...position }
+	const startPos = { ...position };
 
 	requestAnimationFrame(() => {
 		// 重新计算位置
-		const { offsetWidth, offsetHeight } = menuDOM
+		const { offsetWidth, offsetHeight } = menuDOM;
 
-		const windowWidth = window.innerWidth
-		const windowHeight = window.innerHeight
+		const windowWidth = window.innerWidth;
+		const windowHeight = window.innerHeight;
 
 		// 防止溢出
 		if (position.y + offsetHeight > windowHeight - 16) {
 			// 计算需要上移的距离，将菜单顶部与新的 Y 坐标对齐
-			position.y = windowHeight - 16 - offsetHeight
+			position.y = windowHeight - 16 - offsetHeight;
 		}
 
 		if (position.x + offsetWidth > windowWidth - 16) {
 			// 计算需要左移的距离
-			position.x = windowWidth - 16 - offsetWidth
+			position.x = windowWidth - 16 - offsetWidth;
 		}
 
 		// 计算差值
-		const diffX = position.x - startPos.x
-		const diffY = position.y - startPos.y
+		const diffX = position.x - startPos.x;
+		const diffY = position.y - startPos.y;
 
 		// 设置动画起始位置
-		menuDOM.style.left = `${position.x}px`
-		menuDOM.style.top = `${position.y}px`
-		menuDOM.style.transform = `translate(${-diffX}px,${-diffY}px) scale(0.8)`
+		menuDOM.style.left = `${position.x}px`;
+		menuDOM.style.top = `${position.y}px`;
+		menuDOM.style.transform = `translate(${-diffX}px,${-diffY}px) scale(0.8)`;
 
 		requestAnimationFrame(() => {
 			// 动画最终位置
-			menuDOM.style.transition = '0.2s ease'
-			menuDOM.style.removeProperty('transform')
-			state.transitioning = true
+			menuDOM.style.transition = "0.2s ease";
+			menuDOM.style.removeProperty("transform");
+			state.transitioning = true;
 			const finished = (e: TransitionEvent) => {
-				if (e.target !== menuDOM) return
-				state.transitioning = false
-				menuDOM.style.removeProperty('transition')
-				menuDOM.removeEventListener('transitionend', finished)
-			}
+				if (e.target !== menuDOM) return;
+				state.transitioning = false;
+				menuDOM.style.removeProperty("transition");
+				menuDOM.removeEventListener("transitionend", finished);
+			};
 
-			menuDOM.addEventListener('transitionend', finished)
-		})
-	})
+			menuDOM.addEventListener("transitionend", finished);
+		});
+	});
 }
 
 // 点击菜单外面区域时隐藏菜单
 onClickOutside(contextMenuDOM, (_e) => {
-	if (state.isVisible) hideMenu()
-})
+	if (state.isVisible) hideMenu();
+});
 
 // 隐藏菜单
 async function hideMenu() {
 	// 如果菜单被隐藏，但 Promise 还没解决，则解决为 null
 	if (resolveAction) {
-		resolveAction(null)
-		resolveAction = null
+		resolveAction(null);
+		resolveAction = null;
 	}
-	handleHide()
+	handleHide();
 }
 
 // f 隐藏菜单的flip动画函数
 async function handleHide() {
-	const menuDOM = contextMenuDOM.value
-	if (!menuDOM) return
+	const menuDOM = contextMenuDOM.value;
+	if (!menuDOM) return;
 	return new Promise(() => {
-		menuDOM.style.opacity = '1'
-		menuDOM.style.transform = `scale(1)`
+		menuDOM.style.opacity = "1";
+		menuDOM.style.transform = `scale(1)`;
 		requestAnimationFrame(() => {
-			menuDOM.style.transition = '0.25s ease, opacity 0.25s ease'
-			menuDOM.style.opacity = '0'
-			menuDOM.style.transform = `scale(0.8)`
+			menuDOM.style.transition = "0.25s ease, opacity 0.25s ease";
+			menuDOM.style.opacity = "0";
+			menuDOM.style.transform = `scale(0.8)`;
 
 			const finished = (e: TransitionEvent) => {
-				if (e.target !== menuDOM) return
-				menuDOM.style.removeProperty('transition')
-				menuDOM.style.removeProperty('transform')
-				menuDOM.style.removeProperty('opacity')
-				menuDOM.removeEventListener('transitionend', finished)
-			}
+				if (e.target !== menuDOM) return;
+				menuDOM.style.removeProperty("transition");
+				menuDOM.style.removeProperty("transform");
+				menuDOM.style.removeProperty("opacity");
+				menuDOM.removeEventListener("transitionend", finished);
+			};
 
-			state.isVisible = false
+			state.isVisible = false;
 
-			menuDOM.addEventListener('transitionend', finished)
-		})
-	})
+			menuDOM.addEventListener("transitionend", finished);
+		});
+	});
 }
 
 // 点击菜单项时触发
 function handleItemClick(event: PointerEvent, index: number) {
-	if (!event.target) return
-	const option = state.options[index]
-	const { command, disable } = option
-	if (disable) return
+	if (!event.target) return;
+	const option = state.options[index];
+	const { command, disable } = option;
+	if (disable) return;
 	if (command && resolveAction) {
-		resolveAction(command) // 解决 Promise，返回选中的命令
-		hideMenu()
+		resolveAction(command); // 解决 Promise，返回选中的命令
+		hideMenu();
 	}
 }
 
 // 暴露 showMenu 方法供外部调用
 defineExpose({
-	showMenu
-})
+	showMenu,
+});
 </script>
 
 <style lang="scss" scoped>
@@ -205,10 +209,7 @@ defineExpose({
 	overflow: hidden;
 
 	visibility: hidden;
-	transition:
-		background 0.5s ease,
-		border 0.5s ease,
-		box-shadow 0.5s ease;
+	transition: background 0.5s ease, border 0.5s ease, box-shadow 0.5s ease;
 
 	&.show {
 		visibility: visible;
@@ -217,7 +218,7 @@ defineExpose({
 
 	/* 菜单背景 */
 	&::before {
-		content: '';
+		content: "";
 		position: absolute;
 		inset: 0;
 		border-radius: inherit;
@@ -249,7 +250,7 @@ defineExpose({
 	}
 
 	/* 禁用时的样式 */
-	&[data-disable='true'] {
+	&[data-disable="true"] {
 		cursor: not-allowed;
 		color: hsla(0, 0%, 60%, 0.75);
 		&:hover {

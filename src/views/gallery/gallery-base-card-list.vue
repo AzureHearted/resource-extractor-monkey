@@ -1,6 +1,6 @@
 <template>
 	<BaseScrollbar
-		:disable="!state.showScrollbar"
+		:disable="!state.useCustomScrollbar"
 		show-back-top-button
 		overflow-x="hidden"
 		auto-hidden
@@ -30,6 +30,7 @@
 						@download="handleDownload"
 						@toggle-favorite="handleToFavorite((item as Card).id, $event)"
 						@dblclick="onCardDbClick((item as Card).id)"
+						@contextmenu="onCardContextMenu($event, (item as Card).id)"
 					/>
 				</template>
 			</BaseVirtualGrid>
@@ -55,6 +56,7 @@
 						@download="handleDownload"
 						@toggle-favorite="handleToFavorite((item.data as Card).id, $event)"
 						@dblclick="onCardDbClick((item.data as Card).id)"
+						@contextmenu="onCardContextMenu($event, (item.data as Card).id)"
 					/>
 				</template>
 			</BaseVirtualMasonry>
@@ -80,13 +82,15 @@ import BaseVirtualGrid from "@/components/base/base-virtual-grid/base-virtual-gr
 import BaseVirtualMasonry from "@/components/base/base-virtual-masonry/base-virtual-masonry.vue";
 import type { Item as VirtualMasonryItem } from "@/components/base/base-virtual-masonry/type";
 import { isEqualUrl, isMobile as judgeIsMobile } from "@/utils/common";
-
+import { useClipboard } from "@vueuse/core";
+import { ElNotification } from "element-plus";
 import { Fancybox, configFancybox } from "@/plugin/fancyapps-ui";
 import type { CarouselSlide } from "@fancyapps/ui";
 
 // ? 导入仓库
 import { storeToRefs } from "pinia";
 import { useGlobalStore, useCardStore, useFavoriteStore } from "@/stores";
+import { useBaseContextMenu } from "@/components/base/base-context-menu";
 
 const globalStore = useGlobalStore();
 const { galleryState } = storeToRefs(globalStore);
@@ -123,8 +127,8 @@ const masonryRef = useTemplateRef("masonryRef");
 const state = reactive({
 	// 列数
 	columns: 5,
-	// 是否显示滚动条
-	showScrollbar: true,
+	// 是否使用自定义滚动条
+	useCustomScrollbar: true,
 	// 移动端标识符
 	isMobile: false,
 	// 断点
@@ -141,12 +145,12 @@ const state = reactive({
 
 onMounted(() => {
 	state.isMobile = judgeIsMobile();
-	state.showScrollbar = !state.isMobile;
+	state.useCustomScrollbar = !state.isMobile;
 });
 
 onActivated(() => {
 	state.isMobile = judgeIsMobile();
-	state.showScrollbar = !state.isMobile;
+	state.useCustomScrollbar = !state.isMobile;
 });
 
 // j 转为适用于虚拟瀑布流的数据列表
@@ -183,7 +187,8 @@ const handleLoaded = async (id: string, info: ImgReadyInfo) => {
 	if (!card) return; // * 如果卡片不存在也不在向下执行
 	if (card.isLoaded) return; // * 如果已经成功加载过了就不在执行
 	card.isLoaded = true; // s 置为加载成功
-	// console.log("卡片加载完成", info, findCard(id));
+	// ? 判断卡片是否被收藏
+	card.isFavorite = await isFavorite(card);
 	// s 刷新仓库对应卡片的preview.meta信息
 	if (info.meta.valid) {
 		card.preview.meta = { ...card.preview.meta, ...info.meta };
@@ -376,6 +381,89 @@ async function openFancybox(startId: string) {
 
 onUnmounted(() => Fancybox.close());
 onDeactivated(() => Fancybox.close());
+
+// 使用函数式组件右键菜单
+const { showContextMenu } = useBaseContextMenu({
+	root: () => scrollBarRef.value?.$el,
+});
+
+// f 卡片的右键菜单的回调
+async function onCardContextMenu(event: PointerEvent, id: string) {
+	const card = props.cardList.find((x) => x.id === id);
+	if (!card) return;
+	const options: Parameters<typeof showContextMenu>[1] = [
+		{ label: "预览", command: "preview" },
+		{
+			label: card.isFavorite ? "取消收藏" : "收藏",
+			command: "favorite",
+		},
+		{ label: "页面中定位", command: "locateInPage" },
+		{ label: "打开源链接", command: "openSource" },
+		{ label: "复制源链接", command: "copySource" },
+		{ label: "打开预览链接", command: "openPreview" },
+		{ label: "复制卡片数据", command: "copyCard" },
+		{ label: "下载", command: "download" },
+	] as const;
+
+	type resultType = (typeof options)[number]["command"] | null;
+	const result: resultType = await showContextMenu(event, options as any);
+	if (result) {
+		switch (result) {
+			case "preview":
+				openFancybox(id);
+				break;
+			case "favorite":
+				handleToFavorite(card.id, !card.isFavorite);
+				break;
+			case "locateInPage":
+				const dom = card.source.dom;
+				if (!dom) return;
+				dom.scrollIntoView({
+					behavior: "smooth",
+					inline: "center",
+					block: "center",
+				});
+				globalStore.openWindow = false;
+				break;
+			case "openSource":
+				window.open(card.source.url, "_blank");
+				break;
+			case "openPreview":
+				window.open(card.preview.url, "_blank");
+				break;
+			case "copySource":
+			case "copyCard":
+				const { copy } = useClipboard();
+				copy(
+					result === "copySource"
+						? card.source.url
+						: JSON.stringify(card.getRowData())
+				)
+					.then(() => {
+						ElNotification({
+							type: "success",
+							title: "复制成功",
+							message:
+								result === "copySource"
+									? card.source.url
+									: `卡片数据：${card.description.title}`,
+							appendTo: ".web-img-collector__notification-container",
+						});
+					})
+					.catch(() => {
+						ElNotification({
+							type: "error",
+							title: "复制失败",
+							appendTo: ".web-img-collector__notification-container",
+						});
+					});
+				break;
+			case "download":
+				handleDownload(id);
+				break;
+		}
+	}
+}
 </script>
 
 <style lang="scss" scoped>
