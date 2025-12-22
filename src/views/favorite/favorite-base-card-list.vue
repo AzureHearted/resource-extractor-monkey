@@ -13,7 +13,8 @@
 				ref="gridRef"
 				:items="cardList"
 				:gap="4"
-				:columns="state.columns"
+				:columns="!state.isMobile ? state.columns : undefined"
+				:breakpoints="state.isMobile ? state.breakpoints : undefined"
 				:allow-item-transition="galleryState.allowTransition"
 				:scroll-container="scrollBarRef?.viewportDOM"
 			>
@@ -57,7 +58,8 @@
 				ref="masonryRef"
 				:items="virtualMasonryItem"
 				:gap="4"
-				:columns="state.columns"
+				:columns="!state.isMobile ? state.columns : undefined"
+				:breakpoints="state.isMobile ? state.breakpoints : undefined"
 				:allow-item-transition="galleryState.allowTransition"
 				:scroll-container="scrollBarRef?.viewportDOM"
 			>
