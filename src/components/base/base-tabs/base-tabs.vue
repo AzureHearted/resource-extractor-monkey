@@ -6,7 +6,7 @@
 				ref="navLeftButton"
 				:data-show="showButtons && tabs.length > 0"
 				class="base-tabs__nav-arrow base-tabs__nav-arrow-left"
-				@click="toggleTab('pre')"
+				@click.stop.prevent="toggleTab('pre')"
 				@transitionend="updateTabBounding()"
 			>
 				<svg
@@ -31,12 +31,13 @@
 				<div
 					ref="tabRefs"
 					class="base-tabs__tab-item"
+					:class="{ active: activeTab === tab.name }"
 					v-for="tab in tabs"
 					:key="tab.id"
 					:style="{
 						pointerEvents: isNavDragging ? 'none' : 'auto',
 					}"
-					@click.prevent="activeTab = tab.name"
+					@click.stop.prevent="activeTab = tab.name"
 				>
 					<!-- 可渲染tab插槽或默认label -->
 					<component :is="tab.labelVNodes" :key="tab.id" />
@@ -47,7 +48,7 @@
 				ref="navRightButton"
 				:data-show="showButtons && tabs.length > 0"
 				class="base-tabs__nav-arrow base-tabs__nav-arrow-right"
-				@click="toggleTab('next')"
+				@click.stop.prevent="toggleTab('next')"
 			>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
@@ -95,16 +96,16 @@ import {
 	nextTick,
 	onMounted,
 	onUnmounted,
+	onActivated,
 	provide,
 	reactive,
-	readonly,
 	ref,
 	shallowReactive,
 	useTemplateRef,
 	watch,
 } from "vue";
 import type { CSSProperties, HTMLAttributes, VNode } from "vue";
-import { symbol_BaseTabs } from "./base-tabs-symbol";
+import { symbol_BaseTabs } from "./symbol";
 import {
 	useDraggable,
 	useElementBounding,
@@ -147,6 +148,12 @@ watch(activeTab, (newValue, oldValue) => {
 		// 当 activeTab 变化时发送 emits
 		emits("change", newValue);
 	}
+
+	if (!oldValue) return;
+	hoverBarTransition.value = "0.5s ease";
+	requestAnimationFrame(() => {
+		hoverBarTransition.value = "unset";
+	});
 });
 
 // t 未注册的tab数据
@@ -219,6 +226,14 @@ function scrollIntoViewToTab(
 	});
 }
 
+// w 组件激活时尝试滚动到激活的tab
+onActivated(() => {
+	requestAnimationFrame(() => {
+		const index = tabs.findIndex((t) => t.name === activeTab.value);
+		scrollIntoViewToTab(index);
+	});
+});
+
 // f tab注册函数
 function registerTab(tab: TabItemRegistered) {
 	if (tabs.length + 1 > MAX_TAB_COUNT) {
@@ -248,7 +263,6 @@ async function updateTab(
 	id: string,
 	{ name: newName, label: newLabel }: Partial<TabItem>
 ) {
-	await nextTick();
 	const tab = tabs.find((t) => t.id === id);
 	if (tab) {
 		// 先记录旧name
@@ -265,27 +279,25 @@ async function updateTab(
 
 // f 取消Tab注册
 async function unregisterTab(id: string) {
-	await nextTick();
 	const index = tabs.findIndex((t) => t.id === id);
 	if (index >= 0) {
 		const [tab] = tabs.splice(index, 1);
 		// 如果删除的是当前激活的tab激活当前index-1位置的tab
 		const preTab = tabs[index - 1];
 		if (tab.name === activeTab.value && preTab) {
-			await nextTick();
 			activeTab.value = preTab.name;
 		}
 		// 如果tab列表为空则active置为空
 		if (!tabs.length) {
-			// await nextTick();
 			activeTab.value = "";
 		}
 
 		// 同步清除缓存
 		tabBoundingCache.delete(tab.name);
 
+		// await nextTick()
 		// 先取消悬浮条的过渡动画
-		hoverBarTransition.value = "";
+		hoverBarTransition.value = "unset";
 		requestAnimationFrame(() => {
 			// 下一帧再回复
 			hoverBarTransition.value = "0.5s ease";
@@ -436,6 +448,7 @@ onMounted(() => {
 
 // f bounding更新函数
 async function updateTabBounding() {
+	// if (state.isFrozen) return
 	await nextTick();
 	navWrapBounding.update();
 	tabBoundingCache.forEach((x) => {
@@ -464,7 +477,7 @@ const activeTabBounding = computed(() => {
 		} else {
 			if (!tabDOMs.value || !tabDOMs.value.length) return;
 			const tabDOM = tabDOMs.value[index];
-			const bounding = useElementBounding(tabDOM);
+			const bounding = useElementBounding(tabDOM, { reset: false });
 			tabBoundingCache.set(name, bounding);
 			return bounding;
 		}
@@ -473,36 +486,32 @@ const activeTabBounding = computed(() => {
 	}
 });
 
-// hoverBar 的过渡属性
-const hoverBarTransition = ref<CSSProperties["transition"]>("");
-onMounted(async () => {
-	await nextTick();
-	hoverBarTransition.value = "0.5s ease";
-});
-
-// 动态计算 hover-bar 尺寸
-const hoverBarPosSize = computed(() => {
+// j 动态计算 hover-bar 尺寸
+const hoverBarStyle = computed<CSSProperties>(() => {
 	// 判断有没有激活元素
 	if (activeTabBounding.value) {
 		const { x, width } = activeTabBounding.value;
 		return {
-			left: x.value - navWrapBounding.x.value,
-			bottom: 0,
-			width: width.value,
-			height: 2,
+			left: `${x.value - navWrapBounding.x.value}px`,
+			bottom: `${0}px`,
+			width: `${width.value}px`,
+			height: `${2}px`,
 		};
 	} else {
-		return { left: 0, bottom: 0, width: 100, height: 2 };
+		return { left: 0, bottom: 0, width: 0, height: 0 };
 	}
 });
+
+// hoverBar 的过渡属性
+const hoverBarTransition = ref<CSSProperties["transition"]>("");
 
 // ? 提供给子组件base-tab-pane使用的方法和属性
 const provideObj = {
 	registerTab,
 	updateTab,
 	unregisterTab,
-	active: readonly(activeTab),
-	tabs: readonly(tabs),
+	active: activeTab,
+	tabs: tabs,
 };
 // 导出提供的provide类型
 export type provideType = typeof provideObj;
@@ -558,10 +567,10 @@ provide(symbol_BaseTabs, provideObj);
 	&::after {
 		content: "";
 		position: absolute;
-		width: calc(v-bind("hoverBarPosSize.width") * 1px);
-		height: calc(v-bind("hoverBarPosSize.height") * 1px);
-		left: calc(v-bind("hoverBarPosSize.left") * 1px);
-		bottom: calc(v-bind("hoverBarPosSize.bottom") * 1px);
+		width: v-bind("hoverBarStyle.width");
+		height: v-bind("hoverBarStyle.height");
+		left: v-bind("hoverBarStyle.left");
+		bottom: v-bind("hoverBarStyle.bottom");
 		background-color: #409eff;
 		transition: v-bind("hoverBarTransition");
 	}
@@ -646,13 +655,15 @@ provide(symbol_BaseTabs, provideObj);
 	text-wrap: nowrap;
 	cursor: pointer;
 	user-select: none;
-	/* background-color: wheat; */
-	/* border: 1px solid wheat; */
+
+	transition: color 0.5s ease;
+	&:hover {
+		color: hsl(210, 100%, 63%);
+	}
 }
 
 .base-tabs__tab-item.active {
-	color: #409eff;
-	/* border-bottom: 2px solid #409eff; */
+	color: hsl(210, 100%, 63%);
 }
 
 .base-tabs__content {

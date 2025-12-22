@@ -11,7 +11,7 @@ import {
 	onUnmounted,
 } from "vue";
 import type { provideType } from "./base-tabs.vue";
-import { symbol_BaseTabs } from "./base-tabs-symbol";
+import { symbol_BaseTabs } from "./symbol";
 
 // 注入base-tabs提供的方法和属性
 const { updateTab, registerTab, unregisterTab, tabs } = inject<provideType>(
