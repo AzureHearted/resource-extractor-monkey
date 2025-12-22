@@ -456,11 +456,6 @@ export default defineStore("FavoriteStore", () => {
 			open().then(() => addCard(cards));
 			return;
 		}
-		// console.log(
-		// 	"添加收藏",
-		// 	cards,
-		// 	cards.map((c) => c.id)
-		// );
 
 		for (const card of cards) {
 			// 判断卡片是否已经存在
@@ -470,9 +465,9 @@ export default defineStore("FavoriteStore", () => {
 				rowCard.isLoaded = false;
 				rowCard.isSelected = false;
 				await store.value.setItem(card.id, rowCard);
-				console.log("成功收藏卡片", card);
+				// console.log("成功收藏卡片", card);
 			} else {
-				console.log("卡片已存在", card);
+				// console.log("卡片已存在", card);
 			}
 		}
 		refreshStore();
@@ -495,7 +490,7 @@ export default defineStore("FavoriteStore", () => {
 			if (!id) continue; //如果id无效就跳过该卡片的更新
 			const rowCard = card.getRowData(); // 获取不带ID的未加工数据
 			await store.value.setItem(id, rowCard);
-			console.log("成功更新卡片", card);
+			// console.log("成功更新卡片", card);
 		}
 		refreshStore();
 	};
@@ -516,7 +511,7 @@ export default defineStore("FavoriteStore", () => {
 			);
 			if (!id) continue; //如果id无效就跳过该卡片的取消收藏
 			await store.value.removeItem(id);
-			console.log("成功从Favorite仓库删除卡片", card);
+			// console.log("成功从Favorite仓库删除卡片", card);
 		}
 		refreshStore();
 	};
@@ -537,7 +532,7 @@ export default defineStore("FavoriteStore", () => {
 			);
 			if (!id) continue; //如果id无效就跳过该卡片的取消收藏
 			await store.value.removeItem(id);
-			console.log("成功取消收藏卡片", card);
+			// console.log("成功取消收藏卡片", card);
 		}
 		refreshStore();
 	};

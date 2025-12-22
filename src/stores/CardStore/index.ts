@@ -577,7 +577,7 @@ export default defineStore("CardStore", () => {
 			})
 				.then(({ value: name }) => {
 					name = legalizationPathString(name);
-					console.log("保存文件名称:", name);
+					// console.log("保存文件名称:", name);
 					// 添加后缀名
 					name =
 						card.source.meta.type !== "html"
@@ -588,7 +588,7 @@ export default defineStore("CardStore", () => {
 					saveAs(card.source.blob!, name);
 				})
 				.catch(() => {
-					console.log("取消操作");
+					// console.log("取消操作");
 				});
 		} else {
 			loadingStore.start(cards.length); // 开启进度条
@@ -620,10 +620,8 @@ export default defineStore("CardStore", () => {
 						appendTo: ".web-img-collector__notification-container",
 					});
 
-					// console.log("全部处理完成", zipContainer);
 					loadingStore.update(0, zipContainer.length);
 					// s 生成压缩包
-					// console.log("准备生成压缩包", zipContainer);
 					const zip: Blob = await zipContainer.generateAsync(
 						{
 							type: "blob",
@@ -631,11 +629,9 @@ export default defineStore("CardStore", () => {
 						},
 						// 压缩的进度回调
 						(metadata) => {
-							// console.log(`压缩进度：${metadata.percent.toFixed(2)}%`);
 							loadingStore.updatePercent(metadata.percent * 0.01);
 						}
 					);
-					// console.log("压缩包生成成功", zip);
 
 					// 下载压缩包
 					// 获取标题
@@ -678,7 +674,7 @@ export default defineStore("CardStore", () => {
 							});
 						})
 						.catch(() => {
-							console.log("取消操作");
+							// console.log("取消操作");
 						});
 
 					loadingStore.end(); // 结束进度条
