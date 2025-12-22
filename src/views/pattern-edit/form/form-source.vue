@@ -6,9 +6,11 @@
 				placeholder="请输入css选择器"
 				clearable>
 				<template v-if="rule.region.enable" #prepend>
-					<n-ellipsis tooltip style="max-width: 100px">
+					<span
+						:title="rule.region.selector"
+						@click="copy(rule.region.selector)">
 						{{ rule.region.selector }}
-					</n-ellipsis>
+					</span>
 				</template>
 			</el-input>
 		</el-form-item>
@@ -28,15 +30,18 @@
 				placeholder="请输入要匹配的属性值名称 (仅在“属性”类型下生效)"
 				clearable></el-input>
 		</el-form-item>
+		<!-- 修正方案 -->
 		<FixFrom :rule="rule" :disable="rule.id.includes('#')" type="source" />
 	</el-form>
 </template>
 
 <script setup lang="ts">
 	import { defineModel } from "vue";
+	import { useClipboard } from "@vueuse/core";
 	import { Rule } from "@/stores/PatternStore/class/Rule";
 
 	import FixFrom from "./card-from-fix.vue";
+	const { copy } = useClipboard();
 	const rule = defineModel("rule", { type: Rule, required: true });
 </script>
 

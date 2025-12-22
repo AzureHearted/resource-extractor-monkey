@@ -1,449 +1,690 @@
 <template>
-	<div
-		ref="containerDOM"
-		class="img__container"
-		:data-width="state.width"
-		:data-height="state.height"
-		:class="{ loading: !state.loaded && show }">
-		<!-- 图片主体 -->
+	<div ref="containerDOM" class="base-img__container">
+		<!-- ? 图片的wrap -->
 		<div
-			class="img__wrap"
+			ref="imgWrapRef"
+			:data-show-loading-animation="showLoadingAnimation"
+			class="base-img__wrap"
+			v-lazy
 			:class="{
-				loading: !state.loaded && show,
-				show: state.show && show,
+				loading: !state.loaded,
+				show: state.show,
 				error: state.isError,
 			}"
-			:style="{ aspectRatio: aspectRatio }">
+		>
+			<!-- ? 默认插槽 (可替换为其他元素) -->
 			<slot>
+				<!-- ? 默认插槽：img元素 -->
 				<img
-					v-if="mounted"
-					v-show="show"
-					ref="imgDOM"
-					v-lazy.src="src"
-					:style="{ aspectRatio: aspectRatio }"
-					:draggable="draggable" />
+					v-if="initShow || mounted"
+					ref="imgRef"
+					:decoding="decoding"
+					:draggable="draggable"
+					v-bind="imageAttrs"
+				/>
+				<div v-if="state.isError" class="base-img__error-img">
+					<svg
+						class="icon"
+						viewBox="0 0 1024 1024"
+						version="1.1"
+						xmlns="http://www.w3.org/2000/svg"
+						p-id="3818"
+					>
+						<path
+							d="M511.744 85.333333a42.666667 42.666667 0 0 1 4.949333 85.034667L511.744 170.666667H213.333333a42.666667 42.666667 0 0 0-42.368 37.674666L170.666667 213.333333v597.333334a42.666667 42.666667 0 0 0 37.674666 42.368L213.333333 853.333333h597.333334a42.666667 42.666667 0 0 0 42.368-37.674666L853.333333 810.666667v-292.693334a42.666667 42.666667 0 0 1 85.034667-4.992l0.298667 4.992V810.666667a128 128 0 0 1-120.490667 127.786666L810.666667 938.666667H213.333333a128 128 0 0 1-127.786666-120.490667L85.333333 810.666667V213.333333a128 128 0 0 1 120.490667-127.786666L213.333333 85.333333h298.410667z"
+							p-id="3819"
+						></path>
+						<path
+							d="M327.253333 506.24a85.333333 85.333333 0 0 1 107.306667-6.570667l5.930667 4.693334 269.952 231.381333a42.666667 42.666667 0 0 1-51.242667 68.010667l-4.266667-3.242667-269.994666-231.381333-228.096 209.109333a42.666667 42.666667 0 0 1-61.397334-59.050667l3.712-3.84 228.138667-209.109333z"
+							p-id="3820"
+						></path>
+						<path
+							d="M669.013333 529.493333a85.333333 85.333333 0 0 1 105.386667-12.16l6.144 4.181334 141.056 105.813333a42.666667 42.666667 0 0 1-46.72 71.210667l-4.48-2.986667-141.056-105.770667-101.845333 101.845334a42.666667 42.666667 0 0 1-63.872-56.32l3.541333-4.010667 101.845333-101.845333zM673.834667 119.296a42.666667 42.666667 0 0 1 56.32-3.541333l4.010666 3.541333 170.666667 170.666667a42.666667 42.666667 0 0 1-56.32 63.872l-4.010667-3.541334-170.666666-170.666666a42.666667 42.666667 0 0 1 0-60.330667z"
+							p-id="3821"
+						></path>
+						<path
+							d="M844.501333 119.296a42.666667 42.666667 0 0 1 63.872 56.32l-3.541333 4.010667-170.666667 170.666666a42.666667 42.666667 0 0 1-63.872-56.32l3.541334-4.010666 170.666666-170.666667z"
+							p-id="3822"
+							data-spm-anchor-id="a313x.search_index.i1.i0.51143a81j4g6g2"
+						></path>
+					</svg>
+				</div>
 			</slot>
 		</div>
-		<!-- 其他内容(插槽) -->
-		<slot name="other"></slot>
+
+		<div class="base-img__other">
+			<!-- ? 插槽：其他内容 -->
+			<slot name="other"></slot>
+		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-	// 导入工具函数
-	import {
-		ref,
-		reactive,
-		computed,
-		onMounted,
-		defineProps,
-		withDefaults,
-		defineEmits,
-		watch,
-		nextTick,
-	} from "vue";
-	import type { Directive } from "vue";
-	// 导入加载错误时的图片
-	const errorImg =
-		"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxZW0iIGhlaWdodD0iMWVtIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGZpbGw9ImN1cnJlbnRDb2xvciIgZD0iTTIgMmgyMHYxMGgtMlY0SDR2OS41ODZsNS01TDE0LjQxNCAxNEwxMyAxNS40MTRsLTQtNGwtNSA1VjIwaDh2Mkgyem0xMy41NDcgNWExIDEgMCAxIDAgMCAyYTEgMSAwIDAgMCAwLTJtLTMgMWEzIDMgMCAxIDEgNiAwYTMgMyAwIDAgMS02IDBtMy42MjUgNi43NTdMMTkgMTcuNTg2bDIuODI4LTIuODI5bDEuNDE1IDEuNDE1TDIwLjQxNCAxOWwyLjgyOSAyLjgyOGwtMS40MTUgMS40MTVMMTkgMjAuNDE0bC0yLjgyOCAyLjgyOWwtMS40MTUtMS40MTVMMTcuNTg2IDE5bC0yLjgyOS0yLjgyOHoiLz48L3N2Zz4=";
-	// 定义props
-	const props = withDefaults(
-		defineProps<{
-			src: string;
-			initWidth?: number;
-			initHeight?: number;
-			useThumb?: boolean;
-			thumb?: string;
-			thumbMaxSize?: number;
-			viewportSelector?: string;
-			viewRootMargin?: IntersectionObserverInit["rootMargin"];
-			observerOnce?: boolean;
-			manualControl?: boolean;
-			draggable?: boolean; // 是否允许拖拽图片
-			initShow?: boolean;
-			show?: boolean; //是否显示图片
-		}>(),
-		{
-			src: "",
-			initWidth: 0,
-			initHeight: 0,
-			useThumb: false,
-			thumb: "",
-			thumbMaxSize: 400,
-			viewportSelector: "",
-			viewRootMargin: "0%",
-			observerOnce: true,
-			manualControl: false,
-			draggable: true, // 默认允许拖拽图片
-			initShow: false,
-			show: true,
-		}
-	);
+// 导入工具函数
+import {
+	ref,
+	reactive,
+	computed,
+	watch,
+	onMounted,
+	useSlots,
+	useAttrs,
+	onUnmounted,
+	useTemplateRef,
+} from "vue";
+import type { Directive, ImgHTMLAttributes } from "vue";
 
-	const mounted = ref(false);
-	onMounted(() => {
-		// console.log("图片组件挂载");
-		nextTick(() => {
-			mounted.value = true;
+defineOptions({
+	name: "base-img",
+	inheritAttrs: false,
+});
+
+// ? 定义props
+const props = withDefaults(
+	defineProps<{
+		/** 图片src */
+		src?: string;
+		/** 使用缩略图 @default false */
+		useThumb?: boolean;
+		/** 缩略图路径 @default "" */
+		thumb?: string;
+		/** 缩略图最大尺寸 (当启用缩略图但没有传入有效 `thumb` 时生效, 会尝试自动生成缩略图，并且生成尺寸由该值决定，默认`400px`,传入`number`类型) @default 400 */
+		thumbMaxSize?: number;
+		/** 当缩略图存在时，是否将其作为最终显示结果（不再请求原图）。(条件：必须在 useThumb 为 true 时生效) @default false	*/
+		useThumbAsFinal?: boolean;
+		/** 监听视口 (用于设定监听视口，用于图片懒加载) */
+		viewport?: IntersectionObserverInit["root"];
+		/** 监听视口的Margin */
+		viewRootMargin?: IntersectionObserverInit["rootMargin"];
+		/** 是否只监听一次 (默认：true) */
+		observerOnce?: boolean;
+		/** 手动控制 (图片加载成功后是否手动控制图片的显示，如果为true则在@loaded的回调函数中会携带show方法供外部调用) */
+		manualControl?: boolean;
+		/** 是否在初始状态（图片可能还未加载）就展示组件 @default false */
+		initShow?: boolean;
+		/** 是否允许拖拽图片 @default false */
+		draggable?: boolean;
+		/** img标签的 decoding 属性 */
+		decoding?: ImgHTMLAttributes["decoding"];
+		/** 显示加载动画 */
+		showLoadingAnimation?: boolean;
+	}>(),
+	{
+		src: "",
+		useThumb: false,
+		thumb: "",
+		thumbMaxSize: 400,
+		observerOnce: true,
+		manualControl: false,
+		draggable: true, // 默认允许拖拽图片
+		initShow: false,
+		decoding: "auto",
+		showLoadingAnimation: true,
+	}
+);
+
+// ? 定义emits
+const emits = defineEmits<{
+	loaded: [info: ImgReadyInfo];
+	mounted: [];
+	error: [];
+}>();
+
+// ? 用户传入的属性
+const attrs = useAttrs();
+
+// j 要传给img标签的属性
+const imageAttrs = computed(() => {
+	return attrs;
+});
+
+// ? 用户传入的插槽
+const slots = useSlots();
+
+// s 组件挂载标识符
+const mounted = ref(false);
+
+// s 组件挂载时执行
+onMounted(() => {
+	mounted.value = true;
+	emits("mounted");
+});
+
+// ? 组件容器Ref
+const containerDOM = useTemplateRef("containerDOM");
+
+// ? 监听src的变化
+watch(
+	() => props.src,
+	(newSrc, _oldSrc) => {
+		// ? src发生变化时重新调用图片加载函数
+		if (!slots?.default) loadImage(newSrc);
+	}
+);
+
+watch([() => props.useThumb, () => props.thumb], ([useThumb, thumb], [,]) => {
+	if (!imgRef.value) return;
+	if (useThumb && thumb) {
+		imgRef.value.src = thumb;
+	} else {
+		if (state.loaded) {
+			imgRef.value.src = props.src;
+		}
+	}
+});
+
+// s 组件状态信息
+const state = reactive({
+	isError: false,
+	loaded: false,
+	show: false,
+});
+
+// ? imgWrap的Ref
+const imgWrapRef = useTemplateRef("imgWrapRef");
+
+// s imgWarp尺寸数据
+const imgWrapDimensions = ref({ width: 0, height: 0 }); // ⬅️ 新的响应式依赖
+
+// ? 监听器
+let observer: ResizeObserver | null = null;
+
+// ? 组件挂载时对imgWrap进行监听
+onMounted(() => {
+	if (imgWrapRef.value) {
+		// 实例化 ResizeObserver
+		observer = new ResizeObserver((entries) => {
+			// 每次尺寸变化时，更新响应式数据
+			const { width, height } = entries[0].contentRect;
+			imgWrapDimensions.value = { width, height };
+			if (!state.loaded || !state.show) {
+				fixStyleBug();
+			}
 		});
-	});
+		observer.observe(imgWrapRef.value);
+		fixStyleBug();
+	}
+});
 
-	//s 组件容器DOM
-	const containerDOM = ref<HTMLElement | null>(null);
-	//j 视口容器DOM
-	const viewportDom = computed<IntersectionObserverInit["root"]>(() => {
-		if (props.viewportSelector.trim()) {
-			return document.querySelector(props.viewportSelector);
-		} else {
-			return null;
+/**
+ * * 修复与Fancyapps/ui 的 FancyBox 可能的冲突
+ * 未知情况下 Fancyapps/ui 可能会将下面几个dom元素设置为 display:none
+ */
+function fixStyleBug() {
+	requestAnimationFrame(() => {
+		if (containerDOM.value) {
+			containerDOM.value.style.display = "block";
+		}
+		if (imgWrapRef.value) {
+			imgWrapRef.value.style.display = "block";
+		}
+		if (imgRef.value) {
+			imgRef.value.style.display = "block";
 		}
 	});
+}
 
-	//w 监听传入的src变化,变化时立即重新加载
-	watch(
-		() => props.src,
-		(newSrc) => {
-			// console.log("src变化", newSrc, oldSrc);
-			if (mounted.value) {
-				loadImage(newSrc);
-			}
-		}
-	);
+// ? 当组件卸载时取消监听
+onUnmounted(() => {
+	observer?.disconnect();
+});
 
-	//s 定义状态
-	const state = reactive({
-		errorImg: errorImg,
-		width: props.initWidth,
-		height: props.initHeight,
-		isError: ref(false),
-		loaded: ref(props.initShow),
-		show: ref(props.initShow),
-	});
+// j 计算属性: imgWarp 最小尺寸
+const minWarpSize = computed(() => {
+	const { width, height } = imgWrapDimensions.value;
+	// console.log(width, height);
+	// 当 wrapDimensions 变化时，这里会自动重新计算
+	return Math.min(width, height);
+});
 
-	//j 宽高比
-	const aspectRatio = computed(() => {
-		if (state.isError) {
-			return props.initWidth && props.initHeight
-				? props.initWidth / props.initHeight
-				: 1;
-		} else {
-			return state.width && state.height ? state.width / state.height : 1;
-		}
-	});
+// j 计算属性: 圆形进度条的宽度动态值
+const circleLoadingWidth = computed(() => {
+	// const { width, height } = imgWrapDimensions.value;
+	const minSize = minWarpSize.value;
+	if (minSize <= 16) {
+		return minSize * 0.15;
+	} else if (minSize <= 32) {
+		return minSize * 0.1;
+	} else if (minSize <= 64) {
+		return minSize * 0.07;
+	} else if (minSize <= 128) {
+		return minSize * 0.04;
+	} else if (minSize <= 256) {
+		return minSize * 0.03;
+	} else if (minSize <= 512) {
+		return minSize * 0.02;
+	} else {
+		return minSize * 0.015;
+	}
+});
 
-	//s 图片DOM
-	const imgDOM = ref<HTMLImageElement | null>(null);
+// j 计算属性: 圆形进度条的尺寸
+const circleLoadingSize = computed(() => {
+	// const { width, height } = imgWrapDimensions.value;
+	const minSize = minWarpSize.value;
+	if (minSize <= 16) {
+		return minSize * 0.6;
+	} else if (minSize <= 32) {
+		return minSize * 0.4;
+	} else if (minSize <= 64) {
+		return minSize * 0.4;
+	} else if (minSize <= 128) {
+		return minSize * 0.35;
+	} else if (minSize <= 256) {
+		return minSize * 0.25;
+	} else {
+		return minSize * 0.2;
+	}
+});
 
-	//t 返回值类型定义
-	export type returnInfo = {
-		meta: {
-			valid: boolean;
-			width: number;
-			height: number;
-			aspectRatio: number; // 宽高比
-			[key: string]: any;
-		};
-		dom?: HTMLImageElement;
-		load?: Function;
+// ? img标签的Ref
+const imgRef = useTemplateRef("imgRef");
+
+// ? 图片准备成功后的信息
+export type ImgReadyInfo = {
+	meta: {
+		valid: boolean;
+		width: number;
+		height: number;
+		aspectRatio: number;
+		[key: string]: any;
 	};
+	dom?: HTMLImageElement | null;
+	load?: Function;
+};
 
-	// 定义事件
-	const emit = defineEmits<{
-		(e: "loaded", info: returnInfo): void;
-		(e: "error"): void;
-	}>();
+// f 加载图片
+const loadImage = async (src: string, thumb: string = "") => {
+	// ? 定义：图片显示函数
+	const handleShow = () => {
+		if (imgRef.value) {
+			imgRef.value.src = thumb != "" ? thumb : src;
 
-	//f 加载图片
-	const loadImage = async (src: string) => {
-		// console.log("src", src);
-		const img = new Image();
-		// img.referrerPolicy = "no-referrer-when-downgrade";
-		// img.referrerPolicy = "no-referrer-when-downgrade";
-		// 图片加载函数
-		const handleLoad = () => {
-			// console.log(imgDom.value);
-			if (imgDOM.value) {
-				imgDOM.value.src = src;
-				nextTick(() => {
-					imgDOM.value!.style.display = "block";
+			imgRef.value.onload = () => {
+				requestAnimationFrame(() => {
+					state.loaded = true;
+					state.show = true;
+					state.isError = false;
 				});
-			}
+			};
+
+			/**
+			 * ! 由于Fancybox的一些特殊作用使用该组件可能会把这三个dom设置为display:none;
+			 * ? 因此手动设置 display
+			 */
+			fixStyleBug();
+		} else {
 			state.loaded = true;
 			state.show = true;
 			state.isError = false;
-		};
+		}
+	};
 
-		// 将图片赋值给img对象(开始加载)
-		img.src = src;
-		if (img.complete) {
-			// console.log("图片已经加载过了", img.naturalWidth, img.naturalHeight);
+	// 当外部确认缩略图作为最终显示图像时，直接加载缩略图
+	if (props.useThumb && thumb != "" && props.useThumbAsFinal) {
+		// 由于是缩略图因此不向外抛出事件
+		handleShow();
+		return;
+	}
 
-			state.width = img.naturalWidth;
-			state.height = img.naturalHeight;
+	const img = new Image();
+	img.decoding = "async";
+	// img.referrerPolicy = "strict-origin-when-cross-origin";
+	// img.referrerPolicy = "no-referrer";
+	img.referrerPolicy = "no-referrer-when-downgrade";
 
-			let info: returnInfo = {
+	// ? 将图片赋值给img对象(开始加载)
+	img.src = src;
+
+	img
+		.decode()
+		.then(() => {
+			const { naturalWidth, naturalHeight } = img;
+
+			// console.log("图片解码成功", { naturalWidth, naturalHeight });
+
+			let { loaded, isError, show, ...infoRest } = state;
+
+			// 对剩余的属性进行类型标注
+			let info: ImgReadyInfo = {
 				meta: {
 					valid: true,
-					width: img.naturalWidth,
-					height: img.naturalHeight,
-					aspectRatio: img.naturalWidth / img.naturalHeight, // 宽高比.
+					width: naturalWidth,
+					height: naturalHeight,
+					aspectRatio: naturalWidth / naturalHeight,
+					...infoRest,
 				},
+				dom: img,
 			};
 
-			// 判断是否需要用户手动加载
+			// ? 判断是否需要用户手动加载
 			if (!props.manualControl) {
-				// 如果用户不需要手动加载就立即加载
-				handleLoad();
+				// ? 如果用户不需要手动加载就立即加载
+				handleShow();
 				// 触发loaded事件
-				emit("loaded", info);
+				emits("loaded", info);
 				return;
 			}
 
-			info.load = handleLoad;
-			emit("loaded", info);
-		} else {
-			// console.log("首次加载图片");
+			// ? 用户需要手动加载则在 info 上添加 load 方法
+			info.load = handleShow;
+			emits("loaded", info);
+		})
+		.catch(() => {
+			if (img.complete) {
+				// console.log("已经加载过", src);
 
-			// f 当图片加载成功时
-			img.addEventListener(
-				"load",
-				() => {
-					// console.log("加载成功", dom);
-					// console.log("图片首次加载成功！", src);
-					// 记录图片的宽高信息
-					state.width = img.naturalWidth;
-					state.height = img.naturalHeight;
-
-					// eslint-disable-next-line @typescript-eslint/no-unused-vars
-					let { loaded, isError, show, ...infoRest } = state;
-
-					// 对剩余的属性进行类型标注
-					let info: returnInfo = {
-						meta: {
-							valid: true,
-							...infoRest,
-							aspectRatio: infoRest.width / infoRest.height, // 宽高比.
-						},
-					};
-
-					// 判断是否需要用户手动加载
-					if (!props.manualControl) {
-						// 如果用户不需要手动加载就立即加载
-						handleLoad();
-						// 触发loaded事件
-						emit("loaded", info);
-						return;
-					}
-
-					// 返回dom和load函数
-					// info.dom = dom;
-					info.load = handleLoad; // 如果需要手动加载就将该方法返回
-					// 触发loaded事件,同时返回info对象
-					emit("loaded", info);
-				},
-				{ once: true }
-			);
-
-			// f 当图片加载错误时
-			img.addEventListener(
-				"error",
-				() => {
-					console.log("图片加载错误", src);
-					state.isError = true;
-					state.loaded = true;
-					imgDOM.value!.src = state.errorImg;
-					// 触发error事件
-					emit("error");
-				},
-				{ once: true }
-			);
-		}
-	};
-
-	// 异步生成缩略图并返回结果
-	async function generateThumbnail(
-		source: File | string,
-		maxWidth: number,
-		maxHeight: number
-	): Promise<string | null> {
-		return new Promise((resolve, reject) => {
-			const img = new Image();
-			img.onload = function () {
-				const canvas = document.createElement("canvas");
-				const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-				let width = img.width;
-				let height = img.height;
-				if (width > height) {
-					if (width > maxWidth) {
-						height *= maxWidth / width;
-						width = maxWidth;
-					}
-				} else {
-					if (height > maxHeight) {
-						width *= maxHeight / height;
-						height = maxHeight;
-					}
+				// * 当图片已经加载过
+				let info: ImgReadyInfo = {
+					meta: {
+						valid: true,
+						width: img.naturalWidth,
+						height: img.naturalHeight,
+						aspectRatio: img.naturalWidth / img.naturalHeight, // 宽高比.
+					},
+					dom: img,
+				};
+				// ? 判断是否需要外部手动加载
+				if (!props.manualControl) {
+					// ? 如果外部不需要手动加载就立即加载
+					handleShow();
+					emits("loaded", info);
+					return;
 				}
-				canvas.width = width;
-				canvas.height = height;
-				ctx.drawImage(img, 0, 0, width, height);
-				const thumbnail = canvas.toDataURL("image/jpeg");
-				resolve(thumbnail);
-			};
-			img.onerror = function (error) {
-				reject(error);
-			};
-
-			if (typeof source === "string") {
-				img.src = source; // 如果 source 是 URL，则直接设置图片的 src
-			} else if (source instanceof File) {
-				const reader = new FileReader();
-				reader.onload = function (event) {
-					// 防止event.target为null
-					if (!event.target || !event.target.result) {
-						resolve(null);
-						return;
-					}
-					// 如果 source 是文件对象，则先读取文件再设置图片的 src
-					img.src = event.target.result as string;
-				};
-				reader.onerror = function () {
-					resolve(null);
-				};
-				reader.readAsDataURL(source);
+				// ? 用户需要手动加载则在 info 上添加 load 方法
+				info.load = handleShow;
+				emits("loaded", info);
 			} else {
-				resolve(null);
+				// * 当图片加载错误时
+				console.warn("图片加载错误", src);
+				state.isError = true;
+				state.loaded = true;
+				emits("error");
 			}
 		});
-	}
+};
 
-	// 自定义指令
-	const vLazy: Directive = {
-		mounted: () => {
-			// console.log("图片挂载", el.src, el);
-			// 将任务放入宏队列(防止有些时候交叉检测失败的bug)
-			setTimeout(() => {
-				let src: string = props.src; // 默认使用原图
-				const handleIntersection = async (
-					entries: IntersectionObserverEntry[]
-				) => {
-					// console.log(entries[0].isIntersecting);
-					if (entries[0].isIntersecting) {
-						// 判断是否只监听一次
-						if (props.observerOnce) {
-							// 停止监听
-							observer.disconnect();
-						}
-						// 判断是否已经被加载过了
-						if (state.loaded) {
-							// 如果已经被加载就让其显示
-							state.show = true;
-							return;
-						}
+// f 异步生成缩略图并返回结果
+async function generateThumbnail<T = File | string>(
+	source: T,
+	maxWidth: number,
+	maxHeight: number
+): Promise<{ img: HTMLImageElement; thumbnail?: string } | T | void> {
+	return new Promise((resolve) => {
+		const img = new Image();
 
-						// 这里判断是否使用缩略图
-						if (props.useThumb) {
-							// s 使用缩略图
-							if (props.thumb) {
-								// console.log("存在缩略图", props.thumb);
-								// 如果缩略图存在,就使用缩略图
-								src = props.thumb;
-							} else {
-								// 如果没有缩略图,就使用原图生成
-								const res = await generateThumbnail(
-									props.src,
-									props.thumbMaxSize,
-									props.thumbMaxSize
-								);
-								if (res) {
-									src = res;
-								}
-							}
-						}
-						// 执行加载函数
-						loadImage(src);
-					} else {
-						state.show = false; // 标记为不可见
-					}
-				};
+		img.crossOrigin = "anonymous"; // 必须在设置 src 之前
+		// img.decoding = "async";
 
-				// 创建 IntersectionObserver
-				const options: IntersectionObserverInit = {
-					root: viewportDom.value,
-					rootMargin: props.viewRootMargin,
-				};
-				// console.log(viewportDom.value);
-				const observer = new IntersectionObserver(handleIntersection, options);
-				// 开始监听
-				if (containerDOM.value) {
-					observer.observe(containerDOM.value);
-				} else {
-					console.log("图片监听失效,可能未找到imgContainer");
+		img.onload = function () {
+			const canvas = document.createElement("canvas");
+			const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+			let width = img.width;
+			let height = img.height;
+
+			if (width < maxWidth && height < maxHeight) {
+				// ? 如果img尺寸小于 maxWidth 和 maxHeight 则直接返回原本的 source
+				resolve({ img });
+			}
+
+			if (width > height) {
+				if (width > maxWidth) {
+					height *= maxWidth / width;
+					width = maxWidth;
 				}
+			} else {
+				if (height > maxHeight) {
+					width *= maxHeight / height;
+					height = maxHeight;
+				}
+			}
+			canvas.width = width;
+			canvas.height = height;
+			ctx.drawImage(img, 0, 0, width, height);
+			let thumbnail = "";
+			try {
+				thumbnail = canvas.toDataURL("image/jpeg");
+				// ? 成功后返回成功生成的base64字符串
+				resolve({ img, thumbnail });
+			} catch {
+				// ? 如果失败则返回直接返回传入的source
+				resolve();
+			}
+		};
+		img.onerror = function (error) {
+			console.warn(error);
+			resolve(source);
+		};
+
+		if (typeof source === "string") {
+			// ? 如果 source 是 URL，则直接设置图片的 src
+			img.src = source;
+		} else if (source instanceof File) {
+			// ? 如果是 File 对象则先读取文件再设置图片的 src
+			const reader = new FileReader();
+			reader.onload = function (event) {
+				// 防止event.target为null
+				if (!event.target || !event.target.result) {
+					// ? 如果失败则返回直接返回传入的source
+					resolve(source);
+					return;
+				}
+				img.src = event.target.result as string;
+			};
+			reader.onerror = function () {
+				// ? 如果失败则返回直接返回传入的source
+				resolve(source);
+			};
+			reader.readAsDataURL(source);
+		} else {
+			// ? 如果类型错误直接返回传入的source
+			resolve(source);
+		}
+	});
+}
+
+// ? 自定义指令
+const vLazy: Directive = {
+	mounted: () => {
+		useIntersectionObserver();
+	},
+};
+
+// 使用 IntersectionObserver 监听图片是否在可视范围内
+function useIntersectionObserver() {
+	setTimeout(() => {
+		let src: string = props.src; // 默认使用原图
+
+		if (props.initShow) {
+			loadImage(src);
+			return;
+		}
+
+		if (!!slots.default || !src) {
+			// ? 用户向默认传入内容，则直接完成加载逻辑
+			state.loaded = true;
+			state.show = true;
+			state.isError = !!slots.default ? false : !src;
+			// ? 触发loaded事件,同时返回 info 对象
+			emits("loaded", {
+				meta: {
+					aspectRatio: 0,
+					height: 0,
+					width: 0,
+					valid: true,
+				},
 			});
-		},
-	};
+			return;
+		}
+
+		// 监听回调
+		const handleIntersection = async (entries: IntersectionObserverEntry[]) => {
+			// console.log(entries[0]);
+			if (entries[0].isIntersecting) {
+				// ? 判断是否只监听一次
+				if (props.observerOnce) {
+					// 停止监听
+					observer.disconnect();
+				}
+
+				// 判断是否已经被加载过了
+				if (state.loaded) {
+					// 如果已经被加载就让其显示
+					state.show = true;
+					return;
+				}
+
+				// 默认不使用缩略图
+				let thumb = "";
+				// 这里判断是否使用缩略图
+				if (props.useThumb) {
+					// s 使用缩略图
+					if (props.thumb) {
+						// 如果缩略图存在,就使用缩略图
+						thumb = props.thumb;
+					} else {
+						try {
+							// 如果没有缩略图,就使用原图生成
+							const res = await generateThumbnail(
+								props.src,
+								props.thumbMaxSize,
+								props.thumbMaxSize
+							);
+							if (typeof res === "string") {
+								thumb = res;
+							}
+							if (typeof res === "object" && res.thumbnail) {
+								thumb = res.thumbnail;
+							}
+						} catch {
+							thumb = props.thumb;
+						}
+					}
+				}
+				// 执行加载函数
+				loadImage(src, thumb);
+			} else {
+				state.show = false; // 标记为不可见
+			}
+		};
+
+		// 配置 IntersectionObserver
+		const options: IntersectionObserverInit = {
+			root: props.viewport,
+			rootMargin: props.viewRootMargin,
+			threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
+		};
+
+		// 创建 IntersectionObserver
+		const observer = new IntersectionObserver(handleIntersection, options);
+		// 开始监听
+		if (containerDOM.value) {
+			observer.observe(containerDOM.value);
+		} else {
+			// console.log("图片监听失效，未找到组件container");
+		}
+	}, 0);
+}
 </script>
 
 <style lang="scss" scoped>
-	.img__container {
-		position: relative;
-		box-sizing: border-box; // 盒子模型，确保边框不会影响内容的大小。
-		// background: rgba(0, 0, 0, 0.5);
-		background: transparent;
-		* {
-			box-sizing: border-box;
-		}
+.base-img__container {
+	box-sizing: border-box; // 盒子模型，确保边框不会影响内容的大小。
+	* {
+		box-sizing: border-box;
 	}
-	.img__wrap {
-		opacity: 0; //默认不显示
-		transition: 0.5s ease-out; // 添加过渡效果
-	}
-	// 加载中的样式
-	.img__wrap.loading {
+}
+
+.base-img__wrap {
+	img {
+		/** 默认不显示 */
 		opacity: 0;
+		visibility: hidden;
+		transition: opacity 0.25s ease-out, visibility 0s linear 0s;
 	}
-	// 加载完成且可见的样式
-	.img__wrap.show {
-		opacity: 1;
-	}
-	// 加载错误的样式
-	.img__wrap.error {
-		transform: scale(0.8);
-		opacity: 0.5;
-		object-fit: contain;
-	}
+
+	/* 图片样式 */
 	img {
 		display: block;
-		width: 100%;
-		height: auto;
+
+		&:not([width]) {
+			width: 100%;
+		}
+		&:not([height]) {
+			height: auto;
+		}
+
 		padding: 0;
+		border: unset;
+		outline: unset;
+		object-fit: contain;
 		background: transparent;
 		/* 禁止选中文字 */
 		user-select: none;
 		/* 禁止图文拖拽 */
 		-webkit-user-drag: none;
-		transition: 0.5s ease-out; // 添加过渡效果
 	}
+}
 
-	/* 图片加载动画 */
-	.img__container.loading::before {
+// 加载完成且可见的样式
+.base-img__wrap.show {
+	img {
+		opacity: 1;
+		visibility: visible;
+		transition: opacity 0.25s ease-in, visibility 0s linear 0s;
+	}
+}
+// 加载错误的样式
+.base-img__wrap.error {
+	img {
+		opacity: 0;
+		transform: scale(0.8);
+		border: unset;
+		object-fit: contain;
+	}
+}
+
+/* 加载错误时候的图标样式 */
+.base-img__error-img {
+	position: absolute;
+	inset: 0;
+
+	svg {
+		fill: black;
+		transition: 0.5s ease;
+	}
+	/* 暗黑主题切换 */
+	@media (prefers-color-scheme: dark) {
+		/** 暗黑模式样式 */
+		svg {
+			fill: hsl(0, 0%, 80%);
+		}
+	}
+}
+
+/* 图片加载动画 */
+.base-img__wrap[data-show-loading-animation="true"] {
+	position: relative;
+	&.loading::before {
 		content: "";
 		position: absolute;
 		top: 50%;
 		left: 50%;
 		transform: translate(-50%, -50%);
-		width: 30%;
-		// height: 50%;
+
+		width: calc(v-bind(circleLoadingSize) * 1px);
 		aspect-ratio: 1;
-		max-width: 80%;
-		max-height: 80%;
-		border: 5px solid #ccc;
+
+		$border-width: calc(v-bind(circleLoadingWidth) * 1px);
+
+		border: $border-width solid #ccc;
+
 		border-radius: 50%;
 		border-top-color: #007bff;
-		animation: spin 1s linear infinite; /* 旋转动画 */
+		animation: spin 0.5s linear infinite; /* 旋转动画 */
 		z-index: 100;
 	}
+
 	/* 图片加载动画定义 */
 	@keyframes spin {
 		0% {
@@ -453,4 +694,5 @@
 			transform: translate(-50%, -50%) rotate(360deg);
 		}
 	}
+}
 </style>

@@ -6,7 +6,6 @@ import type {
 	CardSource,
 	BaseState,
 } from "../interface";
-import { buildUUID } from "@/utils/common";
 import type { BaseCardRowData } from "../interface/base-card";
 
 export type ICard = Partial<BaseCard> & BaseState;
@@ -30,11 +29,10 @@ export default class Card implements ICard {
 	};
 	public tags: string[];
 
-	public isMatch: boolean = false;
 	public isSelected: boolean = false;
 	public isLoaded: boolean = false;
 	public isFavorite: boolean = false;
-	public loading: boolean = false;
+	public downloading: boolean = false;
 
 	// 构造函数
 	constructor(option?: Partial<BaseCard>) {
@@ -43,20 +41,18 @@ export default class Card implements ICard {
 			source,
 			preview,
 			description,
-			isMatch,
 			isFavorite,
-			loading,
+			downloading,
 			isLoaded,
 			isSelected,
 			tags,
 		} = option || {};
 		// 初始化卡片对象属性
-		this.id = id || buildUUID(); // 生成uuid作为id
-		this.isMatch = isMatch || this.isMatch;
+		this.id = id || crypto.randomUUID(); // 生成uuid作为id
 		this.isSelected = isSelected || this.isSelected;
 		this.isLoaded = isLoaded || this.isLoaded;
 		this.isFavorite = isFavorite || this.isFavorite;
-		this.loading = loading || this.loading;
+		this.downloading = downloading || this.downloading;
 		this.tags = tags || [];
 		// 合并用户初始化传入的值，如果有的话。
 		this.source = { ...this.source, ...source };

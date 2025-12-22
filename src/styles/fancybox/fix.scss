@@ -1,26 +1,59 @@
 // 修复Fancybox的ToolBar中图标遮挡了点击事件的bug
-.fancybox__toolbar button > svg {
-	// pointer-events: none;
-	z-index: -1;
-}
-.fancybox__toolbar .fancybox__infobar:not(:first-child):not(:last-child) {
-	background: unset;
-}
+// .fancybox__toolbar button > svg {
+// 	// pointer-events: none;
+// 	z-index: -1;
+// }
+// .fancybox__toolbar .fancybox__infobar:not(:first-child):not(:last-child) {
+// 	background: unset;
+// }
 
-.fancybox__content:has(.fancybox__iframe) {
-	padding: unset;
-}
+// .fancybox__content:has(.fancybox__iframe) {
+// 	padding: unset;
+// }
 
-.f-thumbs__slide {
-	display: unset !important;
-}
+// .f-thumbs__slide {
+// 	display: unset !important;
+// }
 
-.fancybox__html5video {
-	display: block !important;
-}
+// .fancybox__html5video {
+// 	display: block !important;
+// }
 
-.web-img-collector-container {
-	.f-button {
+// .web-img-collector__container {
+// 	.f-button {
+// 		background: unset;
+// 	}
+// }
+
+.fancybox__dialog {
+	.fancybox__container {
+		--fancybox-backdrop-bg: rgba(24, 24, 27, 0.95);
+	}
+	.fancybox__container[theme="light"] {
+		--fancybox-backdrop-bg: rgba(255, 255, 255, 0.9);
+	}
+
+	.has-iframe .f-html {
+		padding: 0;
+		width: 95%;
+		height: 95%;
+		box-shadow: 0 0 10px inset black;
+	}
+
+	.has-html5video .f-html {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 95%;
+		height: 95%;
+		max-width: unset;
+		max-height: unset;
 		background: unset;
+
+		.fancybox__html5video {
+			display: block !important;
+			max-width: 100%;
+			max-height: 100%;
+		}
 	}
 }

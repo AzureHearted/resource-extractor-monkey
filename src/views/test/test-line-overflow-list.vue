@@ -24,7 +24,6 @@
 
 <script setup lang="ts">
 	import BaseLineOverflowList from "@/components/base/base-line-overflow-list.vue";
-	import { buildUUID } from "@/utils/common";
 	import { ref, reactive, onMounted } from "vue";
 
 	interface Tag {
@@ -35,7 +34,7 @@
 		[...Array(6).keys()].map(() => {
 			return {
 				label: `标签${(Math.random() * 100).toFixed(0)}`,
-				id: buildUUID(),
+				id: crypto.randomUUID(),
 			};
 		})
 	);
@@ -43,7 +42,7 @@
 	const addTag = () => {
 		tags.value.push({
 			label: `标签${(Math.random() * 100).toFixed(0)}`,
-			id: buildUUID(),
+			id: crypto.randomUUID(),
 		});
 	};
 </script>

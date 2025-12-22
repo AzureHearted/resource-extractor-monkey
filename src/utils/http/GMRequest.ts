@@ -20,6 +20,7 @@ interface GmResponseTypeMap {
 	stream: ReadableStream<Uint8Array>;
 }
 
+// f GM_xmlhttpRequest的二次封装
 // 功能实现
 // 函数重载，允许调用GMRequest时强制指定responseType
 export function GMRequest<ResponseType extends keyof GmResponseTypeMap>(
@@ -32,9 +33,7 @@ export function GMRequest(
 	}
 ): Promise<any | null>;
 // 函数实现
-export async function GMRequest(
-	options: IGMRequestOptions
-): Promise<any | null> {
+export function GMRequest(options: IGMRequestOptions): Promise<any | null> {
 	// 默认选项
 	const defaultOptions: IGMRequestOptions = {
 		url: "",
@@ -92,5 +91,30 @@ export async function GMRequest(
 				},
 			});
 		})();
+	});
+}
+
+// f 获取链接对应的内容类型
+export function getContentType(url: string): Promise<string> {
+	console.count("getContentType");
+	return new Promise((resolve, reject) => {
+		GM_xmlhttpRequest({
+			method: "HEAD",
+			url: url,
+			onload: function (response) {
+				// console.log(response);
+				if (response.status >= 200 && response.status < 300) {
+					const contentType = response.responseHeaders.match(
+						/(?<=content-type: ?)(.+)/gi
+					);
+					resolve(contentType ? contentType[0].trim() : "unknown");
+				} else {
+					reject(`[getContentType] HTTP请求错误！状态码: ${response.status}`);
+				}
+			},
+			onerror: function (error) {
+				reject(`发生错误： ${error}`);
+			},
+		});
 	});
 }

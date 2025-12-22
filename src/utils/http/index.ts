@@ -1,7 +1,7 @@
-import { getHostByUrl, isUrl } from "../common";
+import { getHostByUrl, isBase64Img, isUrl } from "../common";
 import { GMRequest } from "./GMRequest";
 
-// 通过链接获取blob
+// f 通过链接获取blob
 export function getBlobByUrl(
 	url: string,
 	mode: "Fetch" | "GM" = "Fetch",
@@ -59,12 +59,13 @@ export function getBlobByUrl(
 	}
 }
 
-// 通过链接获取blob(自动)
+// f 通过链接获取blob(自动)
 export async function getBlobByUrlAuto(url: string): Promise<Blob | null> {
 	// console.log("请求", url);
-	//s 链接为空直接返回空blob
+	// s 链接为空直接返回空blob
 
-	if (!url || !url.trim().length || !isUrl(url)) return null;
+	if (!url || !url.trim().length || !(isUrl(url) || isBase64Img(url)))
+		return null;
 
 	// 尝试获取blob
 	const blob = await tryGetBlob(url, [
@@ -84,7 +85,7 @@ export async function getBlobByUrlAuto(url: string): Promise<Blob | null> {
 	return blob;
 }
 
-// 尝试获取Blob(通过传入的请求队列一次请求blob,一旦成功就直接返回结果)
+// f 尝试获取Blob(通过传入的请求队列一次请求blob,一旦成功就直接返回结果)
 async function tryGetBlob(
 	url: string,
 	// 尝试队列
@@ -109,7 +110,7 @@ async function tryGetBlob(
 		// 		request.referer
 		// 	},请求结果:${!!blob}`,
 		// 	type: "info",
-		// 	appendTo: ".web-img-collector-notification-container",
+		// 	appendTo: ".web-img-collector__notification-container",
 		// });
 		// 如果第一次失败且url去除查询语句后于与去除后不相同，则进行一次对去除查询语句后的url的请求
 		if (!blob && url !== urlUnSearch) {
@@ -121,7 +122,7 @@ async function tryGetBlob(
 			// 		request.referer
 			// 	},请求结果:${!!blob}`,
 			// 	type: "info",
-			// 	appendTo: ".web-img-collector-notification-container",
+			// 	appendTo: ".web-img-collector__notification-container",
 			// });
 		}
 		// 一旦成功就跳出循环
@@ -130,4 +131,19 @@ async function tryGetBlob(
 	// console.log("请求结果blob:", blob);
 
 	return blob;
+}
+
+// f 获取链接对应的HTML对象
+export function getHTMLDocumentFromUrl(url: string): Promise<Document | null> {
+	return new Promise((resolve) => {
+		GMRequest({ url, responseType: "document" })
+			.then((res) => {
+				// console.log("获取链接对应的HTML对象：", res);
+				resolve(res);
+			})
+			.catch((_err) => {
+				// console.log("获取链接对应的HTML对象(出错)", err);
+				resolve(null);
+			});
+	});
 }

@@ -13,6 +13,7 @@ export default async function getDOMInfo(
 	name: string
 ) {
 	let result = "";
+	// console.log("getDOMInfo日志：", type, name, dom);
 	switch (type) {
 		case "value":
 			// 处理值的情况
@@ -43,7 +44,7 @@ export default async function getDOMInfo(
 	}
 	// 最后判断匹配结果是否是路径(或者路径的一部分)
 	if (isUrl(result)) {
-		result = urlCompletion(result); //s 路径补全
+		result = urlCompletion(result); // s 路径补全
 	}
 	return result;
 }
@@ -60,29 +61,39 @@ const valueElements = [
 ];
 
 // 获取元素的值
-function getDOMValue(dom: HTMLElement) {
+function getDOMValue(dom: HTMLElement | null) {
+	if (!dom) return "";
 	// 判断DOM类型
 	return valueElements.includes(dom.constructor as any)
 		? (dom as any).value
 		: "";
 }
 // 获取元素的attribute属性值
-function getDOMAttribute(dom: HTMLElement, _name: string) {
+function getDOMAttribute(dom: HTMLElement | null, _name: string) {
+	if (!dom) return "";
 	let value = "";
 	// 拆分name判断是否有多个值
 	const names = _name.split("|");
 	// 对每个值进行匹配
 	for (let i = 0; i < names.length; i++) {
 		const name = names[i];
-		let temp = dom.getAttribute(name);
-		//s 判断是否不为空
-		if (!!temp && !!temp.trim().length) {
-			// 对匹配srcset时的特殊处理
-			if (name === "srcset") {
-				//s srcset属性信息的处理方式
-				temp = getSrcsetMaximumValue(temp);
+		let temp: string | null = null;
+		if (name === "src" || name === "href" || name === "srcset") {
+			// ! 是否是和链接相关的属性(如：src、href、srcset) 则使用property方式获取
+			temp = getDOMProperty(dom, name);
+			// s 判断是否不为空
+			if (!!temp && !!temp.trim().length) {
+				// 对匹配srcset时的特殊处理
+				if (name === "srcset") {
+					// s srcset属性信息的处理方式
+					temp = getSrcsetMaximumValue(temp);
+				}
 			}
-			value = temp || "";
+		} else {
+			temp = dom.getAttribute(name);
+		}
+		if (temp) {
+			value = temp;
 			break;
 		}
 	}
@@ -90,7 +101,8 @@ function getDOMAttribute(dom: HTMLElement, _name: string) {
 }
 
 // 获取元素的property属性值
-function getDOMProperty(dom: HTMLElement, _name: string) {
+function getDOMProperty(dom: HTMLElement | null, _name: string) {
+	if (!dom) return "";
 	let value = "";
 	// 拆分name判断是否有多个值
 	const names = _name.split("|");
@@ -100,11 +112,11 @@ function getDOMProperty(dom: HTMLElement, _name: string) {
 		// 判断元素上是否有该属性
 		let temp;
 		temp = dom[name as keyof HTMLElement] as string;
-		//s 判断是否不为空
+		// s 判断是否不为空
 		if (!!temp && !!temp.trim().length) {
 			// 对匹配srcset时的特殊处理
 			if (name === "srcset") {
-				//s srcset属性信息的处理方式
+				// s srcset属性信息的处理方式
 				temp = getSrcsetMaximumValue(temp);
 			}
 			value = temp || "";
@@ -114,7 +126,7 @@ function getDOMProperty(dom: HTMLElement, _name: string) {
 	return value;
 }
 
-//f [功能封装] 获取srcset内容最大值
+// f [功能封装] 获取srcset内容最大值
 function getSrcsetMaximumValue(srcsetString: string) {
 	let result = srcsetString;
 	if (/\d+(w|x)/.test(srcsetString)) {
@@ -123,10 +135,14 @@ function getSrcsetMaximumValue(srcsetString: string) {
 			.filter((item) => !!item && !!item.trim().length)
 			.map((item) => {
 				const itemDataInfos = item.split(" ");
+				// console.log(itemDataInfos);
 				if (itemDataInfos.length == 2) {
+					const sizeList = itemDataInfos[1].split(/w|x/i);
+					const size = sizeList ? sizeList[0] : 0;
+					// console.log("size", size);
 					return {
 						url: itemDataInfos[0],
-						resolution: Number(itemDataInfos[1].split(/w|W/)[0]),
+						resolution: size,
 					};
 				} else {
 					return {
@@ -141,7 +157,7 @@ function getSrcsetMaximumValue(srcsetString: string) {
 			if (maxItem.resolution < item.resolution) {
 				maxItem = item;
 			}
-		}); //s选区最大尺寸的链接
+		}); // s选区最大尺寸的链接
 		result = maxItem.url;
 	}
 	return result;
@@ -153,7 +169,7 @@ function isUrl(str: string) {
 	return v.test(str);
 }
 
-//f url路径补全
+// f url路径补全
 function urlCompletion(_url: string): string {
 	const v1 = /^\/[^/].*$/i; // 匹配以斜杠开头，斜杠后不是斜杠的字符串
 	const v2 = /^\/\/.*$/i; // 匹配以两个斜杠开头，后面跟任意字符的字符串

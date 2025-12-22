@@ -10,7 +10,6 @@ import type {
 	BaseStatus,
 	BaseRuleRowData,
 } from "../interface/Pattern";
-import { buildUUID } from "@/utils/common";
 
 export class Rule implements BaseRule {
 	public readonly id: string;
@@ -53,7 +52,7 @@ export class Rule implements BaseRule {
 	public backup: BaseRuleRowData | null = null;
 
 	constructor(options?: Partial<BaseRule>) {
-		this.id = options?.id || buildUUID();
+		this.id = options?.id || crypto.randomUUID();
 		if (options?.enable !== undefined) {
 			this.enable = options?.enable;
 		}
@@ -154,25 +153,36 @@ export class Rule implements BaseRule {
 		}
 	}
 
-	// 添加修正方法
+	// 新增修正方法
 	public addFixItem(
 		matchItem: "source" | "preview" | "description",
 		type: BaseFix["type"]
 	) {
 		let fixItem: BaseFix;
-		if (type === "regex-extract") {
-			fixItem = {
-				type,
-				expression: "",
-				flags: [],
-			};
-		} else {
-			fixItem = {
-				type,
-				expression: "",
-				flags: [],
-				replaceTo: "",
-			};
+		switch (type) {
+			case "regex-extract":
+				fixItem = {
+					type,
+					expression: "",
+					flags: [],
+				};
+				break;
+			case "regex-replace":
+				fixItem = {
+					type,
+					expression: "",
+					flags: [],
+					replaceTo: "",
+				};
+				break;
+			case "fetch-page-and-extract-content":
+				fixItem = {
+					type,
+					selector: "",
+					infoType: "property",
+					name: "",
+				};
+				break;
 		}
 		this[matchItem].fix.push(fixItem);
 	}
