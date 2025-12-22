@@ -9,6 +9,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     BaseCard: typeof import('./../src/components/base/base-card.vue')['default']
     BaseCheckbox: typeof import('./../src/components/base/base-checkbox.vue')['default']
+    BaseContextMenu: typeof import('./../src/components/base/base-context-menu/base-context-menu.vue')['default']
     BaseDock: typeof import('./../src/components/base/base-dock.vue')['default']
     BaseDrag: typeof import('./../src/components/base/base-drag.vue')['default']
     BaseDragDialog: typeof import('./../src/components/base/base-drag-dialog.vue')['default']
