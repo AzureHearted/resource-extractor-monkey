@@ -436,25 +436,6 @@ const tags = computed<Tag[]>(() => {
 	});
 });
 
-// j 描述标签
-const description = computed<string>(() => {
-	const row = data.value.description.title.trim();
-	const key = props.highlightKey?.trim();
-	let reg: RegExp | undefined;
-	if (key && row.includes(key)) {
-		reg = new RegExp(key, "gi");
-	}
-	if (reg) {
-		return row.replace(reg, function (k) {
-			return /*html*/ `
-					<span class="highlight-keywords" >${k}</span>
-				`;
-		});
-	} else {
-		return row;
-	}
-});
-
 // 定义Fancybox的默认类型
 type FancyboxType =
 	| "image"
