@@ -7,9 +7,9 @@
 			class="base-img__wrap"
 			v-lazy
 			:class="{
-				loading: !state.loaded,
-				show: state.show,
-				error: state.isError,
+				'base-img__loading': !state.loaded,
+				'base-img__show': state.show,
+				'base-img__error': state.isError,
 			}"
 		>
 			<!-- ? 默认插槽 (可替换为其他元素) -->
@@ -627,7 +627,7 @@ function useIntersectionObserver() {
 }
 
 // 加载完成且可见的样式
-.base-img__wrap.show {
+.base-img__wrap.base-img__show {
 	img {
 		opacity: 1;
 		visibility: visible;
@@ -635,7 +635,7 @@ function useIntersectionObserver() {
 	}
 }
 // 加载错误的样式
-.base-img__wrap.error {
+.base-img__wrap.base-img__error {
 	img {
 		opacity: 0;
 		transform: scale(0.8);
@@ -665,7 +665,7 @@ function useIntersectionObserver() {
 /* 图片加载动画 */
 .base-img__wrap[data-show-loading-animation="true"] {
 	position: relative;
-	&.loading::before {
+	&.base-img__loading::before {
 		content: "";
 		position: absolute;
 		top: 50%;

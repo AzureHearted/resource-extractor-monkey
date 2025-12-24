@@ -22,7 +22,7 @@ import Main from "./layout-main.vue";
 let containerDOM = useTemplateRef("containerDOM");
 
 onMounted(() => {
-	console.log(containerDOM.value);
+	// console.log(containerDOM.value);
 	if (globalStore.openWindow) {
 		if (!containerDOM.value) return;
 		containerDOM.value.show();
