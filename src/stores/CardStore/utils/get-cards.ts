@@ -19,9 +19,9 @@ import {
 	isUrl,
 	safeDecodeURI,
 } from "@/utils/common";
-import type { Task } from "@/utils/taskQueue";
 import { getHTMLDocumentFromUrl } from "@/utils/http";
 import { useParallelTask } from "@/hooks/useParallelTask";
+import type { Task } from "@/hooks/useParallelTask";
 
 // 配置接口
 interface Options {
