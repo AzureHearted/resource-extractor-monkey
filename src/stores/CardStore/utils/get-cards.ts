@@ -19,12 +19,14 @@ import {
 	isUrl,
 	safeDecodeURI,
 } from "@/utils/common";
-import { TaskQueue } from "@/utils/taskQueue";
 import type { Task } from "@/utils/taskQueue";
 import { getHTMLDocumentFromUrl } from "@/utils/http";
+import { useParallelTask } from "@/hooks/useParallelTask";
 
 // 配置接口
 interface Options {
+	/** 要排除的祖先选择器 */
+	excludeParentSelectors?: string[];
 	// 当获取到所有DOM时的回调
 	onAllDOMGet: (doms: HTMLElement[]) => Promise<HTMLElement[]>;
 	// 每当有一个卡片获取到的时候的回调
@@ -44,12 +46,7 @@ interface Options {
  * @param options 选项
  * @returns
  */
-export default async function getCard(
-	rule: BaseRule,
-	options: Partial<Options>
-) {
-	// console.log("当前规则", rule);
-
+export default function getCard(rule: BaseRule, options: Partial<Options>) {
 	// 默认配置
 	const defaultOptions: Options = {
 		onAllDOMGet: async (doms) => doms,
@@ -58,24 +55,16 @@ export default async function getCard(
 	};
 	// 合并配置
 	options = { ...defaultOptions, ...options };
-	const { onAllDOMGet, onCardGet, onFinished } = options as Options;
+	const {
+		onAllDOMGet,
+		onCardGet,
+		onFinished,
+		excludeParentSelectors = [],
+	} = options as Options;
 
 	return new Promise<void>(async (resolve) => {
-		// 创建任务队列
-		const taskQueue = new TaskQueue<Card>({
-			interval: 10,
-			maxConcurrent: 1,
-			// * 所有任务执行完成后调用resolve
-			onAllTasksComplete: () => {
-				onFinished();
-				resolve();
-			},
-		});
-
-		let stopFlag = false;
-
 		// 卡片列表
-		const cardList: Card[] = [];
+		const newCardList: Card[] = [];
 		// 任务列表
 		const taskList: Task<Card>[] = [];
 		// dom列表
@@ -88,6 +77,7 @@ export default async function getCard(
 			// 区域DOM元素列表
 			let regionDOMs = getDOM(rule.region.selector, {
 				mode: "all",
+				excludeParentSelectors,
 			}) as HTMLElement[];
 
 			if (!regionDOMs) return;
@@ -106,17 +96,32 @@ export default async function getCard(
 				// ? 定义任务
 				const task: Task<Card> = {
 					handle: async () => {
-						if (stopFlag) return new Card();
-
+						// console.time(`任务：${i}`);
 						// s source的匹配
+						// console.timeLog(`任务：${i}`, "获取source信息");
+						// console.log("source的匹配……");
 						const source = await handleRegionGetInfo<CardSource>({
 							rule: rule.source,
 							regionDOM,
 							callback: async (value, dom) => {
 								dom = dom || regionDOM;
 								// 元信息获取
+								// console.timeLog(
+								// 	`任务：${i}`,
+								// 	"获取source信息 => 尝试通过DOM获取元信息"
+								// );
 								let meta = await getMeta(dom, { url: value }); // 获取元信息(通过dom)
 								if (!meta.valid) {
+									try {
+										meta.type = inferUrlType(new URL(value));
+									} catch {}
+								}
+								// 如果还是获取到无效的元信息，则尝试通过url获取元信息 (前提是规则中没有启用 preview 匹配功能)
+								if (!meta.valid && !rule.preview.enable) {
+									// console.timeLog(
+									// 	`任务：${i}`,
+									// 	"获取source信息 => 尝试通过Url获取元信息"
+									// );
 									meta = await getMeta(value); // 获取元信息(通过可能是url的匹配结果)
 								}
 								if (!meta.ext) {
@@ -131,9 +136,11 @@ export default async function getCard(
 							},
 						});
 						// s preview的匹配
+						// console.log("preview的匹配……");
 						let preview: CardPreview;
 						// 判断是否启用匹配preview
 						if (rule.preview.enable) {
+							// console.timeLog(`任务：${i}`, "获取preview信息");
 							// 判断是否指定了来源DOM
 							let targetDOM: HTMLElement | null | false = false; //默认不指定
 							if (rule.preview.origin === "region") {
@@ -147,33 +154,39 @@ export default async function getCard(
 								regionDOM,
 								targetDOM,
 								callback: async (value, dom) => {
-									// console.log("preview.url", value);
 									// 如果sourceDOM不存在，则使用当前区域DOM作为sourceDOM。
 									dom = dom || source.dom || regionDOM;
 									// 如果preview.url为空，则尝试使用source.url作为preview.url，因为可能没有预览图，只有链接。
 									value = value.trim() || source.url;
 									// 先修正内容
 									value = await fixResult(value, rule.preview.fix);
-									if (value !== source.url) {
+									if (value === source.url && source.meta.valid) {
+										return {
+											url: value,
+											dom,
+											meta: { ...source.meta },
+										};
+									} else {
 										// 元信息获取
+										// console.timeLog(
+										// 	`任务：${i}`,
+										// 	"获取preview信息 => 尝试通过DOM获取元信息"
+										// );
 										let meta = await getMeta(dom, { url: value }); // 获取元信息(通过dom)
 										if (!meta.valid) {
+											// console.timeLog(
+											// 	`任务：${i}`,
+											// 	"获取preview信息 => 尝试通过Url获取元信息"
+											// );
 											meta = await getMeta(value); // 获取元信息(通过可能是url的匹配结果)
 										}
 										if (!meta.ext) {
 											meta.ext = getExtByUrl(value);
 										}
-										// console.log(meta);
 										return {
 											url: value,
 											dom,
 											meta,
-										};
-									} else {
-										return {
-											url: value,
-											dom,
-											meta: { ...source.meta },
 										};
 									}
 								},
@@ -184,7 +197,7 @@ export default async function getCard(
 								url: source.url,
 								dom: source.dom,
 								meta: {
-									...source.meta!,
+									...source.meta,
 								},
 							};
 							// 对preview进行进一步处理
@@ -200,17 +213,11 @@ export default async function getCard(
 							}
 							if (!preview.meta.ext) {
 								preview.meta.ext = getExtByUrl(preview.url);
-								//TODO 这里由于使用油猴的API，在部分IOS的油猴脚本环境中可能无法正常调用(暂时弃用)
-								// if (!preview.meta.ext) {
-								// 	const { subType } = getMIMEinfo(
-								// 		await getContentType(preview.url)
-								// 	);
-								// 	preview.meta.ext = subType;
-								// }
 							}
 						}
 
 						// s description的匹配
+						// console.timeLog(`任务：${i}`, "获取description信息");
 						let description: CardDescription;
 						if (rule.description.enable) {
 							// 判断是否指定了来源DOM
@@ -282,8 +289,7 @@ export default async function getCard(
 
 						// f 创建卡片
 						const card = new Card({ source, preview, description });
-
-						// console.log(card.source.meta, card.preview.meta);
+						// console.timeLog(`任务：${i}`, `创建卡片`, card);
 
 						// ? 触发回调
 						onCardGet(
@@ -292,16 +298,15 @@ export default async function getCard(
 							regionDOM,
 							// ? 传出函数用给外部判断是否要添加该卡片
 							async () => {
-								cardList.push(card);
+								newCardList.push(card);
 							},
 							// ? 传出函数用给外部判断是否终止操作
 							() => {
-								taskQueue.stop();
-								stopFlag = true;
-								resolve();
+								stop();
 							}
 						);
 
+						// console.timeEnd(`任务：${i}`);
 						return card;
 					},
 				};
@@ -313,6 +318,7 @@ export default async function getCard(
 			// 获取所有 sourceDOMs
 			let sourceDOMs = getDOM(rule.source.selector, {
 				mode: "all",
+				excludeParentSelectors,
 			}) as HTMLElement[];
 			sourceDOMs = sourceDOMs.filter((x) => x); //过滤无效值
 			// 触发回调(进行dom过滤)
@@ -348,8 +354,9 @@ export default async function getCard(
 				const task: Task<Card> = {
 					// dom: sourceDOM,
 					handle: async () => {
-						if (stopFlag) return new Card();
+						// console.time(`任务：${i}`);
 						// s 直接获取source信息
+						// console.timeLog(`任务：${i}`, "获取source信息");
 						const source: CardSource = {
 							url: await getDOMInfo(
 								sourceDOM,
@@ -369,19 +376,19 @@ export default async function getCard(
 						source.url = await fixResult(source.url, rule.source.fix);
 						// 获取source.meta
 						// 先使用dom进行判断
-						// console.log("开始获取meta");
 						source.meta = await getMeta(source.dom as HTMLElement, {
 							url: source.url,
 						});
-						// console.log("获取到meta", source.meta);
 
 						source.meta.ext = getExtByUrl(source.url);
-						if (!source.meta.valid) {
+						// 如果还是获取到无效的元信息，则尝试通过url获取元信息 (前提是规则中没有启用 preview 匹配功能)
+						if (!source.meta.valid && !rule.preview.enable) {
 							// 如果无效在使用匹配到的内容判断
 							source.meta = await getMeta(source.url);
 						}
 
 						// s 获取preview信息
+						// console.timeLog(`任务：${i}`, "获取preview信息");
 						let preview: CardPreview;
 						if (rule.preview.enable) {
 							let previewDOM: HTMLElement | null;
@@ -431,6 +438,7 @@ export default async function getCard(
 						}
 
 						// s 获取description信息
+						// console.timeLog(`任务：${i}`, "获取description信息");
 						let description: CardDescription;
 						if (rule.description.enable) {
 							let descriptionDOM: HTMLElement | null;
@@ -483,6 +491,7 @@ export default async function getCard(
 
 						// f 创建卡片
 						const card = new Card({ source, preview, description });
+						// console.timeLog(`任务：${i}`, `创建卡片`, card);
 
 						// ? 触发回调
 						onCardGet(
@@ -491,16 +500,15 @@ export default async function getCard(
 							source.dom,
 							// ? 传出函数用给外部判断是否要添加该卡片
 							async () => {
-								cardList.push(card);
+								newCardList.push(card);
 							},
 							// ? 传出函数用给外部判断是否终止操作
 							() => {
-								taskQueue.stop();
-								stopFlag = true;
-								resolve();
+								stop();
 							}
 						);
 
+						// console.timeEnd(`任务：${i}`);
 						return card;
 					},
 				};
@@ -509,10 +517,24 @@ export default async function getCard(
 			}
 		}
 
-		// 添加任务
-		taskQueue.addTask(taskList);
-		// 开始执行任务队列
-		taskQueue.run();
+		let { run, stop } = useParallelTask(taskList, {
+			parallelCount: 4,
+			onTaskComplete: async (_card, _completedCount, _stop) => {
+				// console.log("完成", card);
+			},
+			onTaskError: (error, task) => {
+				console.log("执行出错", error, task);
+			},
+			// * 所有任务执行完成后调用resolve
+			onAllTasksComplete: (_completedCount, _failedCount) => {
+				// console.log(
+				// 	`处理完成 completedCount: ${completedCount}, failedCount: ${failedCount}`
+				// );
+				onFinished();
+				resolve();
+			},
+		});
+		await run();
 	});
 }
 
@@ -641,53 +663,50 @@ async function getMeta(
 		valid: false,
 		width: 0,
 		height: 0,
-		type: "image",
+		type: "html",
 		ext: false,
 	}; //设置一个初始空值
 	const defaultOption: GetMetaOption = {
 		method: "auto",
 	};
 	const { method, url } = { ...defaultOption, ...option };
-	// console.log("开始Meta获取 target:", target);
 	if (method === "auto") {
 		// s 按照优先级顺序一次尝试各种方式获取meta
-		// s 按照DOM
+
 		if (typeof target === "object" && target instanceof HTMLElement) {
-			// console.log("获取元信息(类型:DOM元素)", target);
-			if (!(target instanceof HTMLImageElement && target.srcset)) {
+			// s 如果是DOM元素
+			if (target instanceof HTMLImageElement) {
 				// s 只有不含有srcset属性的img元素才能执行
-				const { width, height } = await getDOMNaturalSize(target);
+				const res = await getDOMNaturalSize(target);
+				const { width, height } = res.ok ? res : { width: 0, height: 0 };
 				meta = {
 					...meta,
 					...{ valid: width > 0 && height > 0, width, height, type: "image" },
 				};
-				// s 只有匹配到url不是data:image开头的video元素才能执行
-				if (target instanceof HTMLVideoElement && url && url.trim()) {
-					if (isUrl(url)) {
-						if (inferUrlType(new URL(url)) === "video") {
-							meta.type = "video";
-						}
-					} else {
-						if (isBase64Img(url)) {
-							return getMeta(url, { method: "byUrl" });
-						}
+			}
+			// s 只有匹配到url不是data:image开头的video元素才能执行
+			if (target instanceof HTMLVideoElement && url && url.trim()) {
+				if (isUrl(url)) {
+					if (inferUrlType(new URL(url)) === "video") {
 						meta.type = "video";
 					}
-				}
-				if (target instanceof HTMLSourceElement) {
-					const sType = target.type;
-					if (sType) {
-						if (/^video/g.test(sType)) {
-							meta.type = "video";
-						} else if (/^audio/g.test(sType)) {
-							meta.type = "audio";
-						}
+				} else {
+					if (isBase64Img(url)) {
+						return getMeta(url, { method: "byUrl" });
 					}
-					// console.log("source元素", meta);
+					meta.type = "video";
 				}
 			}
-			// console.log("getDOMNaturalSize 获取结果", target, meta);
-			// console.count('通过HTML获取元信息')
+			if (target instanceof HTMLSourceElement) {
+				const sType = target.type;
+				if (sType) {
+					if (/^video/g.test(sType)) {
+						meta.type = "video";
+					} else if (/^audio/g.test(sType)) {
+						meta.type = "audio";
+					}
+				}
+			}
 		}
 		// s 按照链接
 		if (
@@ -695,31 +714,23 @@ async function getMeta(
 			typeof target === "string" &&
 			(isUrl(target) || isBase64Img(target))
 		) {
-			// console.log("开始获取元信息(类型:链接)", target);
 			const url = new URL(target);
-			// 如果是一个链接
-			// console.log("通过Url获取元信息(开始)");
-			meta = await getMetaByUrl(url, { type: "image" });
-			// console.log("通过Url获取元信息(成功)");
-			// console.log("getMetaByUrl 获取结果", target, meta);
+			meta = await getMetaByUrl(url, { defaultMeta: { type: "html" } });
 		}
 		// s 按照Blob
 		if (!meta.valid && typeof target === "object" && target instanceof Blob) {
-			// console.log("开始通过Blob获取元信息", target);
-			// 如果是一个Blob
 			meta = await getMetaByBlob(target);
-			// console.log("getMetaByBlob 获取结果", target, meta);
-			// console.log("通过Blob获取元信息");
 		}
 	} else {
 		// T 指定方式
 		if (
 			method === "byNaturalSize" &&
 			typeof target === "object" &&
-			target instanceof HTMLElement
+			(target instanceof HTMLImageElement || target instanceof HTMLVideoElement)
 		) {
 			// s DOM
-			const { width, height } = await getDOMNaturalSize(target);
+			const res = await getDOMNaturalSize(target);
+			const { width, height } = res.ok ? res : { width: 0, height: 0 };
 			meta = { ...meta, ...{ valid: width > 0 && height > 0, width, height } };
 		} else if (
 			method === "byUrl" &&
@@ -727,8 +738,9 @@ async function getMeta(
 			isUrl(target)
 		) {
 			// s 链接
-
-			meta = await getMetaByUrl(new URL(target), { type: "image" });
+			meta = await getMetaByUrl(new URL(target), {
+				defaultMeta: { type: "html" },
+			});
 		} else if (
 			method === "byBlob" &&
 			typeof target === "object" &&
@@ -752,7 +764,14 @@ async function getMeta(
 }
 
 // 获取元信息(通过url)
-async function getMetaByUrl(url: URL, _default: Partial<BaseMeta> = {}) {
+async function getMetaByUrl(
+	url: URL,
+	options: {
+		/** 超时 (ms) @default 5000 */
+		timeout?: number;
+		defaultMeta?: Partial<BaseMeta>;
+	} = {}
+) {
 	// meta初始值
 	let meta: BaseMeta = {
 		valid: false,
@@ -761,32 +780,17 @@ async function getMetaByUrl(url: URL, _default: Partial<BaseMeta> = {}) {
 		ext: false,
 		type: false,
 	};
-	meta = { ...meta, ..._default };
+	const { defaultMeta } = options || {};
+	meta = { ...meta, ...defaultMeta };
 	// 先推断链接类型
 	// s 初步推断
 	const type = inferUrlType(url);
 
-	//TODO 这里由于使用油猴的API，在部分IOS的油猴脚本环境中可能无法正常调用(暂时弃用)
-	// if (type === "html") {
-	// 	// s 如果还是html类型则尝试通过Head请求获取类型
-	// 	const mime = await getContentType(url.href);
-	// 	const { mainType, subType } = getMIMEinfo(mime);
-	// 	if (mainType) {
-	// 		if (mainType !== "text") {
-	// 			type = mainType;
-	// 			meta.ext = subType;
-	// 		}
-	// 	}
-	// 	console.log("链接类型==>", type, mainType, subType);
-	// }
-
 	if (type === "image") {
 		// s 处理图片类型
-		// console.log("通过getImgMetaByImage获取Meta信息", url.href);
 		const res = await getMetaByImage(url.href);
 		res.ext = meta.ext || res.ext;
 		meta = { ...meta, ...res };
-		// console.log(meta);
 	} else if (type === "video") {
 		const res = await getMetaByVideo(url.href);
 		res.ext = meta.ext || res.ext;
@@ -836,7 +840,6 @@ async function getMetaByBlob(blob: Blob) {
 // f [功能封装]通过Image对象获取图片meta
 export function getMetaByImage(url: string): Promise<BaseMeta> {
 	if (!url || !url.trim().length) {
-		console.log("链接无效", url);
 		const errMeta: BaseMeta = {
 			valid: false,
 			width: 0,
@@ -851,8 +854,12 @@ export function getMetaByImage(url: string): Promise<BaseMeta> {
 
 	return new Promise((resolve) => {
 		let img: HTMLImageElement | null = new Image();
-		img.src = url;
+
+		// img.crossOrigin = "anonymous"; // 必须在设置 src 之前
 		img.referrerPolicy = "no-referrer-when-downgrade";
+		img.decoding = "async";
+
+		img.src = url;
 		if (img.complete) {
 			// console.log("图片信息获取-->成功!");
 			meta = {
@@ -883,8 +890,8 @@ export function getMetaByImage(url: string): Promise<BaseMeta> {
 				},
 				{ once: true }
 			);
-			const error = function () {
-				console.log("图片信息获取-->失败!");
+			const onError = function () {
+				// console.log("图片信息获取-->失败!");
 				meta = {
 					valid: false,
 					width: 0,
@@ -895,9 +902,9 @@ export function getMetaByImage(url: string): Promise<BaseMeta> {
 				img = null; // s 用完后释放img对象
 				resolve(meta);
 			};
-			img.addEventListener("error", error, { once: true });
-			img.addEventListener("abort", error, { once: true });
-			img.addEventListener("cancel", error, { once: true });
+			img.addEventListener("error", onError, { once: true });
+			img.addEventListener("abort", onError, { once: true });
+			img.addEventListener("cancel", onError, { once: true });
 		}
 	});
 }
@@ -1000,53 +1007,145 @@ export function getImgMetaByBlob(blob: Blob) {
 	}) as Promise<Meta>;
 }
 
-// 获取DOM的natural尺寸
-async function getDOMNaturalSize(dom: HTMLElement): Promise<{
-	width: number;
-	height: number;
-}> {
-	let [width, height] = [0, 0]; // 初始化宽高为0
-	// 判断是否是img、video或canvas,如果是就获取自然宽高
-	if (dom instanceof HTMLImageElement) {
-		// 如果是img元素则等待img元素对应url的图片加载完毕后再获取
-		if (dom.complete && dom.naturalWidth && dom.naturalHeight) {
-			const { naturalWidth, naturalHeight } = dom;
-			width = naturalWidth;
-			height = naturalHeight;
-			// console.log("原有img元素加载成功", dom.src, width, height);
-		} else {
-			// console.log("等待原有img元素加载……", dom.src);
-			await new Promise((resolve) => {
-				dom.onload = () => {
-					const { naturalWidth, naturalHeight } = dom;
-					width = naturalWidth;
-					height = naturalHeight;
-					// console.log("原有img元素加载成功", dom.src, width, height);
-					resolve(true);
-				};
-				dom.onabort = () => {
-					// console.log("原有img元素加载失败(中断)", dom.src);
-					resolve(false);
-				};
-				dom.onerror = () => {
-					// console.log("原有img元素加载失败", dom.src);
-					resolve(false);
-				};
-				// 超时处理 5s
-				setTimeout(() => {
-					// console.log("原有img元素加载失败(超时)", dom.src);
-					resolve(false);
-				}, 5000);
-			});
-		}
-	} else if (dom instanceof HTMLVideoElement) {
-		const { videoWidth, videoHeight } = dom;
-		width = videoWidth;
-		height = videoHeight;
-	} else if (dom instanceof HTMLCanvasElement) {
-		({ width, height } = dom);
+export type NaturalSizeResult =
+	| { ok: true; width: number; height: number }
+	| { ok: false; reason: "timeout" | "error" | "unsupported" };
+
+// 获取DOM元素的自然大小
+export async function getDOMNaturalSize(
+	dom: HTMLElement,
+	options?: {
+		/** 超时 (ms) @default 5000 */
+		timeout?: number;
 	}
-	return { width, height };
+): Promise<NaturalSizeResult> {
+	const { timeout = 5000 } = options || {};
+
+	/* ---------------- IMG ---------------- */
+	if (dom instanceof HTMLImageElement) {
+		// 已成功加载
+		if (dom.complete && dom.naturalWidth > 0 && dom.naturalHeight > 0) {
+			return {
+				ok: true,
+				width: dom.naturalWidth,
+				height: dom.naturalHeight,
+			};
+		}
+
+		// src 不存在或已失败
+		if (!dom.currentSrc && !dom.src) {
+			return { ok: false, reason: "error" };
+		}
+
+		return waitForImageSize(dom, timeout);
+	}
+
+	/* ---------------- VIDEO ---------------- */
+	if (dom instanceof HTMLVideoElement) {
+		// metadata 已就绪
+		if (dom.videoWidth > 0 && dom.videoHeight > 0) {
+			return {
+				ok: true,
+				width: dom.videoWidth,
+				height: dom.videoHeight,
+			};
+		}
+
+		return waitForVideoSize(dom, timeout);
+	}
+
+	/* ---------------- UNSUPPORTED ---------------- */
+	return { ok: false, reason: "unsupported" };
+}
+
+function waitForImageSize(
+	img: HTMLImageElement,
+	timeout: number
+): Promise<NaturalSizeResult> {
+	return new Promise((resolve) => {
+		let done = false;
+
+		const cleanup = () => {
+			img.removeEventListener("load", onLoad);
+			img.removeEventListener("error", onError);
+			img.removeEventListener("abort", onError);
+		};
+
+		const finish = (result: NaturalSizeResult) => {
+			if (done) return;
+			done = true;
+			cleanup();
+			resolve(result);
+		};
+
+		const onLoad = () => {
+			if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+				finish({
+					ok: true,
+					width: img.naturalWidth,
+					height: img.naturalHeight,
+				});
+			} else {
+				finish({ ok: false, reason: "error" });
+			}
+		};
+
+		const onError = () => {
+			finish({ ok: false, reason: "error" });
+		};
+
+		img.addEventListener("load", onLoad, { once: true });
+		img.addEventListener("error", onError, { once: true });
+		img.addEventListener("abort", onError, { once: true });
+
+		setTimeout(() => {
+			finish({ ok: false, reason: "timeout" });
+		}, timeout);
+	});
+}
+
+function waitForVideoSize(
+	video: HTMLVideoElement,
+	timeout: number
+): Promise<NaturalSizeResult> {
+	return new Promise((resolve) => {
+		let done = false;
+
+		const cleanup = () => {
+			video.removeEventListener("loadedmetadata", onLoaded);
+			video.removeEventListener("error", onError);
+		};
+
+		const finish = (result: NaturalSizeResult) => {
+			if (done) return;
+			done = true;
+			cleanup();
+			resolve(result);
+		};
+
+		const onLoaded = () => {
+			if (video.videoWidth > 0 && video.videoHeight > 0) {
+				finish({
+					ok: true,
+					width: video.videoWidth,
+					height: video.videoHeight,
+				});
+			} else {
+				finish({ ok: false, reason: "error" });
+			}
+		};
+
+		const onError = () => {
+			finish({ ok: false, reason: "error" });
+		};
+
+		video.addEventListener("loadedmetadata", onLoaded, { once: true });
+		video.addEventListener("error", onError, { once: true });
+
+		setTimeout(() => {
+			finish({ ok: false, reason: "timeout" });
+		}, timeout);
+	});
 }
 
 // 推断链接类型

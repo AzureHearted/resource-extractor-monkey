@@ -13,7 +13,7 @@
 				ref="gridRef"
 				:items="cardList"
 				:gap="4"
-				:columns="!state.isMobile ? state.columns : undefined"
+				:columns="!state.isMobile ? galleryState.column : undefined"
 				:breakpoints="state.isMobile ? state.breakpoints : undefined"
 				:allow-item-transition="galleryState.allowTransition"
 				:scroll-container="scrollBarRef?.viewportDOM"
@@ -42,7 +42,7 @@
 				ref="masonryRef"
 				:items="virtualMasonryItem"
 				:gap="4"
-				:columns="!state.isMobile ? state.columns : undefined"
+				:columns="!state.isMobile ? galleryState.column : undefined"
 				:breakpoints="state.isMobile ? state.breakpoints : undefined"
 				:allow-item-transition="galleryState.allowTransition"
 				:scroll-container="scrollBarRef?.viewportDOM"
@@ -129,7 +129,7 @@ const masonryRef = useTemplateRef("masonryRef");
 // s 组件状态数据
 const state = reactive({
 	// 列数
-	columns: 5,
+	// columns: 5,
 	// 是否使用自定义滚动条
 	useCustomScrollbar: true,
 	// 移动端标识符
@@ -257,12 +257,12 @@ function onMouseWheel(e: WheelEvent) {
 	if (e.ctrlKey) {
 		e.preventDefault();
 		if (e.deltaY < 0) {
-			if (state.columns - 1 > 0) {
-				state.columns--;
+			if (galleryState.value.column - 1 > 0) {
+				galleryState.value.column--;
 			}
 		} else {
-			if (state.columns + 1 < 15) {
-				state.columns++;
+			if (galleryState.value.column + 1 < 15) {
+				galleryState.value.column++;
 			}
 		}
 	}
@@ -273,7 +273,6 @@ type FancyboxType =
 	| "image"
 	| "iframe"
 	| "youtube"
-	| "html"
 	| "ajax"
 	| "html5video"
 	| "inline"
@@ -291,14 +290,12 @@ function getFancyboxType(
 		case "video":
 			type = "html5video";
 			break;
-		case "html":
-			type = "iframe";
-			break;
 		case "audio":
 		case "zip":
+		case "html":
 		case "other":
 		default:
-			type = "inline";
+			type = "iframe";
 	}
 
 	return type;

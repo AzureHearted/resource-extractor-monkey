@@ -15,6 +15,7 @@ declare module 'vue' {
     BaseDragDialog: typeof import('./../src/components/base/base-drag-dialog.vue')['default']
     BaseDragModal: typeof import('./../src/components/base/base-drag-modal.vue')['default']
     BaseGrid: typeof import('./../src/components/base/base-grid.vue')['default']
+    BaseHighlightText: typeof import('./../src/components/base/base-highlight-text.vue')['default']
     BaseImg: typeof import('./../src/components/base/base-img.vue')['default']
     BaseLineOverflowList: typeof import('./../src/components/base/base-line-overflow-list.vue')['default']
     BaseScrollbar: typeof import('./../src/components/base/base-scrollbar.vue')['default']

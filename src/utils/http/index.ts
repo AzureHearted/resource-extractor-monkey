@@ -1,3 +1,4 @@
+import { GM_xmlhttpRequest } from "$";
 import { getHostByUrl, isBase64Img, isUrl } from "../common";
 import { GMRequest } from "./GMRequest";
 
@@ -128,4 +129,48 @@ export function getHTMLDocumentFromUrl(url: string): Promise<Document | null> {
 				resolve(null);
 			});
 	});
+}
+
+export async function detectLinkType(url: string) {
+	// 1. 第一阶段：快速后缀名匹配 (零延迟)
+	// const ext = url.split(/[#?]/)?[0].split(".").pop().toLowerCase();
+	// const imageExts = ["jpg", "jpeg", "png", "gif", "webp", "avif"];
+	// const videoExts = ["mp4", "webm", "ogg", "mov", "m4v"];
+
+	// if (imageExts.includes(ext)) return { type: "image", ext };
+	// if (videoExts.includes(ext)) return { type: "video", ext };
+
+	// 2. 第二阶段：如果后缀无法判断，发起最小化请求
+	try {
+		// 使用 GM_xmlhttpRequest 绕过跨域限制
+		return new Promise((resolve) => {
+			GM_xmlhttpRequest({
+				method: "GET",
+				url: url,
+				headers: { Range: "bytes=0-16" }, // 只请求前 17 个字节
+				responseType: "arraybuffer",
+				onload: function (response) {
+					const bytes = new Uint8Array(response.response);
+					const hex = Array.from(bytes)
+						.map((b) => b.toString(16).toUpperCase().padStart(2, "0"))
+						.join(" ");
+
+					// 检查图片魔数
+					if (hex.startsWith("89 50 4E 47"))
+						resolve({ type: "image", ext: "png" });
+					else if (hex.startsWith("FF D8 FF"))
+						resolve({ type: "image", ext: "jpg" });
+					else if (hex.startsWith("47 49 46 38"))
+						resolve({ type: "image", ext: "gif" });
+					// 检查视频魔数 (MP4 常见包含 )
+					else if (hex.includes("66 74 79 70"))
+						resolve({ type: "video", ext: "mp4" });
+					else resolve({ type: "unknown", hex });
+				},
+				onerror: () => resolve({ type: "error" }),
+			});
+		});
+	} catch (e) {
+		return { type: "unknown" };
+	}
 }

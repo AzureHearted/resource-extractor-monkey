@@ -274,16 +274,20 @@
 						size="small"
 						:title="data.description.title.trim()"
 					>
-						<span v-html="description"></span>
+						<!-- <span v-html="description"></span> -->
+						<BaseHighlightText
+							:text="data.description.title"
+							:keyword="highlightKey"
+						></BaseHighlightText>
 					</el-tag>
 					<!-- s 尺寸信息 -->
 					<el-tag
 						class="base-tag-list__scale-tag"
 						v-if="data.source.meta.type === 'image' && data.isLoaded"
 						size="small"
-						:title="`${data.source.meta.width}x${data.source.meta.height}`"
+						:title="`${validMeta.width}x${validMeta.height}`"
 					>
-						{{ data.source.meta.width }}x{{ data.source.meta.height }}
+						{{ validMeta.width }}x{{ validMeta.height }}
 					</el-tag>
 					<!-- s 扩展名信息 -->
 					<el-tag
@@ -345,6 +349,7 @@ import HtmlTypeImg from "@svg/html.svg";
 // 导入仓库
 import { useGlobalStore } from "@/stores";
 import { storeToRefs } from "pinia";
+import BaseHighlightText from "../base/base-highlight-text.vue";
 
 const globalStore = useGlobalStore();
 const { galleryState } = storeToRefs(globalStore);
@@ -405,6 +410,15 @@ const size: ComputedRef<string> = computed(() => {
 		return byteAutoUnit(byteSize);
 	} else {
 		return `0B`;
+	}
+});
+
+// j 有效meta
+const validMeta = computed(() => {
+	if (data.value.source.meta.valid) {
+		return data.value.source.meta;
+	} else {
+		return data.value.preview.meta;
 	}
 });
 

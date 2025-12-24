@@ -321,24 +321,36 @@ export default defineStore("FavoriteStore", () => {
 				height: sHeight,
 				ext: sExt,
 			} = card.source.meta;
+			const { type: pType, width: pWidth, height: pHeight } = card.preview.meta;
+
 			// s 是否扩展名是否匹配
 			const isExtensionMatch =
 				filters.extension.length > 0
 					? filters.extension.includes(String(sExt))
 					: true;
 			// s 判断是否是图片或者视频，如果是并且已经加载则判断是否符合尺寸过滤器
-			const isSizeMatch =
+			const isSourceSizeMatch =
 				sType === "image" || sType === "video"
 					? sWidth >= filters.size.width[0] &&
 					  sWidth <= filters.size.width[1] &&
 					  sHeight <= filters.size.height[1] &&
 					  sHeight >= filters.size.height[0]
 					: true;
+			const isPreviewSizeMatch =
+				pType === "image" || pType === "video"
+					? pWidth >= filters.size.width[0] &&
+					  pWidth <= filters.size.width[1] &&
+					  pHeight <= filters.size.height[1] &&
+					  pHeight >= filters.size.height[0]
+					: true;
 			const isMatchKeyWords =
 				isKeywordsMatch(title, keywords) || isKeywordsMatch(tags, keywords);
 
 			// s 判断是否所有条件都匹配
-			const isMatch = isExtensionMatch && isSizeMatch && isMatchKeyWords;
+			const isMatch =
+				isExtensionMatch &&
+				(isSourceSizeMatch || isPreviewSizeMatch) &&
+				isMatchKeyWords;
 			if (!isMatch) card.isSelected = false; // 如果不匹配的需要将选中状态设置为false
 			if (isMatch) {
 				switch (sType) {

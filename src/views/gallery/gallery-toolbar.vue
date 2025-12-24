@@ -476,24 +476,20 @@ const renderOptionLabelWithCount = (option: SelectOption): VNodeChild => {
 	);
 };
 
-let stopGetCardsFlag = false;
+let stopGetCardsFlag = ref(false);
 
 // f 获取卡片
 async function getCards() {
+	stopGetCardsFlag.value = false;
 	await cardStore.getPageCard({
-		onGet: (stop) => {
-			if (stopGetCardsFlag) {
-				stop();
-				stopGetCardsFlag = false;
-			}
-		},
+		stopFlag: stopGetCardsFlag,
 	});
 }
 
 // f 终止卡片获取进度
 function stopGetCards() {
 	// console.log("终止操作")
-	stopGetCardsFlag = true;
+	stopGetCardsFlag.value = true;
 }
 
 // f 重新加载
