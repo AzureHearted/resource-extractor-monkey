@@ -17,6 +17,11 @@ import { Icon } from "@iconify/vue";
 import { NIcon } from "naive-ui";
 import type { MenuOption, MenuProps } from "naive-ui";
 
+import { storeToRefs } from "pinia";
+import useGlobalStore from "@/stores/GlobalStore";
+const globalStore = useGlobalStore();
+const { tab: activeKey, navCollapse: collapsed } = storeToRefs(globalStore);
+
 const emits = defineEmits<{
 	(e: "select", key: string): void;
 }>();
@@ -25,11 +30,6 @@ const emits = defineEmits<{
 const select: MenuProps["onSelect"] = (key) => {
 	emits("select", key);
 };
-
-import { storeToRefs } from "pinia";
-import useGlobalStore from "@/stores/GlobalStore";
-const globalStore = useGlobalStore();
-const { tab: activeKey, navCollapse: collapsed } = storeToRefs(globalStore);
 
 // 导航菜单选项
 const menuOptions: MenuOption[] = [
@@ -65,12 +65,12 @@ const menuOptions: MenuOption[] = [
 	},
 ];
 
-// 图标渲染
+// f 图标渲染函数
 function renderIcon(icon: string) {
 	return () => h(NIcon, {}, { default: () => h(Icon, { icon }) });
 }
 
-// 标签渲染
+// f 标签渲染函数
 const renderLabel: MenuProps["renderLabel"] = ({ label }) => {
 	return h("div", { title: label }, { default: () => label });
 };

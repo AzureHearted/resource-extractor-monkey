@@ -271,7 +271,7 @@ export default defineStore("PatternStore", () => {
 						type: "error",
 						title: "失败",
 						message: "剪贴板内容解析失败",
-						appendTo: ".web-img-collector__notification-container",
+						appendTo: ".web-img-collector__notification",
 					});
 					return;
 				}
@@ -286,7 +286,7 @@ export default defineStore("PatternStore", () => {
 						type: "success",
 						title: "成功",
 						message: "成功解析为方案",
-						appendTo: ".web-img-collector__notification-container",
+						appendTo: ".web-img-collector__notification",
 					});
 				} catch (e) {
 					// 如果解析失败则提示错误
@@ -294,7 +294,7 @@ export default defineStore("PatternStore", () => {
 						type: "error",
 						title: "失败",
 						message: "剪贴板内容不符合方案的数据格式",
-						appendTo: ".web-img-collector__notification-container",
+						appendTo: ".web-img-collector__notification",
 					});
 				}
 			})
@@ -303,7 +303,7 @@ export default defineStore("PatternStore", () => {
 					type: "error",
 					title: "失败",
 					message: "剪贴板内容读取失败",
-					appendTo: ".web-img-collector__notification-container",
+					appendTo: ".web-img-collector__notification",
 				});
 			});
 	}

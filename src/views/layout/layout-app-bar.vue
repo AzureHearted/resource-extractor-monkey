@@ -1,5 +1,5 @@
 <template>
-	<div class="app-bar__container">
+	<div class="web-img-collector__app-bar">
 		<!-- s 移动端的菜单按钮 -->
 		<n-button
 			circle
@@ -21,7 +21,7 @@
 			display-directive="show"
 			@mask-click="navCollapse = true"
 			@mouseleave="!isMobile && (navCollapse = true)"
-			to=".web-img-collector__container>.layout__container"
+			to=".web-img-collector>.web-img-collector__layout"
 		>
 			<n-drawer-content
 				:body-content-style="{
@@ -32,20 +32,19 @@
 			</n-drawer-content>
 		</n-drawer>
 		<!-- s 标题 -->
-		<div class="app-bar__title">
-			<div class="app-bar__title__left">
+		<div class="web-img-collector__app-bar__title">
+			<div class="web-img-collector__app-bar__title__left">
 				<n-gradient-text type="primary"> Web Img Collector 2 </n-gradient-text>
 				<n-tag type="info" size="tiny" round :bordered="false">
 					{{ VERSION }}
 				</n-tag>
 			</div>
-			<div class="app-bar__title__right">
+			<div class="web-img-collector__app-bar__title__right">
 				<!-- s 布局切换按钮 -->
 				<n-radio-group
 					v-if="currentTab === 'Gallery' || currentTab === 'Favorite'"
 					v-model:value="galleryState.galleyLayout"
 					size="small"
-					style="margin-left: auto"
 				>
 					<n-radio-button value="grid">
 						<n-icon size="26px">
@@ -66,7 +65,7 @@
 			circle
 			ghost
 			:bordered="false"
-			class="app-bar__close-button"
+			class="web-img-collector__app-bar__close-button"
 			@click="globalStore.openWindow = false"
 		>
 			<template #icon>
@@ -88,7 +87,8 @@ import NavMenu from "./layout-nav-menu.vue";
 import { isMobile as judgeIsMobile } from "@/utils/common";
 const globalStore = useGlobalStore();
 const { navCollapse, galleryState, tab: currentTab } = storeToRefs(globalStore);
-const VERSION = GM_info.script.version; // 导入版本号
+// ? 导入版本号
+const VERSION = GM_info.script.version;
 
 const isMobile = ref(false);
 onMounted(() => {
@@ -102,44 +102,42 @@ onActivated(() => {
 <style lang="scss" scoped>
 @use "@/styles/shadow.scss" as shadow;
 
-.app-bar__container {
+.web-img-collector__app-bar {
 	display: flex;
 	height: 34px;
-	// padding: 0 4px;
+	line-height: 34px;
 
 	background: white;
 	align-items: center;
 	box-shadow: shadow.$elevation, inset 0 0 10px rgba(128, 128, 128, 0.6);
-}
 
-.layout-app-bar__menu-button {
-	aspect-ratio: 1;
-	margin-left: 6px;
-	font-size: 20px;
-	svg {
-		color: black;
-	}
-}
-
-.app-bar__title {
-	flex: 1;
-	height: 100%;
-	margin-left: 16px;
-	/* margin-right: auto; */
-	font-size: 20px;
-	text-align: left;
-	display: flex;
-	align-items: center;
-	overflow: hidden;
-	text-overflow: ellipsis;
-
-	.app-bar__title__left {
-		flex-shrink: 0;
-	}
-
-	.app-bar__title__right {
+	&__title {
 		flex: 1;
+		height: 100%;
+		margin-left: 16px;
+		font-size: 20px;
+		text-align: left;
 		display: flex;
+		align-items: center;
+		overflow: hidden;
+		text-overflow: ellipsis;
+
+		.web-img-collector__app-bar__title__left {
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		.web-img-collector__app-bar__title__right {
+			display: flex;
+			align-items: center;
+			margin-left: auto;
+			padding: 4px 0;
+
+			:deep(.wic2-n-radio-button) {
+				padding: 0 8px;
+			}
+		}
 	}
 }
 </style>

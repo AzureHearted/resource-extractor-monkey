@@ -450,14 +450,14 @@ async function onCardContextMenu(event: PointerEvent, id: string) {
 								result === "copySource"
 									? card.source.url
 									: `卡片数据：${card.description.title}`,
-							appendTo: ".web-img-collector__notification-container",
+							appendTo: ".web-img-collector__notification",
 						});
 					})
 					.catch(() => {
 						ElNotification({
 							type: "error",
 							title: "复制失败",
-							appendTo: ".web-img-collector__notification-container",
+							appendTo: ".web-img-collector__notification",
 						});
 					});
 				break;

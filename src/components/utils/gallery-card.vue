@@ -211,7 +211,7 @@
 				<div v-if="false" class="extra-tag-list">
 					<BaseLineOverFlowList
 						:list="tags"
-						model-to=".web-img-collector__top-container"
+						model-to=".web-img-collector__modal-container"
 					>
 						<template #default="{ item, openShowMore }">
 							<var-chip
@@ -479,7 +479,7 @@ function toLocate(item: Card) {
 function rename(item: Card) {
 	// 删除卡片数据模型中的卡片。
 	ElMessageBox.prompt(`重命名卡片"${item.description.title}"为……`, "重命名", {
-		appendTo: ".web-img-collector__notification-container",
+		appendTo: ".web-img-collector__notification",
 		confirmButtonText: "确认",
 		cancelButtonText: "取消",
 		inputPlaceholder: "请输入新卡片名称",

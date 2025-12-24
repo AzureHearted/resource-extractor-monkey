@@ -385,7 +385,7 @@ export default defineStore("CardStore", () => {
 				title: "提示",
 				type: "warning",
 				message: "该方案没有包含任何规则！(请为方案添加规则后再进行此操作)",
-				appendTo: ".web-img-collector__notification-container",
+				appendTo: ".web-img-collector__notification",
 			});
 			return;
 		}
@@ -498,7 +498,7 @@ export default defineStore("CardStore", () => {
 					title: "提示",
 					type: "info",
 					message: "该方案未匹配到任何有效结果",
-					appendTo: ".web-img-collector__notification-container",
+					appendTo: ".web-img-collector__notification",
 				});
 			}
 		});
@@ -567,7 +567,7 @@ export default defineStore("CardStore", () => {
 			// console.log(name);
 			// 下载完成后让用户进行文件名确认
 			ElMessageBox.prompt("文件已准备完成,请确认文件名", "提示", {
-				appendTo: ".web-img-collector__notification-container",
+				appendTo: ".web-img-collector__notification",
 				confirmButtonText: "确认",
 				cancelButtonText: "取消",
 				inputPlaceholder: "请输入要保存的文件名称",
@@ -597,7 +597,7 @@ export default defineStore("CardStore", () => {
 				title: "提示",
 				message: "开始下载……",
 				type: "info",
-				appendTo: ".web-img-collector__notification-container",
+				appendTo: ".web-img-collector__notification",
 			});
 
 			// 大于1的时候进行打包
@@ -617,7 +617,7 @@ export default defineStore("CardStore", () => {
 						title: "提示",
 						message: "下载完成！正在打包……",
 						type: "info",
-						appendTo: ".web-img-collector__notification-container",
+						appendTo: ".web-img-collector__notification",
 					});
 
 					loadingStore.update(0, zipContainer.length);
@@ -653,7 +653,7 @@ export default defineStore("CardStore", () => {
 
 					// s 下载完成后让用户进行文件名确认
 					ElMessageBox.prompt("压缩包已准备完成,请确认文件名", "提示", {
-						appendTo: ".web-img-collector__notification-container",
+						appendTo: ".web-img-collector__notification",
 						confirmButtonText: "确认",
 						cancelButtonText: "取消",
 						inputPlaceholder: "请输入要保存的压缩包名称",
@@ -670,7 +670,7 @@ export default defineStore("CardStore", () => {
 								title: "成功",
 								message: "开始下载压缩包……",
 								type: "success",
-								appendTo: ".web-img-collector__notification-container",
+								appendTo: ".web-img-collector__notification",
 							});
 						})
 						.catch(() => {
