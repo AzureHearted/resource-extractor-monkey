@@ -1,5 +1,9 @@
 <template>
-	<div class="base-context-menu__overlay" @click.self="hideMenu">
+	<div
+		class="base-context-menu__overlay"
+		@click.self="hideMenu"
+		@contextmenu.prevent
+	>
 		<div
 			ref="contextMenuDOM"
 			class="base-context-menu__menu"
