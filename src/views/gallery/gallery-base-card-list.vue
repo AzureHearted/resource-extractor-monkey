@@ -93,6 +93,7 @@ import type { CarouselSlide } from "@fancyapps/ui";
 import { storeToRefs } from "pinia";
 import { useGlobalStore, useCardStore, useFavoriteStore } from "@/stores";
 import { useBaseContextMenu } from "@/components/base/base-context-menu";
+import { GM_openInTab } from "$";
 
 const globalStore = useGlobalStore();
 const { galleryState } = storeToRefs(globalStore);
@@ -342,9 +343,54 @@ async function openFancybox(startId: string) {
 		Carousel: {
 			...configFancybox.Carousel,
 			Toolbar: {
-				...toolbar,
+				enabled: true,
+				display: {
+					left: ["open", "cardDownload"],
+					middle: ["counter"],
+					right: ["rotateCCW", "rotateCW", "toLocate", "thumbs", "close"],
+				},
 				items: {
 					...toolbar.items,
+					// f 打开按钮
+					open: {
+						tpl: /*html*/ `
+							<button class="f-button" title="{{NEW_TAB_OPENS}}">
+								<svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13">
+									</path>
+								</svg>
+							</button>
+						`,
+						// 点击事件定义
+						click: (instance) => {
+							const index = instance.getPageIndex();
+							const card = props.cardList[index];
+							const url = card.source.url;
+							if (!url) return;
+							GM_openInTab(url, {
+								active: true,
+								insert: true,
+								setParent: true,
+							});
+						},
+					},
+					// f 下载按钮
+					cardDownload: {
+						tpl: /*html*/ `
+							<button class="f-button" title="{{DOWNLOAD}}">
+								<svg tabindex="-1" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+									<path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2M7 11l5 5 5-5M12 4v12">
+									</path>
+								</svg>
+							</button>
+						`,
+						// 点击事件定义
+						click: async (instance) => {
+							const index = instance.getPageIndex();
+							const card = props.cardList[index];
+							await cardStore.downloadCards([card]);
+						},
+					},
 					// f 定位按钮
 					toLocate: {
 						tpl: /*html*/ `
@@ -360,15 +406,14 @@ async function openFancybox(startId: string) {
 							`,
 						click(instance, _e) {
 							const index = instance.getPageIndex();
-							const slides = instance.getSlides();
-							console.log("定位元素", slides[index]);
+							const card = props.cardList[index];
 							// 关闭 Fancybox
 							Fancybox.close();
 							// 定位元素
 							if (props.layout === "grid") {
-								gridRef.value?.scrollToItem(props.cardList[index].id);
+								gridRef.value?.scrollToItem(card.id);
 							} else {
-								masonryRef.value?.scrollToItem(props.cardList[index].id);
+								masonryRef.value?.scrollToItem(card.id);
 							}
 						},
 					},
@@ -429,10 +474,18 @@ async function onCardContextMenu(event: PointerEvent, id: string) {
 				globalStore.openWindow = false;
 				break;
 			case "openSource":
-				window.open(card.source.url, "_blank");
+				GM_openInTab(card.source.url, {
+					active: true,
+					insert: true,
+					setParent: true,
+				});
 				break;
 			case "openPreview":
-				window.open(card.preview.url, "_blank");
+				GM_openInTab(card.preview.url, {
+					active: true,
+					insert: true,
+					setParent: true,
+				});
 				break;
 			case "copySource":
 			case "copyCard":

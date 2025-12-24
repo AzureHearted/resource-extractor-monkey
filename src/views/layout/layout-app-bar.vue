@@ -132,7 +132,7 @@ onActivated(() => {
 			display: flex;
 			align-items: center;
 			margin-left: auto;
-			padding: 4px 0;
+			padding: 4px 4px;
 
 			:deep(.wic2-n-radio-button) {
 				padding: 0 8px;

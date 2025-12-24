@@ -33,7 +33,6 @@ export default {
       `,
 			// 点击事件定义
 			click: (instance) => {
-				console.log(instance);
 				const index = instance.getPageIndex();
 				const slides = instance.getSlides();
 				const triggerEl = slides[index].triggerEl;
