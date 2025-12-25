@@ -117,19 +117,7 @@
 		</template>
 		<!-- s 卡片主体(图片) -->
 		<template #default>
-			<div
-				ref="imgWrapRef"
-				style="height: 100%"
-				data-fancybox="web-img-collector"
-				:data-id="data.id"
-				:href="data.source.url"
-				:data-type="showType"
-				:data-preload="showType === 'iframe' ? false : true"
-				:data-thumb="data.preview.url"
-				:data-source-type="data.source.type"
-				:data-preview-type="data.preview.type"
-				:data-download-src="data.source.url"
-			>
+			<div ref="imgWrapRef" style="height: 100%" :data-id="data.id">
 				<template v-if="data.preview.meta.type === 'image'">
 					<!-- s 纯图片类型 -->
 					<BaseImg
@@ -428,34 +416,12 @@ interface Tag {
 }
 // j 标签
 const tags = computed<Tag[]>(() => {
-	return data.value.tags.map((t) => {
+	return data.value.tags.map((tag) => {
 		return {
 			id: crypto.randomUUID(),
-			label: t,
+			label: tag,
 		};
 	});
-});
-
-// 定义Fancybox的默认类型
-type FancyboxType =
-	| "image"
-	| "iframe"
-	| "youtube"
-	| "html"
-	| "ajax"
-	| "html5video"
-	| false;
-// j 计算默认类型
-const showType: ComputedRef<FancyboxType> = computed(() => {
-	const { type: metaType } = data.value.source.meta;
-	let type: FancyboxType = "image";
-	if (!metaType) return type;
-	if (metaType === "html") {
-		type = "iframe";
-	} else if (metaType === "video") {
-		type = "html5video";
-	}
-	return type;
 });
 
 // f 页面定位元素
