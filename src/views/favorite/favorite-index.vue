@@ -78,7 +78,7 @@
 				style="width: 100%; height: 100%"
 				content-style="overflow:hidden;"
 				:show-buttons="false"
-				@tab-active="nowType = $event as any"
+				@change="nowType = $event as any"
 			>
 				<!-- s 图片类 -->
 				<BaseTabPane name="image">

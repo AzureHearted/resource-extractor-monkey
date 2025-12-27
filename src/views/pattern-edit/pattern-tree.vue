@@ -47,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import { h, ref, computed, useTemplateRef } from "vue";
+import { h, ref, computed } from "vue";
 import { NButton } from "naive-ui";
 import type { TreeOption, TreeDropInfo, TreeProps } from "naive-ui";
 import { DeleteFilled, Plus } from "@element-plus/icons-vue";
@@ -67,8 +67,6 @@ const {
 	adjustRulePosition,
 	moveRuleToPattern,
 } = patternStore;
-
-const treeRef = useTemplateRef("treeRef");
 
 const keyword = ref(""); //关键词
 const showIrrelevantNodes = ref(false); //展示无关节点
