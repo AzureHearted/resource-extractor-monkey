@@ -649,8 +649,7 @@ provide(symbol_BaseTabs, provideObj);
 
 .base-tabs__tab-item {
 	padding: 0px 16px;
-	height: 36px;
-	line-height: 36px;
+	line-height: 2;
 	font-size: 16px;
 	text-wrap: nowrap;
 	cursor: pointer;

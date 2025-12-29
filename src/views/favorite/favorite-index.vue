@@ -392,15 +392,8 @@ const handleKeywordFilter = (value?: string) => {
 	}
 }
 
-:deep(.wic2-n-tabs-tab) {
-	padding-left: 12px;
-	padding-right: 0px;
-}
-
 :deep(.base-tabs__tab-item) {
 	font-size: 14px;
 	padding: 0 10px;
-	height: 28px;
-	line-height: 28px;
 }
 </style>
