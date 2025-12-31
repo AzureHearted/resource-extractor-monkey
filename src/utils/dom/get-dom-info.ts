@@ -135,11 +135,9 @@ function getSrcsetMaximumValue(srcsetString: string) {
 			.filter((item) => !!item && !!item.trim().length)
 			.map((item) => {
 				const itemDataInfos = item.split(" ");
-				// console.log(itemDataInfos);
 				if (itemDataInfos.length == 2) {
 					const sizeList = itemDataInfos[1].split(/w|x/i);
-					const size = sizeList ? sizeList[0] : 0;
-					// console.log("size", size);
+					const size = sizeList ? Number.parseInt(sizeList[0], 0) : 0;
 					return {
 						url: itemDataInfos[0],
 						resolution: size,
@@ -151,13 +149,13 @@ function getSrcsetMaximumValue(srcsetString: string) {
 					};
 				}
 			});
-		// console.log(dataList);
 		let maxItem = dataList[0];
 		dataList.forEach((item) => {
+			// s 选区最大尺寸的链接
 			if (maxItem.resolution < item.resolution) {
 				maxItem = item;
 			}
-		}); // s选区最大尺寸的链接
+		});
 		result = maxItem.url;
 	}
 	return result;
