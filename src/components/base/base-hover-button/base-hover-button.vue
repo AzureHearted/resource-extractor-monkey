@@ -274,9 +274,13 @@ const sizeStyle = computed<StyleValue>(() => {
 });
 
 const extraVNode = computed(() => {
-	return slots
-		.extra?.({})
-		.filter((n: any) => n.type.toString() !== "Symbol(v-cmt)");
+	if (slots.extra) {
+		return slots
+			.extra?.({})
+			.filter((n: any) => n.type.toString() !== "Symbol(v-cmt)");
+	} else {
+		return [];
+	}
 });
 </script>
 
