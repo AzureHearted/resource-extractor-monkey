@@ -75,6 +75,7 @@ export default defineConfig({
 		// s 打包体积分析
 		Icons({
 			autoInstall: true,
+			scale: 1,
 		}),
 		// s 打包体积分析
 		visualizer({

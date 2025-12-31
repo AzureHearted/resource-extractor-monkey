@@ -16,6 +16,7 @@ declare module 'vue' {
     BaseDragModal: typeof import('./../src/components/base/base-drag-modal.vue')['default']
     BaseGrid: typeof import('./../src/components/base/base-grid.vue')['default']
     BaseHighlightText: typeof import('./../src/components/base/base-highlight-text.vue')['default']
+    BaseHoverButton: typeof import('./../src/components/base/base-hover-button/base-hover-button.vue')['default']
     BaseImg: typeof import('./../src/components/base/base-img.vue')['default']
     BaseLineOverflowList: typeof import('./../src/components/base/base-line-overflow-list.vue')['default']
     BaseScrollbar: typeof import('./../src/components/base/base-scrollbar.vue')['default']
@@ -55,6 +56,7 @@ declare module 'vue' {
     IconAntDesignFileZipFilled: typeof import('~icons/ant-design/file-zip-filled')['default']
     IconAntDesignReloadOutlined: typeof import('~icons/ant-design/reload-outlined')['default']
     IconAntDesignSettingTwotone: typeof import('~icons/ant-design/setting-twotone')['default']
+    IconCarbonSoftwareResourceCluster: typeof import('~icons/carbon/software-resource-cluster')['default']
     IconEpArrowDownBold: typeof import('~icons/ep/arrow-down-bold')['default']
     IconEpArrowUpBold: typeof import('~icons/ep/arrow-up-bold')['default']
     IconEpClose: typeof import('~icons/ep/close')['default']
@@ -76,8 +78,6 @@ declare module 'vue' {
     IconMaterialSymbolsExperimentOutline: typeof import('~icons/material-symbols/experiment-outline')['default']
     IconMaterialSymbolsFullscreenRounded: typeof import('~icons/material-symbols/fullscreen-rounded')['default']
     IconMaterialSymbolsImage: typeof import('~icons/material-symbols/image')['default']
-    IconMaterialSymbolsKeyboardDoubleArrowDownRounded: typeof import('~icons/material-symbols/keyboard-double-arrow-down-rounded')['default']
-    IconMaterialSymbolsKeyboardDoubleArrowUpRounded: typeof import('~icons/material-symbols/keyboard-double-arrow-up-rounded')['default']
     IconMaterialSymbolsListAltAdd: typeof import('~icons/material-symbols/list-alt-add')['default']
     IconMaterialSymbolsLocationOnOutline: typeof import('~icons/material-symbols/location-on-outline')['default']
     IconMaterialSymbolsMarkdownPasteRounded: typeof import('~icons/material-symbols/markdown-paste-rounded')['default']
@@ -139,7 +139,6 @@ declare module 'vue' {
     VarButtonGroup: typeof import('@varlet/ui')['_ButtonGroupComponent']
     VarCell: typeof import('@varlet/ui')['_CellComponent']
     VarChip: typeof import('@varlet/ui')['_ChipComponent']
-    VarFab: typeof import('@varlet/ui')['_FabComponent']
     VarMenu: typeof import('@varlet/ui')['_MenuComponent']
   }
   export interface ComponentCustomProperties {

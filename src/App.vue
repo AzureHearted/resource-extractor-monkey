@@ -31,7 +31,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, defineAsyncComponent } from "vue";
-import HoverButton from "@/views/app-hover-button.vue";
+import HoverButton from "@/views/hover-button.vue";
 
 // 导入仓库
 import useGlobalStore from "@/stores/GlobalStore";
