@@ -22,33 +22,38 @@
 					:draggable="draggable"
 					v-bind="imageAttrs"
 				/>
-				<div v-if="state.isError" class="base-img__error-img">
-					<svg
-						class="icon"
-						viewBox="0 0 1024 1024"
-						version="1.1"
-						xmlns="http://www.w3.org/2000/svg"
-						p-id="3818"
-					>
-						<path
-							d="M511.744 85.333333a42.666667 42.666667 0 0 1 4.949333 85.034667L511.744 170.666667H213.333333a42.666667 42.666667 0 0 0-42.368 37.674666L170.666667 213.333333v597.333334a42.666667 42.666667 0 0 0 37.674666 42.368L213.333333 853.333333h597.333334a42.666667 42.666667 0 0 0 42.368-37.674666L853.333333 810.666667v-292.693334a42.666667 42.666667 0 0 1 85.034667-4.992l0.298667 4.992V810.666667a128 128 0 0 1-120.490667 127.786666L810.666667 938.666667H213.333333a128 128 0 0 1-127.786666-120.490667L85.333333 810.666667V213.333333a128 128 0 0 1 120.490667-127.786666L213.333333 85.333333h298.410667z"
-							p-id="3819"
-						></path>
-						<path
-							d="M327.253333 506.24a85.333333 85.333333 0 0 1 107.306667-6.570667l5.930667 4.693334 269.952 231.381333a42.666667 42.666667 0 0 1-51.242667 68.010667l-4.266667-3.242667-269.994666-231.381333-228.096 209.109333a42.666667 42.666667 0 0 1-61.397334-59.050667l3.712-3.84 228.138667-209.109333z"
-							p-id="3820"
-						></path>
-						<path
-							d="M669.013333 529.493333a85.333333 85.333333 0 0 1 105.386667-12.16l6.144 4.181334 141.056 105.813333a42.666667 42.666667 0 0 1-46.72 71.210667l-4.48-2.986667-141.056-105.770667-101.845333 101.845334a42.666667 42.666667 0 0 1-63.872-56.32l3.541333-4.010667 101.845333-101.845333zM673.834667 119.296a42.666667 42.666667 0 0 1 56.32-3.541333l4.010666 3.541333 170.666667 170.666667a42.666667 42.666667 0 0 1-56.32 63.872l-4.010667-3.541334-170.666666-170.666666a42.666667 42.666667 0 0 1 0-60.330667z"
-							p-id="3821"
-						></path>
-						<path
-							d="M844.501333 119.296a42.666667 42.666667 0 0 1 63.872 56.32l-3.541333 4.010667-170.666667 170.666666a42.666667 42.666667 0 0 1-63.872-56.32l3.541334-4.010666 170.666666-170.666667z"
-							p-id="3822"
-							data-spm-anchor-id="a313x.search_index.i1.i0.51143a81j4g6g2"
-						></path>
-					</svg>
-				</div>
+				<!-- ? 错误图片-->
+				<Transition>
+					<div v-if="state.isError" class="base-img__error-img">
+						<slot name="error-img">
+							<svg
+								class="icon"
+								viewBox="0 0 1024 1024"
+								version="1.1"
+								xmlns="http://www.w3.org/2000/svg"
+								p-id="3818"
+							>
+								<path
+									d="M511.744 85.333333a42.666667 42.666667 0 0 1 4.949333 85.034667L511.744 170.666667H213.333333a42.666667 42.666667 0 0 0-42.368 37.674666L170.666667 213.333333v597.333334a42.666667 42.666667 0 0 0 37.674666 42.368L213.333333 853.333333h597.333334a42.666667 42.666667 0 0 0 42.368-37.674666L853.333333 810.666667v-292.693334a42.666667 42.666667 0 0 1 85.034667-4.992l0.298667 4.992V810.666667a128 128 0 0 1-120.490667 127.786666L810.666667 938.666667H213.333333a128 128 0 0 1-127.786666-120.490667L85.333333 810.666667V213.333333a128 128 0 0 1 120.490667-127.786666L213.333333 85.333333h298.410667z"
+									p-id="3819"
+								></path>
+								<path
+									d="M327.253333 506.24a85.333333 85.333333 0 0 1 107.306667-6.570667l5.930667 4.693334 269.952 231.381333a42.666667 42.666667 0 0 1-51.242667 68.010667l-4.266667-3.242667-269.994666-231.381333-228.096 209.109333a42.666667 42.666667 0 0 1-61.397334-59.050667l3.712-3.84 228.138667-209.109333z"
+									p-id="3820"
+								></path>
+								<path
+									d="M669.013333 529.493333a85.333333 85.333333 0 0 1 105.386667-12.16l6.144 4.181334 141.056 105.813333a42.666667 42.666667 0 0 1-46.72 71.210667l-4.48-2.986667-141.056-105.770667-101.845333 101.845334a42.666667 42.666667 0 0 1-63.872-56.32l3.541333-4.010667 101.845333-101.845333zM673.834667 119.296a42.666667 42.666667 0 0 1 56.32-3.541333l4.010666 3.541333 170.666667 170.666667a42.666667 42.666667 0 0 1-56.32 63.872l-4.010667-3.541334-170.666666-170.666666a42.666667 42.666667 0 0 1 0-60.330667z"
+									p-id="3821"
+								></path>
+								<path
+									d="M844.501333 119.296a42.666667 42.666667 0 0 1 63.872 56.32l-3.541333 4.010667-170.666667 170.666666a42.666667 42.666667 0 0 1-63.872-56.32l3.541334-4.010666 170.666666-170.666667z"
+									p-id="3822"
+									data-spm-anchor-id="a313x.search_index.i1.i0.51143a81j4g6g2"
+								></path>
+							</svg>
+						</slot>
+					</div>
+				</Transition>
 			</slot>
 		</div>
 
@@ -72,7 +77,7 @@ import {
 	onUnmounted,
 	useTemplateRef,
 } from "vue";
-import type { Directive, ImgHTMLAttributes } from "vue";
+import type { Directive, ImgHTMLAttributes, Transition } from "vue";
 
 defineOptions({
 	name: "base-img",
@@ -336,72 +341,52 @@ const loadImage = async (src: string, thumb: string = "") => {
 	// ? 将图片赋值给img对象(开始加载)
 	img.src = src;
 
-	img
-		.decode()
-		.then(() => {
-			const { naturalWidth, naturalHeight } = img;
+	// ✅ 用 onload / onerror 保证加载判定准确
+	img.onload = async () => {
+		const { naturalWidth, naturalHeight } = img;
 
-			// console.log("图片解码成功", { naturalWidth, naturalHeight });
+		// 如果图片没有宽高，仍认为加载失败
+		if (naturalWidth === 0 || naturalHeight === 0) {
+			handleImageError();
+			return;
+		}
 
-			let { loaded, isError, show, ...infoRest } = state;
+		let { loaded, isError, show, ...infoRest } = state;
 
-			// 对剩余的属性进行类型标注
-			let info: ImgReadyInfo = {
-				meta: {
-					valid: true,
-					width: naturalWidth,
-					height: naturalHeight,
-					aspectRatio: naturalWidth / naturalHeight,
-					...infoRest,
-				},
-				dom: img,
-			};
+		// 对剩余的属性进行类型标注
+		let info: ImgReadyInfo = {
+			meta: {
+				valid: true,
+				width: naturalWidth,
+				height: naturalHeight,
+				aspectRatio: naturalWidth / naturalHeight,
+				...infoRest,
+			},
+			dom: img,
+		};
 
-			// ? 判断是否需要用户手动加载
-			if (!props.manualControl) {
-				// ? 如果用户不需要手动加载就立即加载
-				handleShow();
-				// 触发loaded事件
-				emits("loaded", info);
-				return;
-			}
-
-			// ? 用户需要手动加载则在 info 上添加 load 方法
-			info.load = handleShow;
+		// ? 判断是否需要用户手动加载
+		if (!props.manualControl) {
+			handleShow();
 			emits("loaded", info);
-		})
-		.catch(() => {
-			if (img.complete) {
-				// console.log("已经加载过", src);
+			return;
+		}
 
-				// * 当图片已经加载过
-				let info: ImgReadyInfo = {
-					meta: {
-						valid: true,
-						width: img.naturalWidth,
-						height: img.naturalHeight,
-						aspectRatio: img.naturalWidth / img.naturalHeight, // 宽高比.
-					},
-					dom: img,
-				};
-				// ? 判断是否需要外部手动加载
-				if (!props.manualControl) {
-					// ? 如果外部不需要手动加载就立即加载
-					handleShow();
-					emits("loaded", info);
-					return;
-				}
-				// ? 用户需要手动加载则在 info 上添加 load 方法
-				info.load = handleShow;
-				emits("loaded", info);
-			} else {
-				// * 当图片加载错误时
-				console.warn("图片加载错误", src);
-				state.isError = true;
-				state.loaded = true;
-				emits("error");
-			}
-		});
+		// ? 用户需要手动加载则在 info 上添加 load 方法
+		info.load = handleShow;
+		emits("loaded", info);
+	};
+
+	// 图片加载错误
+	img.onerror = handleImageError;
+
+	// 错误处理函数
+	function handleImageError() {
+		console.warn("图片加载错误", src);
+		state.isError = true;
+		state.loaded = true;
+		emits("error");
+	}
 };
 
 // f 异步生成缩略图并返回结果
@@ -452,8 +437,8 @@ async function generateThumbnail<T = File | string>(
 			}
 		};
 		img.onerror = function (error) {
-			console.warn(error);
-			resolve(source);
+			console.log("[generateThumbnail] 出错", error, source);
+			resolve("" as T);
 		};
 
 		if (typeof source === "string") {
@@ -694,5 +679,16 @@ function useIntersectionObserver() {
 			transform: translate(-50%, -50%) rotate(360deg);
 		}
 	}
+}
+
+// 过渡效果
+.v-enter-active,
+.v-leave-active {
+	transition: opacity 0.5s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+	opacity: 0;
 }
 </style>
