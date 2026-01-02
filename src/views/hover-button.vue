@@ -15,7 +15,15 @@
 				type="info"
 				style="user-select: none"
 			>
-				<div style="overflow: hidden; border-radius: 50%" v-ripple>
+				<div
+					style="
+						overflow: hidden;
+						width: 100%;
+						height: 100%;
+						border-radius: 50%;
+					"
+					v-ripple
+				>
 					<icon-mdi-dots-grid style="width: 100%; height: 100%; scale: 0.9" />
 				</div>
 			</n-badge>
@@ -68,7 +76,12 @@
 				style="user-select: none; width: 100%; height: 100%"
 			>
 				<div
-					style="overflow: hidden; border-radius: 50%"
+					style="
+						overflow: hidden;
+						width: 100%;
+						height: 100%;
+						border-radius: 50%;
+					"
 					v-ripple
 					@click="toggleWindow('Gallery')"
 				>
