@@ -474,7 +474,8 @@ export default defineStore("CardStore", () => {
 						}
 
 						// 记录卡片
-						newCardList.push(card);
+						// newCardList.push(card);
+						newCardList[index] = card;
 						totalNewCardCount++;
 
 						await addCard(); //执行回调函数
@@ -486,7 +487,9 @@ export default defineStore("CardStore", () => {
 					},
 					// * 当前规则匹配结束后的回调
 					onFinished() {
-						data.cardList.push(...newCardList);
+						console.log(`newCardList:`, newCardList);
+						const validNewCardList = newCardList.filter((x) => x != null);
+						data.cardList.push(...validNewCardList);
 						newCardList = [];
 					},
 				}
