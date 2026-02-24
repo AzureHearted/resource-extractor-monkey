@@ -4,11 +4,13 @@
 			<el-input
 				v-model="rule.source.selector"
 				placeholder="请输入css选择器"
-				clearable>
+				clearable
+			>
 				<template v-if="rule.region.enable" #prepend>
 					<span
 						:title="rule.region.selector"
-						@click="copy(rule.region.selector)">
+						@click="copy(rule.region.selector)"
+					>
 						{{ rule.region.selector }}
 					</span>
 				</template>
@@ -28,7 +30,8 @@
 			<el-input
 				v-model="rule.source.name"
 				placeholder="请输入要匹配的属性值名称 (仅在“属性”类型下生效)"
-				clearable></el-input>
+				clearable
+			></el-input>
 		</el-form-item>
 		<!-- 修正方案 -->
 		<FixFrom :rule="rule" :disable="rule.id.includes('#')" type="source" />
@@ -36,13 +39,12 @@
 </template>
 
 <script setup lang="ts">
-	import { defineModel } from "vue";
-	import { useClipboard } from "@vueuse/core";
-	import { Rule } from "@/stores/PatternStore/class/Rule";
+import { useClipboard } from "@vueuse/core";
+import { Rule } from "@/stores/PatternStore/class/Rule";
 
-	import FixFrom from "./card-from-fix.vue";
-	const { copy } = useClipboard();
-	const rule = defineModel("rule", { type: Rule, required: true });
+import FixFrom from "./card-from-fix.vue";
+const { copy } = useClipboard();
+const rule = defineModel("rule", { type: Rule, required: true });
 </script>
 
 <style lang="scss" scoped></style>
