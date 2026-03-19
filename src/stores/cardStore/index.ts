@@ -78,7 +78,7 @@ export default defineStore("CardStore", () => {
 				height: [0, 2000],
 				min: 0,
 				max: 2000,
-			}
+			},
 		);
 	});
 
@@ -89,7 +89,7 @@ export default defineStore("CardStore", () => {
 			// console.log("仓库最大尺寸变化");
 			filters.size.width[1] = maxW; // 更新过滤器最大宽度。
 			filters.size.height[1] = maxH; // 更新过滤器最大宽度。
-		}
+		},
 	);
 
 	// t 卡片类型(类型)
@@ -182,21 +182,24 @@ export default defineStore("CardStore", () => {
 		// (访问器)获取分组数组
 		get groups(): sortGroup[] {
 			return Object.values(
-				this.options.reduce((prev, curr) => {
-					if (!prev[curr.group]) {
-						prev[curr.group] = {
-							type: "group",
-							key: curr.group,
-							label: curr.group,
-							children: [],
-						};
-					}
-					prev[curr.group].children.push({
-						...curr,
-						key: curr.value,
-					});
-					return prev;
-				}, <{ [key: string]: sortGroup }>{})
+				this.options.reduce(
+					(prev, curr) => {
+						if (!prev[curr.group]) {
+							prev[curr.group] = {
+								type: "group",
+								key: curr.group,
+								label: curr.group,
+								children: [],
+							};
+						}
+						prev[curr.group].children.push({
+							...curr,
+							key: curr.value,
+						});
+						return prev;
+					},
+					<{ [key: string]: sortGroup }>{},
+				),
 			);
 		},
 	});
@@ -219,12 +222,12 @@ export default defineStore("CardStore", () => {
 		switch (sort.method) {
 			case "name-asc":
 				all.sort((a, b) =>
-					naturalCompare(a.description.title, b.description.title)
+					naturalCompare(a.description.title, b.description.title),
 				);
 				break;
 			case "name-desc":
 				all.sort((a, b) =>
-					naturalCompare(b.description.title, a.description.title)
+					naturalCompare(b.description.title, a.description.title),
 				);
 				break;
 			case "width-asc":
@@ -264,12 +267,12 @@ export default defineStore("CardStore", () => {
 			const isSourceSizeMatch =
 				(sType === "image" || sType === "video") && isLoaded
 					? sWidth! >= filters.size.width[0] &&
-					  sHeight! >= filters.size.height[0]
+						sHeight! >= filters.size.height[0]
 					: true;
 			const isPreviewSizeMatch =
 				(pType === "image" || pType === "video") && isLoaded
 					? pWidth! >= filters.size.width[0] &&
-					  pHeight! >= filters.size.height[0]
+						pHeight! >= filters.size.height[0]
 					: true;
 			const isMatchKeyWords =
 				isKeywordsMatch(title, keywords) || isKeywordsMatch(tags, keywords);
@@ -387,7 +390,7 @@ export default defineStore("CardStore", () => {
 				title: "提示",
 				type: "warning",
 				message: "该方案没有包含任何规则！(请为方案添加规则后再进行此操作)",
-				appendTo: ".web-img-collector__notification",
+				appendTo: ".resource-extractor__notification",
 			});
 			return;
 		}
@@ -408,7 +411,7 @@ export default defineStore("CardStore", () => {
 				rule,
 				// 选项配置
 				{
-					excludeParentSelectors: [".web-img-collector"],
+					excludeParentSelectors: [".resource-extractor"],
 					// * 当获取到所有基准dom时的回调
 					onAllDOMGet: async (doms) => {
 						// console.log("匹配到的DOM", doms);
@@ -448,7 +451,7 @@ export default defineStore("CardStore", () => {
 								// 如果已经存在了就++
 								data.typeMap.set(
 									sourceMeta.type,
-									data.typeMap.get(sourceMeta.type)! + 1
+									data.typeMap.get(sourceMeta.type)! + 1,
 								);
 							} else {
 								data.typeMap.set(sourceMeta.type, 1);
@@ -461,7 +464,7 @@ export default defineStore("CardStore", () => {
 								// 如果已经存在了就++
 								data.extensionMap.set(
 									sourceMeta.ext,
-									data.extensionMap.get(sourceMeta.ext)! + 1
+									data.extensionMap.get(sourceMeta.ext)! + 1,
 								);
 							} else {
 								data.extensionMap.set(sourceMeta.ext, 1);
@@ -492,7 +495,7 @@ export default defineStore("CardStore", () => {
 						data.cardList.push(...validNewCardList);
 						newCardList = [];
 					},
-				}
+				},
 			);
 		}
 
@@ -501,7 +504,7 @@ export default defineStore("CardStore", () => {
 				title: "提示",
 				type: "info",
 				message: "该方案未匹配到任何有效结果",
-				appendTo: ".web-img-collector__notification",
+				appendTo: ".resource-extractor__notification",
 			});
 		}
 
@@ -569,7 +572,7 @@ export default defineStore("CardStore", () => {
 			// console.log(name);
 			// 下载完成后让用户进行文件名确认
 			ElMessageBox.prompt("文件已准备完成,请确认文件名", "提示", {
-				appendTo: ".web-img-collector__notification",
+				appendTo: ".resource-extractor__notification",
 				confirmButtonText: "确认",
 				cancelButtonText: "取消",
 				inputPlaceholder: "请输入要保存的文件名称",
@@ -599,7 +602,7 @@ export default defineStore("CardStore", () => {
 				title: "提示",
 				message: "开始下载……",
 				type: "info",
-				appendTo: ".web-img-collector__notification",
+				appendTo: ".resource-extractor__notification",
 			});
 
 			// 大于1的时候进行打包
@@ -641,7 +644,7 @@ export default defineStore("CardStore", () => {
 									// 将blob存入zip容器
 									zipContainer.file(
 										`${String(i).padStart(paddingZeroCount, "0")} - ${name}`,
-										card.source.blob
+										card.source.blob,
 									);
 									resolve(zipContainer);
 								})();
@@ -661,7 +664,7 @@ export default defineStore("CardStore", () => {
 							title: "提示",
 							message: "下载完成！正在打包……",
 							type: "info",
-							appendTo: ".web-img-collector__notification",
+							appendTo: ".resource-extractor__notification",
 						});
 
 						loadingStore.update(0, zipContainer.length);
@@ -674,7 +677,7 @@ export default defineStore("CardStore", () => {
 							// 压缩的进度回调
 							(metadata) => {
 								loadingStore.updatePercent(metadata.percent * 0.01);
-							}
+							},
 						);
 
 						// 下载压缩包
@@ -683,10 +686,10 @@ export default defineStore("CardStore", () => {
 						const titles = [
 							document.title,
 							...[...document.querySelectorAll("h1")].map(
-								(dom) => dom.innerText
+								(dom) => dom.innerText,
 							),
 							...[...document.querySelectorAll("title")].map(
-								(dom) => dom.innerText
+								(dom) => dom.innerText,
 							),
 						]
 							.filter((title) => !!title && !!title.trim().length)
@@ -699,7 +702,7 @@ export default defineStore("CardStore", () => {
 
 						// s 下载完成后让用户进行文件名确认
 						ElMessageBox.prompt("压缩包已准备完成,请确认文件名", "提示", {
-							appendTo: ".web-img-collector__notification",
+							appendTo: ".resource-extractor__notification",
 							confirmButtonText: "确认",
 							cancelButtonText: "取消",
 							inputPlaceholder: "请输入要保存的压缩包名称",
@@ -716,7 +719,7 @@ export default defineStore("CardStore", () => {
 									title: "成功",
 									message: "开始下载压缩包……",
 									type: "success",
-									appendTo: ".web-img-collector__notification",
+									appendTo: ".resource-extractor__notification",
 								});
 							})
 							.catch(() => {
@@ -726,7 +729,7 @@ export default defineStore("CardStore", () => {
 						loadingStore.end(); // 结束进度条
 						// console.groupEnd();
 					},
-				}
+				},
 			);
 
 			// 运行队列

@@ -346,7 +346,7 @@ watch(
 		if (filters.size.height[1] < height) {
 			filters.size.height[1] = height;
 		}
-	}
+	},
 );
 
 // 被选中的卡片
@@ -402,7 +402,7 @@ const renderPatternSelectOptionsLabel = (option: SelectOption): VNodeChild => {
 						src: (option.rowData as Pattern).mainInfo.icon,
 						style:
 							"width: 16px; height: 16px;margin-right:4px; flex-shrink: 0;",
-				  })
+					})
 				: null,
 			h(
 				"div",
@@ -422,9 +422,9 @@ const renderPatternSelectOptionsLabel = (option: SelectOption): VNodeChild => {
 					},
 					title: option.label,
 				},
-				{ default: () => option.label as string }
+				{ default: () => option.label as string },
 			),
-		]
+		],
 	);
 };
 
@@ -443,7 +443,7 @@ const renderTag: SelectRenderTag = ({ option, handleClose }) => {
 				handleClose();
 			},
 		},
-		{ default: () => option.label }
+		{ default: () => option.label },
 	);
 };
 
@@ -458,7 +458,7 @@ const renderOptionLabelWithCount = (option: SelectOption): VNodeChild => {
 			h(
 				"div",
 				{ title: option.label },
-				{ default: () => option.label as string }
+				{ default: () => option.label as string },
 			),
 			h(
 				NBadge,
@@ -470,9 +470,9 @@ const renderOptionLabelWithCount = (option: SelectOption): VNodeChild => {
 				{
 					value: () =>
 						(option.count as number) <= 999 ? option.count : "999+" + "个",
-				}
+				},
 			),
-		]
+		],
 	);
 };
 
@@ -527,7 +527,7 @@ function checkAll() {
 // f 反选
 function inverseAll() {
 	filterCardList.value[nowType.value].forEach(
-		(c) => (c.isSelected = !c.isSelected)
+		(c) => (c.isSelected = !c.isSelected),
 	);
 }
 
@@ -568,7 +568,7 @@ function deleteSelected() {
 function favoriteSelected() {
 	favoriteStore.addCard(selectionCardList.value[nowType.value]); // 添加卡片到Favorite仓库
 	selectionCardList.value[nowType.value].forEach(
-		(card) => (card.isFavorite = true)
+		(card) => (card.isFavorite = true),
 	); // 更新卡片收藏状态
 }
 
@@ -674,7 +674,10 @@ const batchAddTag = (tags: string[]) => {
 	opacity: 0;
 	visibility: hidden;
 
-	transition: opacity 0.3s 2s ease, visibility 0.3s 2s ease, height 0.3s 2s ease,
+	transition:
+		opacity 0.3s 2s ease,
+		visibility 0.3s 2s ease,
+		height 0.3s 2s ease,
 		margin 0.3s 2s ease;
 
 	&.loading-active {
@@ -683,24 +686,27 @@ const batchAddTag = (tags: string[]) => {
 		margin: 4px 8px;
 		visibility: visible;
 
-		transition: opacity 0.3s ease, visibility 0.3s ease, height 0.3s ease,
+		transition:
+			opacity 0.3s ease,
+			visibility 0.3s ease,
+			height 0.3s ease,
 			margin 0.3s ease;
 	}
 
-	:deep(.wic2-progress-bar__inner) {
+	:deep(.re-progress-bar__inner) {
 		line-height: 0;
 	}
 }
 
 // 样式修复
-:deep(.wic2-badge) {
+:deep(.re-badge) {
 	display: block;
 }
-:deep(.wic2-n-badge-sup) {
+:deep(.re-n-badge-sup) {
 	z-index: 5;
 }
 
-:deep(.wic2-n-base-select-option__content) {
+:deep(.re-n-base-select-option__content) {
 	flex: 1;
 }
 :deep(.var-menu__menu) {

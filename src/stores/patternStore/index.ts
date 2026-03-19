@@ -134,7 +134,7 @@ export default defineStore("PatternStore", () => {
 	function adjustPatternPosition(
 		id: string,
 		tid: string,
-		position: "before" | "after" | "inner"
+		position: "before" | "after" | "inner",
 	) {
 		const index = findPatternIndex(id);
 		// 先取出要调整的方案
@@ -188,7 +188,7 @@ export default defineStore("PatternStore", () => {
 	function adjustRulePosition(
 		id: string,
 		tid: string,
-		position: "before" | "after" | "inner"
+		position: "before" | "after" | "inner",
 	) {
 		const pattern = findRulePattern(id);
 		const targetPattern = findRulePattern(tid);
@@ -204,7 +204,7 @@ export default defineStore("PatternStore", () => {
 		targetPattern.rules.splice(
 			dropIndex + (position === "after" ? 1 : 0),
 			0,
-			rule
+			rule,
 		);
 		// 先备份数据
 		pattern.backupData();
@@ -271,7 +271,7 @@ export default defineStore("PatternStore", () => {
 						type: "error",
 						title: "失败",
 						message: "剪贴板内容解析失败",
-						appendTo: ".web-img-collector__notification",
+						appendTo: ".resource-extractor__notification",
 					});
 					return;
 				}
@@ -286,7 +286,7 @@ export default defineStore("PatternStore", () => {
 						type: "success",
 						title: "成功",
 						message: "成功解析为方案",
-						appendTo: ".web-img-collector__notification",
+						appendTo: ".resource-extractor__notification",
 					});
 				} catch (e) {
 					// 如果解析失败则提示错误
@@ -294,7 +294,7 @@ export default defineStore("PatternStore", () => {
 						type: "error",
 						title: "失败",
 						message: "剪贴板内容不符合方案的数据格式",
-						appendTo: ".web-img-collector__notification",
+						appendTo: ".resource-extractor__notification",
 					});
 				}
 			})
@@ -303,7 +303,7 @@ export default defineStore("PatternStore", () => {
 					type: "error",
 					title: "失败",
 					message: "剪贴板内容读取失败",
-					appendTo: ".web-img-collector__notification",
+					appendTo: ".resource-extractor__notification",
 				});
 			});
 	}

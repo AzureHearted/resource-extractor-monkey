@@ -21,7 +21,7 @@
 				<template #="{ item }">
 					<GalleryCard
 						:key="(item as Card).id"
-						v-model:data="(item as Card)"
+						v-model:data="item as Card"
 						:highlight-key="searchKeywords"
 						:is-mobile="state.isMobile"
 						@change:selected="(item as Card).isSelected = $event"
@@ -49,7 +49,7 @@
 			>
 				<template #="{ item }">
 					<GalleryCard
-						v-model:data="(item.data as Card)"
+						v-model:data="item.data as Card"
 						:highlight-key="searchKeywords"
 						:is-mobile="state.isMobile"
 						@change:selected="(item.data as Card).isSelected = $event"
@@ -118,7 +118,7 @@ const props = withDefaults(
 	{
 		cardList: () => [],
 		layout: "grid",
-	}
+	},
 );
 
 // s 滚动条组件引用
@@ -279,7 +279,7 @@ type FancyboxType =
 	| false;
 
 function getFancyboxType(
-	metaType: false | "image" | "video" | "audio" | "zip" | "html" | "other"
+	metaType: false | "image" | "video" | "audio" | "zip" | "html" | "other",
 ) {
 	let type: FancyboxType = "iframe";
 	if (!metaType) return type;
@@ -490,7 +490,7 @@ async function onCardContextMenu(event: PointerEvent, id: string) {
 				copy(
 					result === "copySource"
 						? card.source.url
-						: JSON.stringify(card.getRowData())
+						: JSON.stringify(card.getRowData()),
 				)
 					.then(() => {
 						ElNotification({
@@ -500,14 +500,14 @@ async function onCardContextMenu(event: PointerEvent, id: string) {
 								result === "copySource"
 									? card.source.url
 									: `卡片数据：${card.description.title}`,
-							appendTo: ".web-img-collector__notification",
+							appendTo: ".resource-extractor__notification",
 						});
 					})
 					.catch(() => {
 						ElNotification({
 							type: "error",
 							title: "复制失败",
-							appendTo: ".web-img-collector__notification",
+							appendTo: ".resource-extractor__notification",
 						});
 					});
 				break;

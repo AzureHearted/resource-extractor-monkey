@@ -74,7 +74,7 @@
 										class="custom-tree-node-name"
 										is-dot
 										:offset="[-4, 4]"
-										:hidden="!(data.rowData as Pattern|Rule).isChange()"
+										:hidden="!(data.rowData as Pattern | Rule).isChange()"
 									>
 										{{ node.label }}
 									</el-badge>
@@ -224,7 +224,7 @@ const allowDrag = (draggingNode: Node): boolean => {
 const allowDrop = (
 	draggingNode: Node, // 拖拽中的节点
 	dropNode: Node, // 放置节点
-	type: AllowDropType // 放置位置
+	type: AllowDropType, // 放置位置
 ): boolean => {
 	// console.log("type", type);
 	if (draggingNode.id === dropNode.id || dropNode.data.rowData.id.includes("#"))
@@ -245,7 +245,7 @@ const allowDrop = (
 const handleDrop = (
 	draggingNode: Node,
 	dropNode: Node,
-	dropType: NodeDropType
+	dropType: NodeDropType,
 	// ev: DragEvents
 ) => {
 	if (dropType === "none") return;
@@ -278,7 +278,7 @@ const handleDrop = (
 		patternStore.adjustPatternPosition(
 			draggingPattern.id,
 			dropPattern.id,
-			dropType as any
+			dropType as any,
 		);
 	}
 };
@@ -351,7 +351,7 @@ function removeRule(node: Node, data: Tree) {
 	flex-flow: column;
 	gap: 6px;
 	height: 100%;
-	:deep(.wic2-card__body) {
+	:deep(.re-card__body) {
 		padding: 4px;
 	}
 
@@ -374,7 +374,7 @@ function removeRule(node: Node, data: Tree) {
 			// background: #ffffff;
 		}
 		:deep(.base-scrollbar__view) {
-			box-shadow: var(--wic2-box-shadow-light);
+			box-shadow: var(--re-box-shadow-light);
 			border-radius: 4px;
 			overflow: hidden;
 			// background: #ffffff;
@@ -427,19 +427,19 @@ function removeRule(node: Node, data: Tree) {
 		padding: 0 4px;
 		display: flex;
 
-		:deep(.wic2-button) {
+		:deep(.re-button) {
 			font-size: 16px;
 		}
 	}
 }
 
-:deep(.wic2-tree) {
-	--wic2-tree-node-content-height: 40px;
-	.wic2-tree-node__content {
+:deep(.re-tree) {
+	--re-tree-node-content-height: 40px;
+	.re-tree-node__content {
 		position: relative;
 		box-sizing: border-box;
 	}
-	.wic2-button + .wic2-button {
+	.re-button + .re-button {
 		margin-left: 4px;
 	}
 }

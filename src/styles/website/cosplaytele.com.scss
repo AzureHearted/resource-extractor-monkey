@@ -3,16 +3,40 @@ button,
 fieldset,
 input,
 select,
-textarea {
+textarea,
+label,
+legend {
 	margin: unset;
+	font-weight: unset;
 }
-button {
-	box-sizing: border-box;
-	min-height: auto;
-	overflow: hidden;
-	i {
-		top: unset;
-	}
+
+.select-resize-ghost,
+.select2-container .select2-choice,
+.select2-container .select2-selection,
+input[type="date"],
+input[type="email"],
+input[type="number"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+input[type="text"],
+input[type="url"],
+select,
+textarea {
+	border: unset;
+}
+
+input[type="email"]:focus,
+input[type="number"]:focus,
+input[type="password"]:focus,
+input[type="search"]:focus,
+input[type="tel"]:focus,
+input[type="text"]:focus,
+select:focus,
+textarea:focus {
+	background-color: unset;
+	box-shadow: unset;
+	color: unset;
 }
 
 img.fancybox-image {

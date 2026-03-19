@@ -276,7 +276,7 @@ const renderTag: SelectRenderTag = ({ option, handleClose }) => {
 				handleClose();
 			},
 		},
-		{ default: () => option.label }
+		{ default: () => option.label },
 	);
 };
 
@@ -298,9 +298,9 @@ const renderOptionLabelWithCount = (option: SelectOption): VNodeChild => {
 				{
 					value: () =>
 						(option.count as number) <= 999 ? option.count : "999+" + "个",
-				}
+				},
 			),
-		]
+		],
 	);
 };
 
@@ -350,7 +350,7 @@ const handleKeywordFilter = (value?: string) => {
 // 排序方式选择器
 .sort-method-select {
 	width: 130px;
-	:deep(.wic2-n-base-selection-input__content) {
+	:deep(.re-n-base-selection-input__content) {
 		user-select: none;
 	}
 }
@@ -360,7 +360,7 @@ const handleKeywordFilter = (value?: string) => {
 .ext-select {
 	width: 150px;
 
-	:deep(.wic2-n-base-select-option__content) {
+	:deep(.re-n-base-select-option__content) {
 		flex: 1;
 	}
 }

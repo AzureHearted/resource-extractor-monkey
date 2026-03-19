@@ -199,7 +199,7 @@
 				<div v-if="false" class="extra-tag-list">
 					<BaseLineOverFlowList
 						:list="tags"
-						model-to=".web-img-collector__modal-container"
+						model-to=".resource-extractor__modal-container"
 					>
 						<template #default="{ item, openShowMore }">
 							<var-chip
@@ -375,7 +375,7 @@ const props = withDefaults(
 		showFavoriteButton: true,
 		showToLocateButton: true,
 		downloading: false,
-	}
+	},
 );
 
 // ? 定义emits
@@ -440,7 +440,7 @@ function toLocate(item: Card) {
 function rename(item: Card) {
 	// 删除卡片数据模型中的卡片。
 	ElMessageBox.prompt(`重命名卡片"${item.description.title}"为……`, "重命名", {
-		appendTo: ".web-img-collector__notification",
+		appendTo: ".resource-extractor__notification",
 		confirmButtonText: "确认",
 		cancelButtonText: "取消",
 		inputPlaceholder: "请输入新卡片名称",
@@ -486,11 +486,11 @@ const handleTagsSave = (newTags: string[]) => {
 	}
 }
 
-:deep(.wic2-button) {
+:deep(.re-button) {
 	padding: 2px 4px;
 	border: unset;
 	box-shadow: var(--el-box-shadow);
-	.wic2-icon {
+	.re-icon {
 		font-size: 16px;
 	}
 }
@@ -519,7 +519,10 @@ const handleTagsSave = (newTags: string[]) => {
 	opacity: 0;
 	visibility: hidden;
 	transform: scale(0.8); /* 可加轻微缩放效果 */
-	transition: transform 0.5s ease, opacity 0.5s ease, visibility 0s ease 0.5s;
+	transition:
+		transform 0.5s ease,
+		opacity 0.5s ease,
+		visibility 0s ease 0.5s;
 }
 
 // 卡片悬浮时才显示按钮组
@@ -527,7 +530,10 @@ const handleTagsSave = (newTags: string[]) => {
 	opacity: 1;
 	visibility: visible;
 	transform: scale(1); /* hover 放大到原始大小 */
-	transition: transform 0.3s ease, opacity 0.3s ease, visibility 0s ease;
+	transition:
+		transform 0.3s ease,
+		opacity 0.3s ease,
+		visibility 0s ease;
 }
 
 .card-checkbox {
@@ -554,7 +560,10 @@ const handleTagsSave = (newTags: string[]) => {
 	/* opacity: 0; */
 	/* visibility: hidden; */
 	/* transform: scale(0.8);  */
-	transition: transform 0.3s, opacity 0.3s ease, visibility 0.3s ease;
+	transition:
+		transform 0.3s,
+		opacity 0.3s ease,
+		visibility 0.3s ease;
 
 	pointer-events: none;
 	* {
@@ -562,13 +571,13 @@ const handleTagsSave = (newTags: string[]) => {
 	}
 
 	// s 标签样式
-	:deep(span.wic2-tag) {
+	:deep(span.re-tag) {
 		box-sizing: border-box;
 		line-height: 20px;
 		padding: 0 4px;
 		border: unset;
 
-		.wic2-tag__content {
+		.re-tag__content {
 			overflow: hidden;
 			text-overflow: ellipsis;
 			white-space: nowrap;

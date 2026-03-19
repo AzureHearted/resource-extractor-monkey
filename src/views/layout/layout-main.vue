@@ -1,5 +1,5 @@
 <template>
-	<div class="web-img-collector__main">
+	<div class="resource-extractor__main">
 		<n-layout has-sider>
 			<n-layout-sider
 				v-if="false"
@@ -19,7 +19,7 @@
 						? {
 								transform: ' translateX(60%) translateY(-50%) ',
 								scale: 1.5,
-						  }
+							}
 						: {}
 				"
 				@collapse="collapsed = true"
@@ -78,7 +78,7 @@ const nowPage = computed(() => {
 </script>
 
 <style lang="scss" scoped>
-.web-img-collector__main {
+.resource-extractor__main {
 	position: relative;
 	box-sizing: border-box;
 	width: 100%;
@@ -87,14 +87,14 @@ const nowPage = computed(() => {
 	display: flex;
 }
 
-:deep(.wic2-n-layout) {
+:deep(.re-n-layout) {
 	background: unset;
 
-	.wic2-n-layout-sider {
+	.re-n-layout-sider {
 		background: rgba(255, 255, 255, 0.3);
 		backdrop-filter: blur(10px);
 	}
-	.wic2-n-card {
+	.re-n-card {
 		background: unset;
 	}
 }

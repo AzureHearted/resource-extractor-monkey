@@ -1,5 +1,5 @@
 <template>
-	<div class="web-img-collector__app-bar">
+	<div class="resource-extractor__app-bar">
 		<!-- s 移动端的菜单按钮 -->
 		<n-button
 			circle
@@ -21,7 +21,7 @@
 			display-directive="show"
 			@mask-click="navCollapse = true"
 			@mouseleave="!isMobile && (navCollapse = true)"
-			to=".web-img-collector>.web-img-collector__layout"
+			to=".resource-extractor>.resource-extractor__layout"
 		>
 			<n-drawer-content
 				:body-content-style="{
@@ -32,14 +32,16 @@
 			</n-drawer-content>
 		</n-drawer>
 		<!-- s 标题 -->
-		<div class="web-img-collector__app-bar__title">
-			<div class="web-img-collector__app-bar__title__left">
-				<n-gradient-text type="primary"> Web Img Collector 2 </n-gradient-text>
+		<div class="resource-extractor__app-bar__title">
+			<div class="resource-extractor__app-bar__title__left">
+				<n-gradient-text type="primary">
+					Resource Extractor &nbsp;
+				</n-gradient-text>
 				<n-tag type="info" size="tiny" round :bordered="false">
-					{{ VERSION }}
+					{{ VERSION + (isDevMode ? " (dev)" : "") }}
 				</n-tag>
 			</div>
-			<div class="web-img-collector__app-bar__title__right">
+			<div class="resource-extractor__app-bar__title__right">
 				<!-- s 布局切换按钮 -->
 				<n-radio-group
 					v-if="currentTab === 'Gallery' || currentTab === 'Favorite'"
@@ -65,7 +67,7 @@
 			circle
 			ghost
 			:bordered="false"
-			class="web-img-collector__app-bar__close-button"
+			class="resource-extractor__app-bar__close-button"
 			@click="globalStore.openWindow = false"
 		>
 			<template #icon>
@@ -90,6 +92,8 @@ const { navCollapse, galleryState, tab: currentTab } = storeToRefs(globalStore);
 // ? 导入版本号
 const VERSION = GM_info.script.version;
 
+const isDevMode = import.meta.env.DEV;
+
 const isMobile = ref(false);
 onMounted(() => {
 	isMobile.value = judgeIsMobile();
@@ -102,14 +106,16 @@ onActivated(() => {
 <style lang="scss" scoped>
 @use "@/styles/shadow.scss" as shadow;
 
-.web-img-collector__app-bar {
+.resource-extractor__app-bar {
 	display: flex;
 	height: 34px;
 	line-height: 34px;
 
 	background: white;
 	align-items: center;
-	box-shadow: shadow.$elevation, inset 0 0 10px rgba(128, 128, 128, 0.6);
+	box-shadow:
+		shadow.$elevation,
+		inset 0 0 10px rgba(128, 128, 128, 0.6);
 
 	&__title {
 		flex: 1;
@@ -122,19 +128,19 @@ onActivated(() => {
 		overflow: hidden;
 		text-overflow: ellipsis;
 
-		.web-img-collector__app-bar__title__left {
+		.resource-extractor__app-bar__title__left {
 			white-space: nowrap;
 			overflow: hidden;
 			text-overflow: ellipsis;
 		}
 
-		.web-img-collector__app-bar__title__right {
+		.resource-extractor__app-bar__title__right {
 			display: flex;
 			align-items: center;
 			margin-left: auto;
 			padding: 4px 4px;
 
-			:deep(.wic2-n-radio-button) {
+			:deep(.re-n-radio-button) {
 				padding: 0 8px;
 			}
 		}

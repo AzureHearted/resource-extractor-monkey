@@ -72,23 +72,23 @@ const activeName = ref("region");
 </script>
 
 <style lang="scss" scoped>
-:deep(.wic2-tabs__content) {
+:deep(.re-tabs__content) {
 	overflow: visible;
 }
 .fix-item-card {
 	flex: 1;
 	margin: 0 6px;
-	:deep(.wic2-card__header) {
+	:deep(.re-card__header) {
 		padding: 4px 10px;
 	}
-	:deep(.wic2-card__body) {
+	:deep(.re-card__body) {
 		padding: 4px 10px;
 	}
-	:deep(.wic2-card__footer) {
+	:deep(.re-card__footer) {
 		padding: 8px 10px;
 	}
 
-	:deep(.wic2-form-item) {
+	:deep(.re-form-item) {
 		&:nth-child(1) {
 			margin-top: 6px;
 		}

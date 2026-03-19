@@ -1,6 +1,6 @@
 <template>
 	<dialog
-		class="web-img-collector__layout"
+		class="resource-extractor__layout"
 		:data-open="globalStore.openWindow"
 		ref="containerDOM"
 	>
@@ -44,13 +44,13 @@ watch(
 			if (!containerDOM.value) return;
 			containerDOM.value.close();
 		}
-	}
+	},
 );
 </script>
 
 <style lang="scss" scoped>
 // 布局容器样式
-.web-img-collector__layout {
+.resource-extractor__layout {
 	position: absolute;
 	inset: 0;
 	max-width: unset !important;
@@ -68,7 +68,9 @@ watch(
 	background: rgba(255, 255, 255, 0.3);
 	backdrop-filter: blur(10px);
 
-	transition: top 0.5s ease-in-out, opacity 0.5s ease-in-out;
+	transition:
+		top 0.5s ease-in-out,
+		opacity 0.5s ease-in-out;
 
 	// 未打开时的样式
 	opacity: 0;
@@ -87,7 +89,7 @@ watch(
 	}
 }
 
-:deep(.web-img-collector__main) {
+:deep(.resource-extractor__main) {
 	flex: auto; // 设置为auto用于自动占满剩余空间
 	overflow: auto; // 设置hidden用于确保内容溢出可以隐藏
 	display: flex;

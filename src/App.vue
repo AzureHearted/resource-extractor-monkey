@@ -1,15 +1,15 @@
 <template>
 	<!-- s 脚本应用容器 -->
-	<div :data-host="state.host" ref="appDOM" class="web-img-collector">
+	<div :data-host="state.host" ref="appDOM" class="resource-extractor">
 		<!-- s 消息通知类信息容器 -->
 		<el-config-provider namespace="el">
-			<div class="web-img-collector__notification"></div>
+			<div class="resource-extractor__notification"></div>
 		</el-config-provider>
 		<!-- s 内容区 -->
-		<el-config-provider namespace="wic2">
+		<el-config-provider namespace="re">
 			<n-config-provider
-				namespace="wic2-n"
-				cls-prefix="wic2-n"
+				namespace="re-n"
+				cls-prefix="re-n"
 				inline-theme-disabled
 				preflight-style-disabled
 				:hljs="state.hljs"
@@ -22,7 +22,7 @@
 				<!-- s 顶层元素的承载容器 -->
 				<div
 					ref="subWindowContainerDOM"
-					class="web-img-collector__modal-container"
+					class="resource-extractor__modal-container"
 				></div>
 			</n-config-provider>
 		</el-config-provider>
@@ -57,7 +57,7 @@ const state = reactive({
 
 // 异步导入Layout组件
 const Layout = defineAsyncComponent(
-	() => import("@/views/layout/layout-index.vue")
+	() => import("@/views/layout/layout-index.vue"),
 );
 
 onMounted(() => {
@@ -81,7 +81,7 @@ dialog {
 }
 
 // 布局容器(鼠标可以穿透，只用于划定组件的活动范围，不遮挡其他内容)
-.web-img-collector {
+.resource-extractor {
 	/* 核心属性：阻止滚动溢出到父级 */
 	overscroll-behavior: contain;
 	box-sizing: border-box;
@@ -128,7 +128,7 @@ dialog {
 }
 
 // ! 子窗口容器样式(主要作为弹窗的容器)
-.web-img-collector__modal-container {
+.resource-extractor__modal-container {
 	position: absolute;
 	inset: 0;
 	width: 100%;
