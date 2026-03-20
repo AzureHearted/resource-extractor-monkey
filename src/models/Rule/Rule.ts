@@ -1,31 +1,31 @@
 import { cloneDeep, isEqual } from "@/plugin/lodash";
+import type { Status } from "../Pattern/interface/Pattern";
 import type {
-	BaseMatchDescription,
-	BaseMatchPreview,
-	BaseMatchRegion,
-	BaseRule,
-	BaseMatchSource,
-	BaseFilter,
+	Description,
+	Preview,
+	Region,
+	Rule as IRule,
+	Source,
+	Filter,
 	BaseFix,
-	BaseStatus,
-	BaseRuleRowData,
-} from "../interface/Pattern";
+	RawRule,
+} from "../Rule/interface/Rule";
 
-export class Rule implements BaseRule {
+export class Rule implements IRule {
 	public readonly id: string;
 	public enable: boolean = true;
 	public name: string = "新规则";
-	public region: BaseMatchRegion = {
+	public region: Region = {
 		enable: false,
 		selector: "",
 	};
-	public source: BaseMatchSource = {
+	public source: Source = {
 		selector: "",
 		infoType: "property",
 		name: "",
 		fix: [],
 	};
-	public preview: BaseMatchPreview = {
+	public preview: Preview = {
 		enable: false,
 		origin: "source",
 		selector: "",
@@ -33,7 +33,7 @@ export class Rule implements BaseRule {
 		name: "",
 		fix: [],
 	};
-	public description: BaseMatchDescription = {
+	public description: Description = {
 		enable: false,
 		origin: "source",
 		selector: "",
@@ -41,17 +41,17 @@ export class Rule implements BaseRule {
 		name: "",
 		fix: [],
 	};
-	public filter: BaseFilter = {
+	public filter: Filter = {
 		formats: [],
 		width: [0, -1],
 		height: [0, -1],
 	};
-	public state: BaseStatus = {
+	public state: Status = {
 		editing: false,
 	};
-	public backup: BaseRuleRowData | null = null;
+	public backup: RawRule | null = null;
 
-	constructor(options?: Partial<BaseRule>) {
+	constructor(options?: Partial<IRule>) {
 		this.id = options?.id || crypto.randomUUID();
 		if (options?.enable !== undefined) {
 			this.enable = options?.enable;
@@ -85,10 +85,10 @@ export class Rule implements BaseRule {
 	}
 
 	// 获取纯数据对象
-	public getRowData(options?: {
+	public toRaw(options?: {
 		type?: "now" | "backup";
 		includeId?: boolean;
-	}): BaseRuleRowData {
+	}): RawRule {
 		const defaultOptions: {
 			type: "now" | "backup";
 			includeId: boolean;
@@ -124,7 +124,7 @@ export class Rule implements BaseRule {
 
 	// 数据备份
 	public backupData() {
-		this.backup = this.getRowData();
+		this.backup = this.toRaw();
 	}
 
 	// 恢复数据
@@ -141,7 +141,7 @@ export class Rule implements BaseRule {
 	}
 
 	// 判断是否发生更改
-	public isChange(key?: keyof BaseRuleRowData): boolean {
+	public isChange(key?: keyof RawRule): boolean {
 		if (key) {
 			if (this.backup) {
 				return !isEqual(this[key], this.backup[key]);
@@ -149,14 +149,14 @@ export class Rule implements BaseRule {
 				return false;
 			}
 		} else {
-			return !isEqual(this.getRowData(), this.backup);
+			return !isEqual(this.toRaw(), this.backup);
 		}
 	}
 
 	// 新增修正方法
 	public addFixItem(
 		matchItem: "source" | "preview" | "description",
-		type: BaseFix["type"]
+		type: BaseFix["type"],
 	) {
 		let fixItem: BaseFix;
 		switch (type) {

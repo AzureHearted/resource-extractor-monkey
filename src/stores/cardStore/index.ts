@@ -2,11 +2,10 @@ import { defineStore } from "pinia";
 import { ref, reactive, computed, watch } from "vue";
 import type { Ref } from "vue";
 import { ElNotification, ElMessageBox } from "@/plugin/element-plus";
-import type { BaseMeta } from "@/stores/CardStore/interface";
-import type { ExcludeType } from "@/types/tools";
 
 // 导入类
-import Card from "./class/Card";
+import { Card } from "@/models/Card/Card";
+import { Meta } from "@/models/Card/Meta";
 
 // 导入工具
 import getCard from "./utils/get-cards";
@@ -25,9 +24,10 @@ import JSZip from "jszip";
 import { saveAs } from "file-saver"; //* 用于原生浏览器"保存"来实现文件保存
 
 // 导入其他仓库
-import useLoadingStore from "@/stores/LoadingStore";
-import usePatternStore from "@/stores/PatternStore";
+import { useLoadingStore, usePatternStore } from "@/stores";
 import { useParallelTask } from "@/hooks/useParallelTask";
+import { useDebounceFn } from "@vueuse/core";
+import { cloneDeep } from "lodash";
 
 export default defineStore("CardStore", () => {
 	const loadingStore = useLoadingStore();
@@ -51,114 +51,61 @@ export default defineStore("CardStore", () => {
 		urlBlobMap: new Map<string, Blob>(),
 	});
 
-	//* 设置初始类型
-	data.typeMap.set("image", 0);
-	data.typeMap.set("html", 0);
-
-	// j 仓库尺寸范围
-	const sizeRange = computed<{
+	interface ISizeRange {
 		width: [number, number];
 		height: [number, number];
 		max: number;
 		min: number;
-	}>(() => {
-		return data.cardList.reduce(
-			(prev, curr) => {
-				const { width, height } = curr.source.meta;
-				if (prev.width[0] > width) prev.width[0] = width;
-				if (prev.height[0] > height) prev.height[0] = height;
-				if (prev.width[1] < width) prev.width[1] = width;
-				if (prev.height[1] < height) prev.height[1] = height;
-				prev.min = Math.min(prev.min, prev.width[0], prev.height[0]);
-				prev.max = Math.max(prev.max, prev.width[1], prev.height[1]);
-				return prev;
-			},
-			{
-				width: [0, 2000],
-				height: [0, 2000],
-				min: 0,
-				max: 2000,
-			},
-		);
+	}
+
+	// s 初始尺寸范围
+	const initSizeRange: ISizeRange = {
+		width: [200, 1024],
+		height: [200, 1024],
+		min: 0,
+		max: 1024,
+	};
+
+	// j 仓库尺寸范围
+	const sizeRange = computed<ISizeRange>(() => {
+		return data.cardList.reduce((prev, curr) => {
+			const { width, height } = curr.source.meta;
+			if (prev.width[0] > width) prev.width[0] = width;
+			if (prev.height[0] > height) prev.height[0] = height;
+			if (prev.width[1] < width) prev.width[1] = width;
+			if (prev.height[1] < height) prev.height[1] = height;
+			prev.min = Math.min(prev.min, prev.width[0], prev.height[0]);
+			prev.max = Math.max(prev.max, prev.width[1], prev.height[1]);
+			return prev;
+		}, cloneDeep(initSizeRange));
 	});
 
 	// w 监听仓库尺寸范围变化
 	watch(
-		[() => sizeRange.value.width[1], () => sizeRange.value.height[1]],
+		() => [sizeRange.value.width[1], sizeRange.value.height[1]],
 		([maxW, maxH]) => {
-			// console.log("仓库最大尺寸变化");
-			filters.size.width[1] = maxW; // 更新过滤器最大宽度。
-			filters.size.height[1] = maxH; // 更新过滤器最大宽度。
+			filters.size.width[1] = maxW;
+			filters.size.height[1] = maxH;
 		},
 	);
 
 	// t 卡片类型(类型)
-	type CardType = ExcludeType<"all" | BaseMeta["type"], false>;
+	type CardType = "all" | Meta["type"];
+
 	// s 当前类型
 	const nowType = ref<CardType>("image");
+
 	// s 过滤器
 	const filters = reactive({
 		keyword: "",
+		type: [] as string[], //类型过滤器
+		extension: [] as string[], //扩展名过滤器
 		size: {
 			width: [250, sizeRange.value.width[1]] as [number, number], //宽度过滤器
 			height: [250, sizeRange.value.height[1]] as [number, number], //高度过滤器
-			marks: computed(() => {
-				const markStyle = reactive({
-					"font-size": "10px !important",
-					"margin-top": "0 !important",
-					bottom: "5px",
-				});
-				const tempMarks = {
-					360: {
-						label: "360",
-						style: markStyle,
-					},
-					720: {
-						label: "720",
-						style: {
-							...markStyle,
-							display: sizeRange.value.max / 720 < 3 ? "" : "none",
-						},
-					},
-					1080: {
-						label: "1080",
-						style: {
-							...markStyle,
-							display: sizeRange.value.max / 1080 < 3 ? "" : "none",
-						},
-					},
-					1920: {
-						label: "1920",
-						style: {
-							...markStyle,
-							display: sizeRange.value.max / 1920 < 3 ? "" : "none",
-						},
-					},
-					2560: {
-						label: "2560",
-						style: {
-							...markStyle,
-							display: sizeRange.value.max / 2560 < 3 ? "" : "none",
-						},
-					},
-					3840: {
-						label: "3840",
-						style: markStyle,
-					},
-					[`${sizeRange.value.max}`]: {
-						label: `${sizeRange.value.max}`,
-						style: {
-							...markStyle,
-							display: sizeRange.value.max > 1.8 * 3840 ? "" : "none",
-						},
-					},
-				};
-				return tempMarks;
-			}),
 		},
-		type: [] as string[], //类型过滤器
-		extension: [] as string[], //扩展名过滤器
 	});
+
 	// s 排序相关
 	const sortOptions = [
 		{ value: "#", label: "默认排序", group: "#" },
@@ -175,8 +122,9 @@ export default defineStore("CardStore", () => {
 		key: string;
 		children: ((typeof sortOptions)[number] & { key: string })[];
 	};
+
 	// s 排序对象
-	const sort = reactive({
+	const sortInfo = reactive({
 		method: "#" as (typeof sortOptions)[number]["value"],
 		options: sortOptions,
 		// (访问器)获取分组数组
@@ -204,10 +152,41 @@ export default defineStore("CardStore", () => {
 		},
 	});
 
-	// j 过滤后的卡片
-	const filterCardList = computed<{
+	// t 卡片分组类型
+	type CardGroup = {
 		[key in CardType]: Card[];
-	}>(() => {
+	};
+
+	// s 过滤器后的卡片列表
+	const filterCardList = ref<CardGroup>({
+		all: [],
+		image: [],
+		video: [],
+		zip: [],
+		audio: [],
+		html: [],
+		unknown: [],
+	});
+
+	watch(
+		() => [
+			filters.keyword,
+			filters.size.width,
+			filters.size.height,
+			filters.extension,
+			sortInfo.method,
+			data.cardList,
+		],
+		() => {
+			debounceUpdateFilterResult();
+		},
+		{ deep: true },
+	);
+
+	const debounceUpdateFilterResult = useDebounceFn(updateFilterResult, 300);
+
+	// f 更新过滤结果
+	function updateFilterResult() {
 		const keywords = filters.keyword.trim().toLocaleLowerCase();
 
 		const image = [] as Card[],
@@ -215,19 +194,19 @@ export default defineStore("CardStore", () => {
 			audio = [] as Card[],
 			html = [] as Card[],
 			zip = [] as Card[],
-			other = [] as Card[];
+			unknown = [] as Card[];
 		let all = [...data.cardList];
 
 		// s 先排序
-		switch (sort.method) {
+		switch (sortInfo.method) {
 			case "name-asc":
 				all.sort((a, b) =>
-					naturalCompare(a.description.title, b.description.title),
+					naturalCompare(a.description.content, b.description.content),
 				);
 				break;
 			case "name-desc":
 				all.sort((a, b) =>
-					naturalCompare(b.description.title, a.description.title),
+					naturalCompare(b.description.content, a.description.content),
 				);
 				break;
 			case "width-asc":
@@ -247,7 +226,7 @@ export default defineStore("CardStore", () => {
 		// s 再过滤
 		all = all.filter((card) => {
 			const { id, isLoaded, tags } = card;
-			const { title } = card.description;
+			const { content: title } = card.description;
 			const {
 				type: sType,
 				width: sWidth,
@@ -266,13 +245,17 @@ export default defineStore("CardStore", () => {
 			// s 判断是否是图片或者视频，如果是并且已经加载则判断是否符合尺寸过滤器
 			const isSourceSizeMatch =
 				(sType === "image" || sType === "video") && isLoaded
-					? sWidth! >= filters.size.width[0] &&
-						sHeight! >= filters.size.height[0]
+					? sWidth >= filters.size.width[0] &&
+						// sWidth <= filters.size.width[1] &&
+						// sHeight <= filters.size.height[1] &&
+						sHeight >= filters.size.height[0]
 					: true;
 			const isPreviewSizeMatch =
 				(pType === "image" || pType === "video") && isLoaded
-					? pWidth! >= filters.size.width[0] &&
-						pHeight! >= filters.size.height[0]
+					? pWidth >= filters.size.width[0] &&
+						// pWidth <= filters.size.width[1] &&
+						// pHeight <= filters.size.height[1] &&
+						pHeight >= filters.size.height[0]
 					: true;
 			const isMatchKeyWords =
 				isKeywordsMatch(title, keywords) || isKeywordsMatch(tags, keywords);
@@ -302,15 +285,23 @@ export default defineStore("CardStore", () => {
 						zip.push(card);
 						break;
 					default:
-						other.push(card);
+						unknown.push(card);
 						break;
 				}
 			}
 			return isMatch;
 		});
 
-		return { all, image, video, zip, audio, html, other };
-	});
+		filterCardList.value = {
+			all,
+			image,
+			video,
+			zip,
+			audio,
+			html,
+			unknown,
+		};
+	}
 
 	// f 匹配判断函数
 	function isKeywordsMatch(str: string | string[], keywords: string) {
@@ -324,9 +315,7 @@ export default defineStore("CardStore", () => {
 	}
 
 	// j 选中的卡片
-	const selectionCardList = computed<{
-		[key in CardType]: Card[];
-	}>(() => {
+	const selectionCardList = computed<CardGroup>(() => {
 		return {
 			all: filterCardList.value.all.filter((x) => x.isSelected),
 			image: filterCardList.value.image.filter((x) => x.isSelected),
@@ -334,7 +323,7 @@ export default defineStore("CardStore", () => {
 			audio: filterCardList.value.audio.filter((x) => x.isSelected),
 			zip: filterCardList.value.zip.filter((x) => x.isSelected),
 			html: filterCardList.value.html.filter((x) => x.isSelected),
-			other: filterCardList.value.other.filter((x) => x.isSelected),
+			unknown: filterCardList.value.unknown.filter((x) => x.isSelected),
 		};
 	});
 
@@ -405,7 +394,8 @@ export default defineStore("CardStore", () => {
 		for (let i = 0; i < patternNow.rules.length; i++) {
 			if (options.stopFlag?.value) break;
 			const rule = patternNow.rules[i];
-			if (!rule.enable) continue; //为启用的规则就跳过
+			// 跳过未启用的规则
+			if (!rule.enable) continue;
 			await getCard(
 				// 规则配置
 				rule,
@@ -424,16 +414,20 @@ export default defineStore("CardStore", () => {
 						loadingStore.update(index + 1);
 						const sourceMeta = card.source.meta;
 						const previewMeta = card.preview.meta;
-						// console.log(card);
-						// console.log(sourceMeta, previewMeta);
 
-						// ? 判断该卡片中的链接是否已经存在于集合中，如果存在则不添加到卡片列表中。
 						if (
-							(!previewMeta.valid && !sourceMeta.valid) ||
+							card.source.url.trim() === "" ||
 							(data.urlSet.has(card.source.url) &&
 								data.urlSet.has(card.preview.url))
 						)
 							return;
+
+						switch (sourceMeta.type) {
+							case "image":
+							case "video":
+								if (!previewMeta.valid && !sourceMeta.valid) return;
+								break;
+						}
 
 						if (dom) {
 							// 记录dom用于排序
@@ -477,11 +471,10 @@ export default defineStore("CardStore", () => {
 						}
 
 						// 记录卡片
-						// newCardList.push(card);
 						newCardList[index] = card;
 						totalNewCardCount++;
 
-						await addCard(); //执行回调函数
+						await addCard(); // 执行回调函数
 
 						if (options.stopFlag?.value) {
 							stop();
@@ -490,7 +483,6 @@ export default defineStore("CardStore", () => {
 					},
 					// * 当前规则匹配结束后的回调
 					onFinished() {
-						console.log(`newCardList:`, newCardList);
 						const validNewCardList = newCardList.filter((x) => x != null);
 						data.cardList.push(...validNewCardList);
 						newCardList = [];
@@ -513,8 +505,8 @@ export default defineStore("CardStore", () => {
 
 	// f 重置过滤器
 	function resetFilters() {
-		filters.size.width = [250, sizeRange.value.width[1]];
-		filters.size.height = [250, sizeRange.value.height[1]];
+		filters.size.width = [initSizeRange.width[0], initSizeRange.width[1]];
+		filters.size.height = [initSizeRange.height[0], initSizeRange.height[1]];
 		filters.extension = [];
 		filters.type = [];
 	}
@@ -539,8 +531,8 @@ export default defineStore("CardStore", () => {
 	}
 
 	// f 查询卡片
-	function findCard(id: string): Card | undefined {
-		return data.cardList.find((c) => c.id === id);
+	function findCard(id: string): Card | null {
+		return data.cardList.find((c) => c.id === id) ?? null;
 	}
 
 	// f 查询多张卡片
@@ -564,7 +556,7 @@ export default defineStore("CardStore", () => {
 					card.source.blob = blob;
 				}
 			}
-			let initName = card.description.title.trim();
+			let initName = card.description.content.trim();
 			if (!initName) {
 				initName = getNameByUrl(card.source.url);
 			}
@@ -634,7 +626,7 @@ export default defineStore("CardStore", () => {
 										card.source.meta.type = getBlobType(card.source.blob);
 										card.source.meta.ext = getExtByBlob(card.source.blob);
 									}
-									let name = card.description.title.trim();
+									let name = card.description.content.trim();
 									if (!name) {
 										name = getNameByUrl(card.source.url);
 									}
@@ -655,7 +647,7 @@ export default defineStore("CardStore", () => {
 					// 并行任务数
 					parallelCount: 4,
 					// 每个任务处理完成时的回调
-					onTaskComplete(_, completed) {
+					onTaskComplete(_index, _result, completed) {
 						loadingStore.update(completed);
 					},
 					// 所有任务处理完成时的回调
@@ -739,8 +731,9 @@ export default defineStore("CardStore", () => {
 
 	return {
 		data,
+		initSizeRange,
 		sizeRange,
-		sort,
+		sort: sortInfo,
 		filters,
 		nowType,
 		selectionCardList,

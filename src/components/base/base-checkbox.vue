@@ -23,12 +23,12 @@
 <script setup lang="ts">
 import { watch } from "vue";
 
-const props = withDefaults(
+withDefaults(
 	defineProps<{
 		checkedColor?: string;
 		unCheckedColor?: string;
 	}>(),
-	{}
+	{},
 );
 
 const emits = defineEmits<{

@@ -213,7 +213,7 @@
 						</template>
 						<template #modal-title>
 							<span
-								:title="data.description.title"
+								:title="data.description.content"
 								style="
 									font-size: 12px;
 									overflow: inherit;
@@ -221,7 +221,7 @@
 									text-overflow: inherit;
 								"
 							>
-								{{ data.description.title }}
+								{{ data.description.content }}
 							</span>
 						</template>
 						<template #modal-content>
@@ -260,11 +260,11 @@
 						class="base-tag-list__title-tag"
 						type="info"
 						size="small"
-						:title="data.description.title.trim()"
+						:title="data.description.content.trim()"
 					>
 						<!-- <span v-html="description"></span> -->
 						<BaseHighlightText
-							:text="data.description.title"
+							:text="data.description.content"
 							:keyword="highlightKey"
 						></BaseHighlightText>
 					</el-tag>
@@ -326,7 +326,7 @@ import BaseImg from "@/components/base/base-img.vue";
 import BaseVideo from "@/components/base/base-video.vue";
 import BaseCheckbox from "@/components/base/base-checkbox.vue";
 import BaseLineOverFlowList from "@/components/base/base-line-overflow-list.vue";
-import Card from "@/stores/CardStore/class/Card";
+import { Card } from "@/models/Card/Card";
 import type { ImgReadyInfo } from "@/components/base/base-img.vue";
 import { GM_openInTab } from "$";
 import { ElMessageBox } from "@/plugin/element-plus";
@@ -345,7 +345,7 @@ const { galleryState } = storeToRefs(globalStore);
 // s 卡片数据
 const data = defineModel<Card>("data", { required: true });
 
-const props = withDefaults(
+withDefaults(
 	defineProps<{
 		viewport?: IntersectionObserverInit["root"];
 		/** 图片视口检测是否只检测一次  @default true */
@@ -439,19 +439,19 @@ function toLocate(item: Card) {
 // f 重命名
 function rename(item: Card) {
 	// 删除卡片数据模型中的卡片。
-	ElMessageBox.prompt(`重命名卡片"${item.description.title}"为……`, "重命名", {
+	ElMessageBox.prompt(`重命名卡片"${item.description.content}"为……`, "重命名", {
 		appendTo: ".resource-extractor__notification",
 		confirmButtonText: "确认",
 		cancelButtonText: "取消",
 		inputPlaceholder: "请输入新卡片名称",
-		inputValue: legalizationPathString(item.description.title),
+		inputValue: legalizationPathString(item.description.content),
 		draggable: true,
 	})
 		.then(({ value: newName }) => {
 			// 确认
-			item.description.title = legalizationPathString(newName);
+			item.description.content = legalizationPathString(newName);
 			// 触发标题变化事件
-			emits("change:title", item.id!, item.description.title);
+			emits("change:title", item.id!, item.description.content);
 		})
 		.catch(() => {
 			// 取消

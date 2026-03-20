@@ -117,7 +117,7 @@ const { loading } = storeToRefs(loadingStore);
 const active = ref(false); // s 控制悬浮按钮的显示状态
 
 // 定义Props
-const props = withDefaults(
+withDefaults(
 	defineProps<{
 		teleportTo?: string | HTMLElement | false; // 指定浮动按钮的挂载点
 		show?: boolean;
@@ -125,7 +125,7 @@ const props = withDefaults(
 	{
 		teleportTo: () => "body",
 		show: true,
-	}
+	},
 );
 
 // s 移动端标识符

@@ -89,11 +89,11 @@ const props = withDefaults(
 			right: 4,
 			bottom: 4,
 		}),
-	}
+	},
 );
 
 // 自定义事件
-const emits = defineEmits<{
+defineEmits<{
 	"main-button-click": [e?: MouseEvent];
 	"main-button-dblclick": [e?: TapEvent];
 }>();
@@ -199,10 +199,10 @@ onMounted(() => {
 
 			state.defaultPosition = {
 				right: Math.round(
-					boundaryBounding.right.value - (newPos.x + cWidth.value)
+					boundaryBounding.right.value - (newPos.x + cWidth.value),
 				),
 				bottom: Math.round(
-					boundaryBounding.bottom.value - (newPos.y + cHeight.value)
+					boundaryBounding.bottom.value - (newPos.y + cHeight.value),
 				),
 			};
 
@@ -252,7 +252,7 @@ onMounted(() => {
 				position.value = newPos;
 			});
 		},
-		{ deep: true }
+		{ deep: true },
 	);
 });
 
@@ -302,8 +302,8 @@ const extraVNode = computed(() => {
 
 	// 悬浮样式(亮色)
 	--hover-background-color: rgba(255, 255, 255, 0.95);
-	--hover-box-shadow: 0 6px 16px rgba(0, 0, 0, 0.14),
-		0 2px 6px rgba(0, 0, 0, 0.1);
+	--hover-box-shadow:
+		0 6px 16px rgba(0, 0, 0, 0.14), 0 2px 6px rgba(0, 0, 0, 0.1);
 	--hover-border-color: rgba(255, 255, 255, 0.6);
 	--hover-color: rgba(30, 30, 30, 1);
 
@@ -316,8 +316,8 @@ const extraVNode = computed(() => {
 
 		// 悬浮样式(暗色)
 		--hover-background-color: rgba(40, 40, 40, 0.95);
-		--hover-box-shadow: 0 8px 22px rgba(0, 0, 0, 0.65),
-			0 3px 8px rgba(0, 0, 0, 0.45);
+		--hover-box-shadow:
+			0 8px 22px rgba(0, 0, 0, 0.65), 0 3px 8px rgba(0, 0, 0, 0.45);
 		--hover-border-color: rgba(255, 255, 255, 0.1);
 		--hover-color: rgba(240, 240, 240, 1);
 	}
@@ -397,7 +397,9 @@ const extraVNode = computed(() => {
 		padding-bottom: calc(var(--gap) + var(--size));
 		pointer-events: none;
 
-		transition: 0.5s ease 0.5s, pointer-events 0.5s linear 0.5s;
+		transition:
+			0.5s ease 0.5s,
+			pointer-events 0.5s linear 0.5s;
 
 		/* 插槽内容尺寸 */
 		& > .base-hover-button__extra-button {

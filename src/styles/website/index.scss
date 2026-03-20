@@ -1,6 +1,9 @@
+@use "./cosplaytele.com.scss" as cosplaytele-com;
+@use "./mitaku.net.scss" as mitaku-net;
+
 [data-host="cosplaytele.com"] {
-	@import "./cosplaytele.com.scss";
+	@include cosplaytele-com.fix;
 }
 [data-host="mitaku.net"] {
-	@import "./mitaku.net.scss";
+	@include mitaku-net.fix;
 }

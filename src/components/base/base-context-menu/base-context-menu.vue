@@ -29,14 +29,14 @@
 import { onClickOutside } from "@vueuse/core";
 import { shallowReactive, useTemplateRef } from "vue";
 
-const props = withDefaults(
+withDefaults(
 	defineProps<{
 		/** 字体大小 @default 14 */
 		fontSize?: number;
 	}>(),
 	{
 		fontSize: 14,
-	}
+	},
 );
 
 const contextMenuDOM = useTemplateRef("contextMenuDOM");
@@ -61,7 +61,7 @@ let resolveAction: Function | null = null; // 用于存储 Promise 的 resolve �
  */
 function showMenu<T>(
 	e: PointerEvent,
-	menuOptions: Array<MenuOption<T>>
+	menuOptions: Array<MenuOption<T>>,
 ): Promise<T | null> {
 	// 阻止默认右键菜单
 	e.preventDefault();
@@ -243,7 +243,10 @@ defineExpose({
 	user-select: none;
 
 	visibility: hidden;
-	transition: background 0.5s ease, border 0.5s ease, box-shadow 0.5s ease;
+	transition:
+		background 0.5s ease,
+		border 0.5s ease,
+		box-shadow 0.5s ease;
 
 	&.show {
 		visibility: visible;

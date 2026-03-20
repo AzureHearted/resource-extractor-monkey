@@ -3,6 +3,7 @@ import type { ToolbarOptions } from "@fancyapps/ui";
 import { GM_openInTab } from "$";
 import useCardStore from "@/stores/CardStore";
 import useFavoriteStore from "@/stores/FavoriteStore";
+
 const cardStore = useCardStore();
 const favoriteStore = useFavoriteStore();
 
@@ -69,12 +70,12 @@ export default {
 					cardStore.downloadCards([card]);
 				} else {
 					// ? 如果没找到就尝试在收藏仓库中查找
-					card = await favoriteStore.findCardById(cid);
+					card = await favoriteStore.find(cid);
 					if (!card) return; // 没找到就停止
 					// 如果找到了就先下载
 					await favoriteStore.downloadCards([card]);
 					// 下载后更新卡片信息
-					favoriteStore.updateCard([card]);
+					favoriteStore.update([card]);
 				}
 			},
 		},

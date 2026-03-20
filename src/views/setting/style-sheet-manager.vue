@@ -1,5 +1,9 @@
 <template>
-	<Scrollbar show-back-top-button back-to-top-behavior="smooth">
+	<Scrollbar
+		show-back-top-button
+		back-to-top-behavior="smooth"
+		overflow-x="hidden"
+	>
 		<div class="style-sheet-manager__container">
 			<!-- 获取当前页面样式表 -->
 			<n-card embedded class="style-sheet-manager__toolbar">

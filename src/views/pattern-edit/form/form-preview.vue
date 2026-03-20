@@ -69,7 +69,7 @@
 
 <script setup lang="ts">
 import { useClipboard } from "@vueuse/core";
-import { Rule } from "@/stores/PatternStore/class/Rule";
+import { Rule } from "@/models/Rule/Rule";
 
 import FixFrom from "./card-from-fix.vue";
 

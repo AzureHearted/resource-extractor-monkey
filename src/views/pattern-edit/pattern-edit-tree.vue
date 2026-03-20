@@ -128,14 +128,14 @@ import { ref, watch, computed } from "vue";
 import BaseScrollbar from "@/components/base/base-scrollbar.vue";
 import BaseImg from "@/components/base/base-img.vue";
 import type { ElTree } from "element-plus";
-import type Node from "element-plus/es/components/tree/src/model/node";
+import type { Node } from "element-plus/es/components/tree/src/model/node";
 // import type { DragEvents } from "element-plus/es/components/tree/src/model/useDragNode";
 import type {
 	AllowDropType,
 	NodeDropType,
 } from "element-plus/es/components/tree/src/tree.type";
-import { Pattern } from "@/stores/PatternStore/class/Pattern";
-import { Rule } from "@/stores/PatternStore/class/Rule";
+import { Pattern } from "@/models/Pattern/Pattern";
+import { Rule } from "@/models/Rule/Rule";
 
 import { storeToRefs } from "pinia";
 import usePatternStore from "@/stores/PatternStore";
@@ -150,7 +150,7 @@ interface Tree {
 	label: string;
 	type: "pattern" | "rule";
 	children?: Tree[];
-	rowData: Pattern | Rule;
+	rawData: Pattern | Rule;
 	[key: string]: any;
 }
 // 默认参数映射
@@ -169,17 +169,17 @@ const treeData = computed<Tree[]>(() => {
 			label: p.mainInfo.name,
 			type: "pattern",
 			disabled: p.id.includes("#"),
-			rowData: p,
+			rawData: p,
 			children: p.rules.map((r) => {
 				return {
 					id: r.id,
 					label: r.name,
 					type: "rule",
-					rowData: r,
+					rawData: r,
 					disabled: r.id.includes("#"),
 				};
 			}),
-		} as Tree;
+		};
 	});
 });
 
@@ -217,7 +217,7 @@ const filterNode: any = (value: string, data: Tree) => {
 // 拖拽相关
 // 判断是否允许拖拽
 const allowDrag = (draggingNode: Node): boolean => {
-	const data = draggingNode.data.rowData as Pattern | Rule;
+	const data = draggingNode.data as Pattern | Rule;
 	return !data.id.includes("#") && !data.state.editing;
 };
 // 判断是否允许放置
@@ -289,7 +289,7 @@ const handleNodeClick = (data: Tree, node: Node) => {
 	// 判断节点类型
 	if (data.type === "rule") {
 		// 如果点击的是“规则”节点
-		const parent = node.parent.data as Tree;
+		const parent = node.parent?.data ?? {};
 		const patternId = parent.id;
 		// emits("node-click", patternId, data.id);
 		patternStore.editing.pid = patternId;
@@ -334,7 +334,7 @@ function addRule(_node: Node, data: Tree) {
 // 删除规则
 function removeRule(node: Node, data: Tree) {
 	// console.log("删除规则节点", node, data);
-	const parent = node.parent.data;
+	const parent = node.parent?.data ?? {};
 	// 获取方案index
 	const patternIndex = patternStore.list.findIndex((p) => p.id === parent.id);
 	// 找到方案

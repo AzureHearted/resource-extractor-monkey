@@ -16,7 +16,7 @@ import { symbol_BaseTabs } from "./symbol";
 // 注入base-tabs提供的方法和属性
 const { updateTab, registerTab, unregisterTab, tabs } = inject<provideType>(
 	symbol_BaseTabs,
-	{} as provideType
+	{} as provideType,
 );
 
 // 组件基本信息
@@ -44,7 +44,7 @@ watch(
 	[() => props.name, () => props.label],
 	([newName, newLabel], [_oldName, _oldLabel]) => {
 		if (updateTab) updateTab(id, { name: newName, label: newLabel });
-	}
+	},
 );
 
 // 组件挂载时

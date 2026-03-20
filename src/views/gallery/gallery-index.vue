@@ -111,7 +111,7 @@
 							</n-icon>
 							其他
 							<n-badge
-								:value="filterCardList.other.length"
+								:value="filterCardList.unknown.length"
 								:max="999"
 								type="default"
 							>
@@ -119,7 +119,7 @@
 						</n-flex>
 					</template>
 					<GalleryBaseWaterfall
-						:card-list="filterCardList.other"
+						:card-list="filterCardList.unknown"
 						:search-keywords="filters.keyword"
 						:layout="galleryState.galleyLayout"
 					/>

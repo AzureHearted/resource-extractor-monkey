@@ -1,12 +1,14 @@
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="url"] {
-	margin: unset;
-}
+@mixin fix {
+	input[type="text"],
+	input[type="email"],
+	input[type="password"],
+	input[type="url"] {
+		margin: unset;
+	}
 
-.base-img__container {
-	img {
-		margin-bottom: unset;
+	.base-img__container {
+		img {
+			margin-bottom: unset;
+		}
 	}
 }

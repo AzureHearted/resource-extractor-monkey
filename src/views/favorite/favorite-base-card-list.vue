@@ -20,26 +20,28 @@
 			>
 				<template #="{ item }">
 					<GalleryCard
-						:key="(item as Card).id"
-						v-model:data="item as Card"
+						:key="(item as FavoriteCard).id"
+						v-model:data="item as FavoriteCard"
 						:highlight-key="searchKeywords"
 						:is-mobile="state.isMobile"
 						:show-to-locate-button="false"
 						:show-delete-button="false"
-						:show-download-button="(item as Card).source.meta.type !== 'html'"
-						@change:selected="(item as Card).isSelected = $event"
-						@change:title="updateCard([item as Card])"
+						:show-download-button="
+							(item as FavoriteCard).source.meta.type !== 'html'
+						"
+						@change:selected="(item as FavoriteCard).isSelected = $event"
+						@change:title="updateCard([item as FavoriteCard])"
 						@loaded="handleLoaded"
 						@download="handleDownload"
-						@toggle-favorite="handleToggleFavorite(item as Card)"
-						@save:tags="handleTagsSave(item as Card)"
-						@dblclick="onCardDbClick((item as Card).id)"
-						@contextmenu="onCardContextMenu($event, (item as Card).id)"
+						@toggle-favorite="handleToggleFavorite(item as FavoriteCard)"
+						@save:tags="handleTagsSave(item as FavoriteCard)"
+						@dblclick="onCardDbClick((item as FavoriteCard).id)"
+						@contextmenu="onCardContextMenu($event, (item as FavoriteCard).id)"
 					>
 						<template #custom-button="{ openUrl }">
 							<el-button
 								type="warning"
-								@click="openUrl((item as Card).source.originUrls![0])"
+								@click="openUrl((item as FavoriteCard).source.originUrls![0])"
 								title="打开卡片对应的来源地址"
 								v-ripple
 							>
@@ -65,27 +67,31 @@
 			>
 				<template #="{ item }">
 					<GalleryCard
-						v-model:data="item.data as Card"
+						v-model:data="item.data as FavoriteCard"
 						:highlight-key="searchKeywords"
 						:is-mobile="state.isMobile"
 						:show-to-locate-button="false"
 						:show-delete-button="false"
 						:show-download-button="
-							(item.data as Card).source.meta.type !== 'html'
+							(item.data as FavoriteCard).source.meta.type !== 'html'
 						"
-						@change:selected="(item.data as Card).isSelected = $event"
-						@change:title="updateCard([item.data as Card])"
+						@change:selected="(item.data as FavoriteCard).isSelected = $event"
+						@change:title="updateCard([item.data as FavoriteCard])"
 						@loaded="handleLoaded"
 						@download="handleDownload"
-						@toggle-favorite="handleToggleFavorite(item.data as Card)"
-						@save:tags="handleTagsSave(item.data as Card)"
-						@dblclick="onCardDbClick((item.data as Card).id)"
-						@contextmenu="onCardContextMenu($event, (item.data as Card).id)"
+						@toggle-favorite="handleToggleFavorite(item.data as FavoriteCard)"
+						@save:tags="handleTagsSave(item.data as FavoriteCard)"
+						@dblclick="onCardDbClick((item.data as FavoriteCard).id)"
+						@contextmenu="
+							onCardContextMenu($event, (item.data as FavoriteCard).id)
+						"
 					>
 						<template #custom-button="{ openUrl }">
 							<el-button
 								type="warning"
-								@click="openUrl((item.data as Card).source.originUrls![0])"
+								@click="
+									openUrl((item.data as FavoriteCard).source.originUrls![0])
+								"
 								title="打开卡片对应的来源地址"
 								v-ripple
 							>
@@ -116,7 +122,7 @@ import BaseVirtualGrid from "@/components/base/base-virtual-grid/base-virtual-gr
 import BaseVirtualMasonry from "@/components/base/base-virtual-masonry/base-virtual-masonry.vue";
 import type { Item as VirtualMasonryItem } from "@/components/base/base-virtual-masonry/type";
 import GalleryCard from "@/components/utils/gallery-card.vue";
-import Card from "@/stores/CardStore/class/Card";
+import { FavoriteCard } from "@/models/Card/FavoriteCard";
 import type { ImgReadyInfo } from "@/components/base/base-img.vue";
 import { isEqualUrl, isMobile as judgeIsMobile } from "@/utils/common";
 import { useClipboard } from "@vueuse/core";
@@ -128,19 +134,19 @@ import { storeToRefs } from "pinia";
 import { useGlobalStore, useCardStore, useFavoriteStore } from "@/stores";
 import { useBaseContextMenu } from "@/components/base/base-context-menu";
 import { GM_openInTab } from "$";
+import type { Meta } from "@/models/Card/Meta";
 
 const globalStore = useGlobalStore();
 const cardStore = useCardStore();
 const favoriteStore = useFavoriteStore();
 
 const { galleryState } = storeToRefs(globalStore);
-const { updateCard, unFavoriteCard, refreshStore, findCardById } =
-	favoriteStore;
+const { update: updateCard, find: findCard, unfavorite } = favoriteStore;
 const { downloadCards } = cardStore;
 
 const props = withDefaults(
 	defineProps<{
-		cardList: Card[];
+		cardList: FavoriteCard[];
 		layout?: "grid" | "waterfall"; // s 布局模式
 		searchKeywords?: string; // s 检索关键词
 	}>(),
@@ -216,7 +222,7 @@ const virtualMasonryItem = computed<Array<VirtualMasonryItem>>(() => {
 // f 处理卡片下载
 const handleDownload = async (id: string) => {
 	// console.log("下载", id);
-	const card = await findCardById(id);
+	const card = await findCard(id);
 	if (!card) return;
 	// console.log("找到card", card);
 	await downloadCards([card]);
@@ -225,15 +231,14 @@ const handleDownload = async (id: string) => {
 };
 
 // f 处理收藏/取消收藏
-const handleToggleFavorite = (card: Card) => {
-	unFavoriteCard([card]);
-	refreshStore();
+const handleToggleFavorite = (card: FavoriteCard) => {
+	unfavorite([card]);
 };
 
 // f 卡片加载成功完成事件( 1.更新cardStore的尺寸范围信息;2.判断卡片是否被收藏 )
 const handleLoaded = async (id: string, info: ImgReadyInfo) => {
 	// s 仓库找到对应的数据
-	const card = await findCardById(id);
+	const card = await findCard(id);
 	if (!card) return; //* 如果卡片不存在也不在向下执行
 	if (card.isLoaded) return; //* 如果已经成功加载过了就不在执行
 	card.isLoaded = true; // s 置为加载成功
@@ -254,7 +259,7 @@ const handleLoaded = async (id: string, info: ImgReadyInfo) => {
 };
 
 // f 处理卡片标签变化
-const handleTagsSave = async (card: Card) => {
+const handleTagsSave = async (card: FavoriteCard) => {
 	updateCard([card]);
 };
 
@@ -295,9 +300,7 @@ type FancyboxType =
 	| "inline"
 	| false;
 
-function getFancyboxType(
-	metaType: false | "image" | "video" | "audio" | "zip" | "html" | "other",
-) {
+function getFancyboxType(metaType: Meta["type"]) {
 	let type: FancyboxType = "iframe";
 	if (!metaType) return type;
 	switch (metaType) {
@@ -310,7 +313,7 @@ function getFancyboxType(
 		case "audio":
 		case "zip":
 		case "html":
-		case "other":
+		case "unknown":
 		default:
 			type = "iframe";
 	}
@@ -489,7 +492,7 @@ async function onCardContextMenu(event: PointerEvent, id: string) {
 				copy(
 					result === "copySource"
 						? card.source.url
-						: JSON.stringify(card.getRowData()),
+						: JSON.stringify(card, null, 2),
 				)
 					.then(() => {
 						ElNotification({
@@ -498,7 +501,7 @@ async function onCardContextMenu(event: PointerEvent, id: string) {
 							message:
 								result === "copySource"
 									? card.source.url
-									: `卡片数据：${card.description.title}`,
+									: `卡片数据：${card.description.content}`,
 							appendTo: ".resource-extractor__notification",
 						});
 					})

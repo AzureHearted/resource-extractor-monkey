@@ -77,7 +77,7 @@ import {
 	onUnmounted,
 	useTemplateRef,
 } from "vue";
-import type { Directive, ImgHTMLAttributes, Transition } from "vue";
+import type { Directive, ImgHTMLAttributes } from "vue";
 
 defineOptions({
 	name: "base-img",
@@ -125,7 +125,7 @@ const props = withDefaults(
 		initShow: false,
 		decoding: "auto",
 		showLoadingAnimation: true,
-	}
+	},
 );
 
 // ? 定义emits
@@ -164,7 +164,7 @@ watch(
 	(newSrc, _oldSrc) => {
 		// ? src发生变化时重新调用图片加载函数
 		if (!slots?.default) loadImage(newSrc);
-	}
+	},
 );
 
 watch([() => props.useThumb, () => props.thumb], ([useThumb, thumb], [,]) => {
@@ -393,7 +393,7 @@ const loadImage = async (src: string, thumb: string = "") => {
 async function generateThumbnail<T = File | string>(
 	source: T,
 	maxWidth: number,
-	maxHeight: number
+	maxHeight: number,
 ): Promise<{ img: HTMLImageElement; thumbnail?: string } | T | void> {
 	return new Promise((resolve) => {
 		const img = new Image();
@@ -533,7 +533,7 @@ function useIntersectionObserver() {
 							const res = await generateThumbnail(
 								props.src,
 								props.thumbMaxSize,
-								props.thumbMaxSize
+								props.thumbMaxSize,
 							);
 							if (typeof res === "string") {
 								thumb = res;
@@ -585,7 +585,9 @@ function useIntersectionObserver() {
 		/** 默认不显示 */
 		opacity: 0;
 		visibility: hidden;
-		transition: opacity 0.25s ease-out, visibility 0s linear 0s;
+		transition:
+			opacity 0.25s ease-out,
+			visibility 0s linear 0s;
 	}
 
 	/* 图片样式 */
@@ -616,7 +618,9 @@ function useIntersectionObserver() {
 	img {
 		opacity: 1;
 		visibility: visible;
-		transition: opacity 0.25s ease-in, visibility 0s linear 0s;
+		transition:
+			opacity 0.25s ease-in,
+			visibility 0s linear 0s;
 	}
 }
 // 加载错误的样式

@@ -34,7 +34,7 @@ import {
 	onDeactivated,
 	nextTick,
 } from "vue";
-import type { ComputedRef, TeleportProps } from "vue";
+import type { ComputedRef } from "vue";
 import { useDraggable, useElementBounding, useWindowSize } from "@vueuse/core";
 import type { Position, UseDraggableReturn } from "@vueuse/core";
 import type { HTMLAttributes } from "vue";
@@ -53,7 +53,7 @@ const props = withDefaults(
 		initPercentY: 0.5,
 		minWidth: 100,
 		minHeight: 100,
-	}
+	},
 );
 const emits = defineEmits(["open", "closed", "beforeClose"]);
 
@@ -228,7 +228,7 @@ watch(
 		} else {
 			showContainer.value = false;
 		}
-	}
+	},
 );
 
 //* 修复重新挂载后该显示不显示的bug
@@ -391,7 +391,8 @@ function handleFixPosSize() {
 
 	background: rgba(255, 255, 255, 0.2);
 	backdrop-filter: blur(10px);
-	box-shadow: 0 0 8px 0.5px rgba(0, 0, 0, 0.6),
+	box-shadow:
+		0 0 8px 0.5px rgba(0, 0, 0, 0.6),
 		inset 0 0 10px 8px rgba(128, 128, 128, 0.6);
 
 	// border-radius: 4px;

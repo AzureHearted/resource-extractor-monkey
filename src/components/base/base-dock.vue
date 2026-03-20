@@ -37,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUpdated, useSlots, nextTick } from "vue";
+import { ref, onMounted } from "vue";
 import { useMutationObserver } from "@vueuse/core";
 import BaseDragDialog from "@/components/base/base-drag-dialog.vue";
 const show = defineModel("show", { type: Boolean, default: false });
@@ -54,13 +54,13 @@ onMounted(() => {
 		},
 		{
 			childList: true,
-		}
+		},
 	);
 });
-async function handleOpen() {
-	await dragDialog.value?.updateSize();
-	dragDialog.value?.toCenter("horizontal");
-}
+// async function handleOpen() {
+// 	await dragDialog.value?.updateSize();
+// 	dragDialog.value?.toCenter("horizontal");
+// }
 </script>
 
 <style lang="scss" scoped>
@@ -92,7 +92,9 @@ async function handleOpen() {
 		border-radius: 10px;
 		transform: translate(-50%, -50%);
 		background: rgb(135, 207, 235);
-		box-shadow: 0 0 1px rgba(0, 0, 0, 0.5), inset 0 0 2px gray;
+		box-shadow:
+			0 0 1px rgba(0, 0, 0, 0.5),
+			inset 0 0 2px gray;
 		transition: 0.5s ease;
 	}
 	&:hover::after,

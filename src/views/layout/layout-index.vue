@@ -3,6 +3,7 @@
 		class="resource-extractor__layout"
 		:data-open="globalStore.openWindow"
 		ref="containerDOM"
+		@keydown.esc="() => (globalStore.openWindow = false)"
 	>
 		<AppBar />
 		<Main />
@@ -65,7 +66,7 @@ watch(
 
 	overflow: hidden;
 
-	background: rgba(255, 255, 255, 0.3);
+	background: rgba(150, 150, 150, 0.3);
 	backdrop-filter: blur(10px);
 
 	transition:

@@ -1,8 +1,8 @@
 import { ref, reactive, computed } from "vue";
 import type { ComputedRef } from "vue";
 import { defineStore } from "pinia";
-import { Pattern, defaultPattern } from "./class/Pattern";
-import { Rule } from "./class/Rule";
+import { Pattern, defaultPattern } from "@/models/Pattern/Pattern";
+import { Rule } from "@/models/Rule/Rule";
 import {
 	getUserPatternList,
 	setUserPatternList,
@@ -239,7 +239,6 @@ export default defineStore("PatternStore", () => {
 	function createPattern() {
 		list.value.push(new Pattern());
 		saveUserPatternInfo();
-		// console.log(JSON.stringify(list.value));
 	}
 
 	// 删除方案

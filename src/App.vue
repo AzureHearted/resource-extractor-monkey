@@ -155,7 +155,7 @@ dialog {
 
 <style lang="scss">
 // 导入修复样式
-@import "./styles/website/index.scss";
+@use "./styles/website/index.scss" as *;
 
 button i {
 	all: unset;

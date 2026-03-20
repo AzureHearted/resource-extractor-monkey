@@ -6,7 +6,7 @@ import { GMRequest } from "./GMRequest";
 export function getBlobByUrl(
 	url: string,
 	mode: "Fetch" | "GM" = "Fetch",
-	referer?: string
+	referer?: string,
 ): Promise<Blob | null> {
 	// 防止url为空
 	if (!url || !url.trim().length) return Promise.resolve(null);
@@ -90,7 +90,7 @@ export async function getBlobByUrlAuto(url: string): Promise<Blob | null> {
 async function tryGetBlob(
 	url: string,
 	// 尝试队列
-	requests: { mode: "Fetch" | "GM"; referer?: string; message?: string }[]
+	requests: { mode: "Fetch" | "GM"; referer?: string; message?: string }[],
 ): Promise<Blob | null> {
 	let blob: Blob | null = null;
 
@@ -100,7 +100,10 @@ async function tryGetBlob(
 	for (const request of requests) {
 		// 打印日志消息
 		if (request.message && !!request.message.trim().length) {
-			console.log("[日志]WebImgCollector2:", `${request.message}: ${url}`);
+			console.log(
+				"[日志]Resource Extractor Monkey:",
+				`${request.message}: ${url}`,
+			);
 		}
 		// 请求blob
 		blob = await getBlobByUrl(url, request.mode, request.referer);

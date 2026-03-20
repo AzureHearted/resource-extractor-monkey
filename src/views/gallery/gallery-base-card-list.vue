@@ -79,7 +79,7 @@ import {
 import BaseScrollbar from "@/components/base/base-scrollbar.vue";
 import type { ImgReadyInfo } from "@/components/base/base-img.vue";
 import GalleryCard from "@/components/utils/gallery-card.vue";
-import Card from "@/stores/CardStore/class/Card";
+import { Card } from "@/models/Card/Card";
 import BaseVirtualGrid from "@/components/base/base-virtual-grid/base-virtual-grid.vue";
 import BaseVirtualMasonry from "@/components/base/base-virtual-masonry/base-virtual-masonry.vue";
 import type { Item as VirtualMasonryItem } from "@/components/base/base-virtual-masonry/type";
@@ -94,6 +94,7 @@ import { storeToRefs } from "pinia";
 import { useGlobalStore, useCardStore, useFavoriteStore } from "@/stores";
 import { useBaseContextMenu } from "@/components/base/base-context-menu";
 import { GM_openInTab } from "$";
+import type { Meta } from "@/models/Card/Meta";
 
 const globalStore = useGlobalStore();
 const { galleryState } = storeToRefs(globalStore);
@@ -105,8 +106,8 @@ const favoriteStore = useFavoriteStore();
 const {
 	refreshStore: refreshFavoriteStore,
 	isExist: isFavorite,
-	addCard: toFavoriteCard,
-	unFavoriteCard,
+	favorite: toFavoriteCard,
+	unfavorite: unFavoriteCard,
 } = favoriteStore;
 
 const props = withDefaults(
@@ -278,9 +279,7 @@ type FancyboxType =
 	| "inline"
 	| false;
 
-function getFancyboxType(
-	metaType: false | "image" | "video" | "audio" | "zip" | "html" | "other",
-) {
+function getFancyboxType(metaType: Meta["type"]) {
 	let type: FancyboxType = "iframe";
 	if (!metaType) return type;
 	switch (metaType) {
@@ -293,7 +292,7 @@ function getFancyboxType(
 		case "audio":
 		case "zip":
 		case "html":
-		case "other":
+		case "unknown":
 		default:
 			type = "iframe";
 	}
@@ -490,7 +489,7 @@ async function onCardContextMenu(event: PointerEvent, id: string) {
 				copy(
 					result === "copySource"
 						? card.source.url
-						: JSON.stringify(card.getRowData()),
+						: JSON.stringify(card, null, 2),
 				)
 					.then(() => {
 						ElNotification({
@@ -499,7 +498,7 @@ async function onCardContextMenu(event: PointerEvent, id: string) {
 							message:
 								result === "copySource"
 									? card.source.url
-									: `卡片数据：${card.description.title}`,
+									: `卡片数据：${card.description.content}`,
 							appendTo: ".resource-extractor__notification",
 						});
 					})

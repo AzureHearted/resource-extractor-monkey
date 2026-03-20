@@ -277,40 +277,6 @@
 					</div>
 				</div>
 			</template>
-			<!-- 路径正则过滤器 -->
-			<!-- <el-form-item label="过滤器">
-				<el-input
-					v-model="editingRule.filter"
-					placeholder="输入正则表达式">
-					<template #prefix> / </template>
-					<template #suffix> / </template>
-					<template #append>
-						<el-select
-							style="width: 120px"
-							multiple
-							collapse-tags
-							collapse-tags-tooltip
-							clearable
-							v-model="editingPattern.mainInfo.filter.flags"
-							placeholder="修饰符">
-							<el-tooltip
-								:show-after="500"
-								effect="dark"
-								content="ignore - 不区分大小写"
-								placement="top">
-								<el-option :value="'i'" label="i" />
-							</el-tooltip>
-							<el-tooltip
-								:show-after="500"
-								effect="dark"
-								content="特殊字符圆点 . 中包含换行符 \n"
-								placement="top">
-								<el-option :value="'s'" label="s" />
-							</el-tooltip>
-						</el-select>
-					</template>
-				</el-input>
-			</el-form-item> -->
 			<!-- 表单Tabs -->
 			<FormTabs />
 		</el-card>
@@ -323,8 +289,8 @@ import { useClipboard } from "@vueuse/core";
 import FormTabs from "./pattern-edit-form-tabs.vue";
 import BaseImg from "@/components/base/base-img.vue";
 import { ElNotification } from "@/plugin/element-plus";
-import { Pattern } from "@/stores/PatternStore/class/Pattern";
-import { Rule } from "@/stores/PatternStore/class/Rule";
+import { Pattern } from "@/models/Pattern/Pattern";
+import { Rule } from "@/models/Rule/Rule";
 
 import { storeToRefs } from "pinia";
 import usePatternStore from "@/stores/PatternStore";
@@ -341,7 +307,6 @@ const disabled = computed(() => {
 
 // f 保存结果
 function save() {
-	// console.log(editingPattern.value?.getJson());
 	editingPattern.value?.backupData(); //先进行备份
 	saveUserPatternInfo(); // 备份后进行数据存储
 }
@@ -353,7 +318,7 @@ function reset() {
 // f 拷贝方案(或规则)至剪贴板
 function copyToClipboard(obj: Pattern | Rule) {
 	const { copy } = useClipboard();
-	const rowData = JSON.stringify(obj.getRowData({ includeId: false }), null, 2);
+	const rowData = JSON.stringify(obj.toRaw({ includeId: false }), null, 2);
 	copy(rowData)
 		.then(() => {
 			ElNotification({
@@ -381,13 +346,13 @@ function copyToClipboard(obj: Pattern | Rule) {
 
 // f 保存方案(或规则)至本地文件
 function saveToFile(obj: Pattern | Rule) {
-	const rowData = JSON.stringify(obj.getRowData({ includeId: true }), null, 2);
+	const rowData = JSON.stringify(obj.toRaw({ includeId: true }), null, 2);
 	// 将文本转为blob
 	const blob = new Blob([rowData], { type: "text/plain;charset=utf-8" });
 	if (obj instanceof Pattern) {
-		saveAs(blob, `WebImgCollector2 方案-${obj.mainInfo.name}.txt`);
+		saveAs(blob, `Resource Extractor Monkey 方案-${obj.mainInfo.name}.txt`);
 	} else {
-		saveAs(blob, `WebImgCollector2 规则-${obj.name}.txt`);
+		saveAs(blob, `Resource Extractor Monkey 规则-${obj.name}.txt`);
 	}
 }
 

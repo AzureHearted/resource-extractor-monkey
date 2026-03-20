@@ -1,18 +1,17 @@
 import { cloneDeep, isEqual } from "@/plugin/lodash";
 import type {
-	BasePattern,
-	BaseStatus,
-	BaseMainInfo,
-	BaseRule,
-	PatternRowData,
-} from "../interface/Pattern";
-import { Rule } from "./Rule";
+	Pattern as IPattern,
+	Status,
+	RawPattern,
+} from "./interface/Pattern";
+import type { Rule as IRule } from "../Rule/interface/Rule";
+import { Rule } from "../Rule/Rule";
 import { getFavicon } from "@/utils/common";
 
 // 匹配方案
-export class Pattern implements BasePattern {
+export class Pattern implements IPattern {
 	public readonly id: string; // 方案id
-	public mainInfo: BaseMainInfo = {
+	public mainInfo: IPattern["mainInfo"] = {
 		name: "新方案",
 		host: location.hostname,
 		matchHost: [],
@@ -25,14 +24,14 @@ export class Pattern implements BasePattern {
 		note: "",
 	};
 	public rules: Rule[]; // 规则列表
-	public state: BaseStatus = {
+	public state: Status = {
 		editing: false,
 	};
 
-	public backup: BasePattern["backup"] | null = null;
+	public backup: IPattern["backup"] | null = null;
 
 	// s 构造
-	constructor(options?: Partial<BasePattern>) {
+	constructor(options?: Partial<IPattern>) {
 		this.id = options?.id || crypto.randomUUID(); // 为规则生成(拷贝)id
 		this.mainInfo = {
 			...this.mainInfo,
@@ -60,7 +59,7 @@ export class Pattern implements BasePattern {
 	}
 
 	// 创建规则
-	public createRule(options?: Partial<BaseRule>) {
+	public createRule(options?: Partial<IRule>) {
 		const rule = new Rule(options);
 		this.rules.push(rule);
 		return rule.id;
@@ -77,10 +76,10 @@ export class Pattern implements BasePattern {
 
 	// 获取纯数据对象
 
-	public getRowData(options?: {
+	public toRaw(options?: {
 		type?: "now" | "backup";
 		includeId?: boolean;
-	}): PatternRowData {
+	}): RawPattern {
 		const defaultOptions: { type: "now" | "backup"; includeId: boolean } = {
 			type: "now",
 			includeId: true,
@@ -91,9 +90,9 @@ export class Pattern implements BasePattern {
 				id: includeId ? this.id : undefined,
 				mainInfo: this.mainInfo,
 				rules: this.rules.map((r) =>
-					r.getRowData({
+					r.toRaw({
 						includeId,
-					})
+					}),
 				),
 			});
 		} else {
@@ -101,9 +100,9 @@ export class Pattern implements BasePattern {
 				id: includeId ? this.backup?.id || this.id : undefined,
 				mainInfo: this.backup?.mainInfo || this.mainInfo,
 				rules: this.rules.map((r) =>
-					r.getRowData({
+					r.toRaw({
 						includeId,
-					})
+					}),
 				),
 			});
 		}
@@ -139,8 +138,8 @@ export class Pattern implements BasePattern {
 	}
 
 	// 获取JSON
-	public getJson() {
-		return JSON.stringify(this.getRowData());
+	public toJson() {
+		return this.toRaw();
 	}
 }
 
