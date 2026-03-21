@@ -17,6 +17,7 @@
 			:max="999"
 			:show="!!data.cardList.length"
 			:value="data.cardList.length"
+			style="align-items: center"
 		>
 			<var-menu
 				placement="bottom-start"
@@ -88,6 +89,7 @@
 			:max="999"
 			:show="!!filterCardList[nowType].length"
 			:value="filterCardList[nowType].length"
+			style="align-items: center"
 		>
 			<!-- 选择器按钮组 -->
 			<var-button-group class="control-button-group">
@@ -102,6 +104,7 @@
 			:max="999"
 			:show="!!checkedCardList.length"
 			:value="`${checkedCardList.length}${checkedTotalSizeTip}`"
+			style="align-items: center"
 		>
 			<var-menu
 				placement="bottom-start"
@@ -194,6 +197,7 @@
 				:value="filterCardList.all.length"
 				:max="999"
 				type="info"
+				style="align-items: center"
 			>
 				<n-input
 					type="text"
