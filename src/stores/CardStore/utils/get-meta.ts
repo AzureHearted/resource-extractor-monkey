@@ -135,7 +135,7 @@ function getMetaByImage(url: string): Promise<Meta> {
 				type: "image",
 				ext: getExtByUrl(url),
 			});
-			// img = null; // s 用完后释放img对象
+			img = null; // s 用完后释放img对象
 			resolve(meta);
 		} else {
 			img.addEventListener(
@@ -149,17 +149,18 @@ function getMetaByImage(url: string): Promise<Meta> {
 						type: "image",
 						ext: getExtByUrl(url),
 					});
-					// img = null; // s 用完后释放img对象
+					img = null; // s 用完后释放img对象
 					resolve(meta);
 				},
 				{ once: true },
 			);
-			const onError = function () {
-				// console.log("图片信息获取-->失败!");
+			const onError = function (_e: Event) {
+				// console.log("图片信息获取-->失败!", e);
 				meta = new Meta({
 					ext: getExtByUrl(url),
+					type: "image", // 失败也需要设置为 image 类型
 				});
-				// img = null; // s 用完后释放img对象
+				img = null; // s 用完后释放img对象
 				resolve(meta);
 			};
 			img.addEventListener("error", onError, { once: true });

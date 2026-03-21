@@ -87,8 +87,8 @@
 			:offset="[-116, 2]"
 			type="success"
 			:max="999"
-			:show="!!filterCardList[nowType].length"
-			:value="filterCardList[nowType].length"
+			:show="!!currentCardList.length"
+			:value="currentCardList.length"
 			style="align-items: center"
 		>
 			<!-- 选择器按钮组 -->
@@ -119,8 +119,8 @@
 						下载
 					</var-button>
 					<var-button
-						v-if="!!filterCardList[nowType].length"
-						:disabled="!filterCardList[nowType].length || loadingStore.loading"
+						v-if="!!currentCardList.length"
+						:disabled="!currentCardList.length || loadingStore.loading"
 						style="padding: 0 4px"
 					>
 						<icon-material-symbols-arrow-drop-down-rounded
@@ -133,7 +133,7 @@
 				<template #menu>
 					<var-cell
 						title="全部下载"
-						v-if="!!filterCardList[nowType].length"
+						v-if="!!currentCardList.length"
 						@click="downloadAll"
 						ripple
 					>
@@ -144,7 +144,7 @@
 					<var-cell
 						title="删除选中项"
 						@click="deleteSelected"
-						v-if="!!selectionCardList[nowType].length"
+						v-if="!!checkedCardList.length"
 						ripple
 					>
 						<template #icon>
@@ -154,7 +154,7 @@
 					<var-cell
 						title="收藏选中项"
 						@click="favoriteSelected"
-						v-if="!!selectionCardList[nowType].length"
+						v-if="!!checkedCardList.length"
 						ripple
 					>
 						<template #icon>
@@ -164,7 +164,7 @@
 					<var-cell
 						title="批量添加标签"
 						@click="showTagEdit = true"
-						v-if="!!selectionCardList[nowType].length"
+						v-if="!!checkedCardList.length"
 						ripple
 					>
 						<template #icon>
@@ -269,7 +269,7 @@
 		</el-progress>
 		<!-- s Tag编辑器  -->
 		<TagEdit
-			:title="`批量添加标签(${selectionCardList[nowType].length}个卡片)`"
+			:title="`批量添加标签(${checkedCardList.length}个卡片)`"
 			v-model:show="showTagEdit"
 			@on-save="batchAddTag"
 		>
@@ -282,7 +282,6 @@ import { h, ref, reactive, onMounted, computed, watch, onActivated } from "vue";
 import type { VNodeChild } from "vue";
 import { NTag, NBadge } from "naive-ui";
 import type { SelectOption, SelectRenderTag, SliderProps } from "naive-ui";
-import type { ComputedRef } from "vue";
 import { Pattern } from "@/models/Pattern/Pattern";
 import BaseImg from "@/components/base/base-img.vue";
 import TagEdit from "./tag-edit.vue";
@@ -367,13 +366,17 @@ watch(
 	},
 );
 
-// 被选中的卡片
-const checkedCardList: ComputedRef<Card[]> = computed(() => {
-	return filterCardList.value[nowType.value].filter((x) => x.isSelected);
+const currentCardList = computed<Card[]>(() => {
+	return filterCardList.value[nowType.value] ?? [];
+});
+
+// 被勾选的卡片
+const checkedCardList = computed<Card[]>(() => {
+	return selectionCardList.value[nowType.value] ?? [];
 });
 
 // 计算被选中的卡片对应的体积大小总和
-const checkedTotalSizeTip: ComputedRef = computed(() => {
+const checkedTotalSizeTip = computed(() => {
 	let existUnDownload = false; // 标记是否存在为下载的卡片
 	// 先计算尺寸大小
 	const totalByte = checkedCardList.value.reduce((total, curr) => {
