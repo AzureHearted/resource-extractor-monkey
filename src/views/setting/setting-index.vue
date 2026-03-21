@@ -29,10 +29,10 @@ import StyleSheetManage from "@/views/setting/style-sheet-manager.vue";
 	width: 100%;
 	height: 100%;
 	padding: 4px;
-	// overflow: hidden;
 	display: flex;
 	flex-flow: column;
 }
+
 :deep(.base-tabs__container) {
 	.base-tabs__tab-item {
 		font-size: 16px;

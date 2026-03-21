@@ -291,13 +291,24 @@ import { Icon } from "@iconify/vue";
 import { byteAutoUnit, isMobile as judgeIsMobile } from "@/utils/common";
 
 // 导入仓库
+import {
+	useGlobalStore,
+	useCardStore,
+	useFavoriteStore,
+	useLoadingStore,
+	usePatternStore,
+} from "@/stores";
 import { storeToRefs } from "pinia";
-import useLoadingStore from "@/stores/LoadingStore";
-import usePatternStore from "@/stores/PatternStore";
-import useCardStore from "@/stores/CardStore";
-import useFavoriteStore from "@/stores/FavoriteStore";
 import type { Card } from "@/models/Card/Card";
 import { useDebounceFn } from "@vueuse/core";
+
+const globalStore = useGlobalStore();
+
+onMounted(() => {
+	if (globalStore.galleryState.pageLoadedGetResource) {
+		reload();
+	}
+});
 
 const cardStore = useCardStore();
 const {
@@ -317,9 +328,6 @@ const patternStore = usePatternStore();
 
 // s 移动端标识符
 const isMobile = ref(false);
-onMounted(() => {
-	isMobile.value = judgeIsMobile();
-});
 onActivated(() => {
 	isMobile.value = judgeIsMobile();
 });

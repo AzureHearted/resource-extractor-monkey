@@ -20,6 +20,8 @@ export default defineStore("Global", () => {
 		galleyLayout: "grid" as "grid" | "waterfall",
 		/** 列数 @default 5 */
 		column: 5,
+		/** 页面加载后使用匹配的方案（如果没有，则使用默认方案）获取页面资源 @default false */
+		pageLoadedGetResource: true,
 	});
 
 	// w 组件挂载时从油猴存储内读取配置
@@ -29,6 +31,10 @@ export default defineStore("Global", () => {
 
 	// f 初始化
 	function init() {
+		initGalleryState();
+	}
+
+	function initGalleryState() {
 		const galleryStateRowInfo = GM_getValue<typeof galleryState>(
 			"GalleryState",
 			{
@@ -36,13 +42,16 @@ export default defineStore("Global", () => {
 				allowTransition: true,
 				galleyLayout: "grid",
 				column: 5,
-			}
+				pageLoadedGetResource: false,
+			},
 		);
 
 		galleryState.allowImgCreateThumb = galleryStateRowInfo.allowImgCreateThumb;
 		galleryState.allowTransition = galleryStateRowInfo.allowTransition;
 		galleryState.galleyLayout = galleryStateRowInfo.galleyLayout;
 		galleryState.column = galleryStateRowInfo.column || 5;
+		galleryState.pageLoadedGetResource =
+			galleryStateRowInfo.pageLoadedGetResource;
 	}
 
 	// 监听 galleryState
@@ -52,7 +61,7 @@ export default defineStore("Global", () => {
 			// 更新 galleyLayout 配置
 			GM_setValue("GalleryState", { ...newValue });
 		},
-		{ deep: true }
+		{ deep: true },
 	);
 
 	return { openWindow, tab, navCollapse, galleryState };
