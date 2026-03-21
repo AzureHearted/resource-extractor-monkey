@@ -1,28 +1,54 @@
-li,
-button,
-fieldset,
-input,
-select,
-textarea {
-	margin: unset;
-}
-button {
-	box-sizing: border-box;
-	min-height: auto;
-	overflow: hidden;
-	i {
-		top: unset;
+@mixin fix {
+	li,
+	button,
+	fieldset,
+	input,
+	select,
+	textarea,
+	label,
+	legend {
+		margin: unset;
+		font-weight: unset;
 	}
-}
 
-img.fancybox-image {
-	border: unset;
-}
+	.select-resize-ghost,
+	.select2-container .select2-choice,
+	.select2-container .select2-selection,
+	input[type="date"],
+	input[type="email"],
+	input[type="number"],
+	input[type="password"],
+	input[type="search"],
+	input[type="tel"],
+	input[type="text"],
+	input[type="url"],
+	select,
+	textarea {
+		border: unset;
+	}
 
-.base-img__wrap img {
-	border-radius: unset;
-}
+	input[type="email"]:focus,
+	input[type="number"]:focus,
+	input[type="password"]:focus,
+	input[type="search"]:focus,
+	input[type="tel"]:focus,
+	input[type="text"]:focus,
+	select:focus,
+	textarea:focus {
+		background-color: unset;
+		box-shadow: unset;
+		color: unset;
+	}
 
-.f-thumbs__slide__button {
-	--clip-path: none !important;
+	img.fancybox-image {
+		border: unset;
+	}
+
+	.base-img__wrap img {
+		border-radius: unset;
+	}
+
+	.f-thumbs__slide__button {
+		--clip-path: none !important;
+	}
 }

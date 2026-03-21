@@ -1,8 +1,8 @@
 import { ref, reactive, computed } from "vue";
 import type { ComputedRef } from "vue";
 import { defineStore } from "pinia";
-import { Pattern, defaultPattern } from "./class/Pattern";
-import { Rule } from "./class/Rule";
+import { Pattern, defaultPattern } from "@/models/Pattern/Pattern";
+import { Rule } from "@/models/Rule/Rule";
 import {
 	getUserPatternList,
 	setUserPatternList,
@@ -134,7 +134,7 @@ export default defineStore("PatternStore", () => {
 	function adjustPatternPosition(
 		id: string,
 		tid: string,
-		position: "before" | "after" | "inner"
+		position: "before" | "after" | "inner",
 	) {
 		const index = findPatternIndex(id);
 		// 先取出要调整的方案
@@ -188,7 +188,7 @@ export default defineStore("PatternStore", () => {
 	function adjustRulePosition(
 		id: string,
 		tid: string,
-		position: "before" | "after" | "inner"
+		position: "before" | "after" | "inner",
 	) {
 		const pattern = findRulePattern(id);
 		const targetPattern = findRulePattern(tid);
@@ -204,7 +204,7 @@ export default defineStore("PatternStore", () => {
 		targetPattern.rules.splice(
 			dropIndex + (position === "after" ? 1 : 0),
 			0,
-			rule
+			rule,
 		);
 		// 先备份数据
 		pattern.backupData();
@@ -239,7 +239,6 @@ export default defineStore("PatternStore", () => {
 	function createPattern() {
 		list.value.push(new Pattern());
 		saveUserPatternInfo();
-		// console.log(JSON.stringify(list.value));
 	}
 
 	// 删除方案
@@ -271,7 +270,7 @@ export default defineStore("PatternStore", () => {
 						type: "error",
 						title: "失败",
 						message: "剪贴板内容解析失败",
-						appendTo: ".web-img-collector__notification-container",
+						appendTo: ".resource-extractor__notification",
 					});
 					return;
 				}
@@ -286,7 +285,7 @@ export default defineStore("PatternStore", () => {
 						type: "success",
 						title: "成功",
 						message: "成功解析为方案",
-						appendTo: ".web-img-collector__notification-container",
+						appendTo: ".resource-extractor__notification",
 					});
 				} catch (e) {
 					// 如果解析失败则提示错误
@@ -294,7 +293,7 @@ export default defineStore("PatternStore", () => {
 						type: "error",
 						title: "失败",
 						message: "剪贴板内容不符合方案的数据格式",
-						appendTo: ".web-img-collector__notification-container",
+						appendTo: ".resource-extractor__notification",
 					});
 				}
 			})
@@ -303,7 +302,7 @@ export default defineStore("PatternStore", () => {
 					type: "error",
 					title: "失败",
 					message: "剪贴板内容读取失败",
-					appendTo: ".web-img-collector__notification-container",
+					appendTo: ".resource-extractor__notification",
 				});
 			});
 	}

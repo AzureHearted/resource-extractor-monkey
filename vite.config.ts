@@ -75,6 +75,7 @@ export default defineConfig({
 		// s 打包体积分析
 		Icons({
 			autoInstall: true,
+			scale: 1,
 		}),
 		// s 打包体积分析
 		visualizer({
@@ -92,9 +93,9 @@ export default defineConfig({
 				// s element-plus的自定义前缀设置导入
 				additionalData: `@use "@/styles/element/index.scss" as *;`,
 			},
-			less: {
-				math: "always", // 启用 Less 预处理器中的数学运算功能
-			},
+			// less: {
+			// 	math: "always", // 启用 Less 预处理器中的数学运算功能
+			// },
 		},
 	},
 	resolve: {
@@ -109,7 +110,7 @@ export default defineConfig({
 	},
 	// s 打包配置
 	build: {
-		target: "es2015",
+		target: "es2020",
 		// 使用terser进行压缩混淆
 		minify: "terser",
 		terserOptions: {

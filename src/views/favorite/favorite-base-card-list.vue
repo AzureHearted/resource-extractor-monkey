@@ -13,32 +13,35 @@
 				ref="gridRef"
 				:items="cardList"
 				:gap="4"
-				:columns="state.columns"
+				:columns="!state.isMobile ? galleryState.column : undefined"
+				:breakpoints="state.isMobile ? state.breakpoints : undefined"
 				:allow-item-transition="galleryState.allowTransition"
 				:scroll-container="scrollBarRef?.viewportDOM"
 			>
 				<template #="{ item }">
 					<GalleryCard
-						:key="(item as Card).id"
-						v-model:data="(item as Card)"
+						:key="(item as FavoriteCard).id"
+						v-model:data="item as FavoriteCard"
 						:highlight-key="searchKeywords"
 						:is-mobile="state.isMobile"
 						:show-to-locate-button="false"
 						:show-delete-button="false"
-						:show-download-button="(item as Card).source.meta.type !== 'html'"
-						@change:selected="(item as Card).isSelected = $event"
-						@change:title="updateCard([item as Card])"
+						:show-download-button="
+							(item as FavoriteCard).source.meta.type !== 'html'
+						"
+						@change:selected="(item as FavoriteCard).isSelected = $event"
+						@change:title="updateCard([item as FavoriteCard])"
 						@loaded="handleLoaded"
 						@download="handleDownload"
-						@toggle-favorite="handleToggleFavorite(item as Card)"
-						@save:tags="handleTagsSave(item as Card)"
-						@dblclick="onCardDbClick((item as Card).id)"
-						@contextmenu="onCardContextMenu($event, (item as Card).id)"
+						@toggle-favorite="handleToggleFavorite(item as FavoriteCard)"
+						@save:tags="handleTagsSave(item as FavoriteCard)"
+						@dblclick="onCardDbClick((item as FavoriteCard).id)"
+						@contextmenu="onCardContextMenu($event, (item as FavoriteCard).id)"
 					>
 						<template #custom-button="{ openUrl }">
 							<el-button
 								type="warning"
-								@click="openUrl((item as Card).source.originUrls![0])"
+								@click="openUrl((item as FavoriteCard).source.originUrls![0])"
 								title="打开卡片对应的来源地址"
 								v-ripple
 							>
@@ -57,31 +60,38 @@
 				ref="masonryRef"
 				:items="virtualMasonryItem"
 				:gap="4"
-				:columns="state.columns"
+				:columns="!state.isMobile ? galleryState.column : undefined"
+				:breakpoints="state.isMobile ? state.breakpoints : undefined"
 				:allow-item-transition="galleryState.allowTransition"
 				:scroll-container="scrollBarRef?.viewportDOM"
 			>
 				<template #="{ item }">
 					<GalleryCard
-						v-model:data="(item.data as Card)"
+						v-model:data="item.data as FavoriteCard"
 						:highlight-key="searchKeywords"
 						:is-mobile="state.isMobile"
 						:show-to-locate-button="false"
 						:show-delete-button="false"
-						:show-download-button="(item.data as Card).source.meta.type!=='html'"
-						@change:selected="(item.data as Card).isSelected = $event"
-						@change:title="updateCard([item.data as Card])"
+						:show-download-button="
+							(item.data as FavoriteCard).source.meta.type !== 'html'
+						"
+						@change:selected="(item.data as FavoriteCard).isSelected = $event"
+						@change:title="updateCard([item.data as FavoriteCard])"
 						@loaded="handleLoaded"
 						@download="handleDownload"
-						@toggle-favorite="handleToggleFavorite(item.data as Card)"
-						@save:tags="handleTagsSave(item.data as Card)"
-						@dblclick="onCardDbClick((item.data as Card).id)"
-						@contextmenu="onCardContextMenu($event, (item.data as Card).id)"
+						@toggle-favorite="handleToggleFavorite(item.data as FavoriteCard)"
+						@save:tags="handleTagsSave(item.data as FavoriteCard)"
+						@dblclick="onCardDbClick((item.data as FavoriteCard).id)"
+						@contextmenu="
+							onCardContextMenu($event, (item.data as FavoriteCard).id)
+						"
 					>
 						<template #custom-button="{ openUrl }">
 							<el-button
 								type="warning"
-								@click="openUrl((item.data as Card).source.originUrls![0])"
+								@click="
+									openUrl((item.data as FavoriteCard).source.originUrls![0])
+								"
 								title="打开卡片对应的来源地址"
 								v-ripple
 							>
@@ -112,7 +122,7 @@ import BaseVirtualGrid from "@/components/base/base-virtual-grid/base-virtual-gr
 import BaseVirtualMasonry from "@/components/base/base-virtual-masonry/base-virtual-masonry.vue";
 import type { Item as VirtualMasonryItem } from "@/components/base/base-virtual-masonry/type";
 import GalleryCard from "@/components/utils/gallery-card.vue";
-import Card from "@/stores/CardStore/class/Card";
+import { FavoriteCard } from "@/models/Card/FavoriteCard";
 import type { ImgReadyInfo } from "@/components/base/base-img.vue";
 import { isEqualUrl, isMobile as judgeIsMobile } from "@/utils/common";
 import { useClipboard } from "@vueuse/core";
@@ -123,19 +133,20 @@ import type { CarouselSlide } from "@fancyapps/ui";
 import { storeToRefs } from "pinia";
 import { useGlobalStore, useCardStore, useFavoriteStore } from "@/stores";
 import { useBaseContextMenu } from "@/components/base/base-context-menu";
+import { GM_openInTab } from "$";
+import type { Meta } from "@/models/Card/Meta";
 
 const globalStore = useGlobalStore();
 const cardStore = useCardStore();
 const favoriteStore = useFavoriteStore();
 
 const { galleryState } = storeToRefs(globalStore);
-const { updateCard, unFavoriteCard, refreshStore, findCardById } =
-	favoriteStore;
+const { update: updateCard, find: findCard, unfavorite } = favoriteStore;
 const { downloadCards } = cardStore;
 
 const props = withDefaults(
 	defineProps<{
-		cardList: Card[];
+		cardList: FavoriteCard[];
 		layout?: "grid" | "waterfall"; // s 布局模式
 		searchKeywords?: string; // s 检索关键词
 	}>(),
@@ -143,7 +154,7 @@ const props = withDefaults(
 		cardList: () => [],
 		layout: "grid",
 		searchKeywords: "",
-	}
+	},
 );
 
 // s 滚动条组件引用
@@ -154,7 +165,7 @@ const masonryRef = useTemplateRef("masonryRef");
 // s 组件状态数据
 const state = reactive({
 	// 列数
-	columns: 5,
+	// columns: 5,
 	// 是否使用自定义滚动条
 	useCustomScrollbar: true,
 	// 移动端标识符
@@ -211,7 +222,7 @@ const virtualMasonryItem = computed<Array<VirtualMasonryItem>>(() => {
 // f 处理卡片下载
 const handleDownload = async (id: string) => {
 	// console.log("下载", id);
-	const card = await findCardById(id);
+	const card = await findCard(id);
 	if (!card) return;
 	// console.log("找到card", card);
 	await downloadCards([card]);
@@ -220,15 +231,14 @@ const handleDownload = async (id: string) => {
 };
 
 // f 处理收藏/取消收藏
-const handleToggleFavorite = (card: Card) => {
-	unFavoriteCard([card]);
-	refreshStore();
+const handleToggleFavorite = (card: FavoriteCard) => {
+	unfavorite([card]);
 };
 
 // f 卡片加载成功完成事件( 1.更新cardStore的尺寸范围信息;2.判断卡片是否被收藏 )
 const handleLoaded = async (id: string, info: ImgReadyInfo) => {
 	// s 仓库找到对应的数据
-	const card = await findCardById(id);
+	const card = await findCard(id);
 	if (!card) return; //* 如果卡片不存在也不在向下执行
 	if (card.isLoaded) return; //* 如果已经成功加载过了就不在执行
 	card.isLoaded = true; // s 置为加载成功
@@ -249,7 +259,7 @@ const handleLoaded = async (id: string, info: ImgReadyInfo) => {
 };
 
 // f 处理卡片标签变化
-const handleTagsSave = async (card: Card) => {
+const handleTagsSave = async (card: FavoriteCard) => {
 	updateCard([card]);
 };
 
@@ -269,12 +279,12 @@ function onMouseWheel(e: WheelEvent) {
 	if (e.ctrlKey) {
 		e.preventDefault();
 		if (e.deltaY < 0) {
-			if (state.columns - 1 > 0) {
-				state.columns--;
+			if (galleryState.value.column - 1 > 0) {
+				galleryState.value.column--;
 			}
 		} else {
-			if (state.columns + 1 < 15) {
-				state.columns++;
+			if (galleryState.value.column + 1 < 15) {
+				galleryState.value.column++;
 			}
 		}
 	}
@@ -285,15 +295,12 @@ type FancyboxType =
 	| "image"
 	| "iframe"
 	| "youtube"
-	| "html"
 	| "ajax"
 	| "html5video"
 	| "inline"
 	| false;
 
-function getFancyboxType(
-	metaType: false | "image" | "video" | "audio" | "zip" | "html" | "other"
-) {
+function getFancyboxType(metaType: Meta["type"]) {
 	let type: FancyboxType = "iframe";
 	if (!metaType) return type;
 	switch (metaType) {
@@ -303,14 +310,12 @@ function getFancyboxType(
 		case "video":
 			type = "html5video";
 			break;
-		case "html":
-			type = "iframe";
-			break;
 		case "audio":
 		case "zip":
-		case "other":
+		case "html":
+		case "unknown":
 		default:
-			type = "inline";
+			type = "iframe";
 	}
 
 	return type;
@@ -355,22 +360,67 @@ async function openFancybox(startId: string) {
 		Carousel: {
 			...configFancybox.Carousel,
 			Toolbar: {
-				...toolbar,
+				enabled: true,
+				display: {
+					left: ["open", "cardDownload"],
+					middle: ["counter"],
+					right: ["rotateCCW", "rotateCW", "toLocate", "thumbs", "close"],
+				},
 				items: {
 					...toolbar.items,
+					// f 打开按钮
+					open: {
+						tpl: /*html*/ `
+							<button class="f-button" title="{{NEW_TAB_OPENS}}">
+								<svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13">
+									</path>
+								</svg>
+							</button>
+						`,
+						// 点击事件定义
+						click: (instance) => {
+							const index = instance.getPageIndex();
+							const card = props.cardList[index];
+							const url = card.source.url;
+							if (!url) return;
+							GM_openInTab(url, {
+								active: true,
+								insert: true,
+								setParent: true,
+							});
+						},
+					},
+					// f 下载按钮
+					cardDownload: {
+						tpl: /*html*/ `
+							<button class="f-button" title="{{DOWNLOAD}}">
+								<svg tabindex="-1" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+									<path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2M7 11l5 5 5-5M12 4v12">
+									</path>
+								</svg>
+							</button>
+						`,
+						// 点击事件定义
+						click: async (instance) => {
+							const index = instance.getPageIndex();
+							const card = props.cardList[index];
+							await cardStore.downloadCards([card]);
+						},
+					},
 					// f 定位按钮
 					toLocate: {
 						tpl: /*html*/ `
-								<button class="f-button" title="{{TO_LOCATE}}">
-									<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-									<path fill-rule="evenodd" clip-rule="evenodd" d="M12 19C15.866 19 19 15.866 19 12C19 8.13401 15.866 5 12 5C8.13401 5 5 8.13401 5 12C5 15.866 8.13401 19 12 19ZM12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" fill="#222222"/>
-									<path d="M12 5V3" stroke="#222222" stroke-width="2" stroke-linecap="round"/>
-									<path d="M19 12L21 12" stroke="#222222" stroke-width="2" stroke-linecap="round"/>
-									<path d="M12 21L12 19" stroke="#222222" stroke-width="2" stroke-linecap="round"/>
-									<path d="M3 12H5" stroke="#222222" stroke-width="2" stroke-linecap="round"/>
-									</svg>
-								</button>
-							`,
+							<button class="f-button" title="{{TO_LOCATE}}">
+								<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<path fill-rule="evenodd" clip-rule="evenodd" d="M12 19C15.866 19 19 15.866 19 12C19 8.13401 15.866 5 12 5C8.13401 5 5 8.13401 5 12C5 15.866 8.13401 19 12 19ZM12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" fill="#222222"/>
+								<path d="M12 5V3" stroke="#222222" stroke-width="2" stroke-linecap="round"/>
+								<path d="M19 12L21 12" stroke="#222222" stroke-width="2" stroke-linecap="round"/>
+								<path d="M12 21L12 19" stroke="#222222" stroke-width="2" stroke-linecap="round"/>
+								<path d="M3 12H5" stroke="#222222" stroke-width="2" stroke-linecap="round"/>
+								</svg>
+							</button>
+						`,
 						click(instance, _e) {
 							const index = instance.getPageIndex();
 							const slides = instance.getSlides();
@@ -442,7 +492,7 @@ async function onCardContextMenu(event: PointerEvent, id: string) {
 				copy(
 					result === "copySource"
 						? card.source.url
-						: JSON.stringify(card.getRowData())
+						: JSON.stringify(card, null, 2),
 				)
 					.then(() => {
 						ElNotification({
@@ -451,15 +501,15 @@ async function onCardContextMenu(event: PointerEvent, id: string) {
 							message:
 								result === "copySource"
 									? card.source.url
-									: `卡片数据：${card.description.title}`,
-							appendTo: ".web-img-collector__notification-container",
+									: `卡片数据：${card.description.content}`,
+							appendTo: ".resource-extractor__notification",
 						});
 					})
 					.catch(() => {
 						ElNotification({
 							type: "error",
 							title: "复制失败",
-							appendTo: ".web-img-collector__notification-container",
+							appendTo: ".resource-extractor__notification",
 						});
 					});
 				break;

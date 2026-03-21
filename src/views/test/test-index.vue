@@ -14,7 +14,8 @@
 				v-if="showBtn"
 				:size="4"
 				:wrap="false"
-				style="box-sizing: border-box">
+				style="box-sizing: border-box"
+			>
 				<n-button type="primary" size="medium">按钮1</n-button>
 				<n-button type="primary" size="medium">按钮1</n-button>
 				<n-button type="primary" size="medium">按钮1</n-button>
@@ -25,28 +26,27 @@
 </template>
 
 <script setup lang="ts">
-	import { ref, onActivated, onDeactivated } from "vue";
-	import TestLineOverflowList from "./test-line-overflow-list.vue";
-	import TestTabs from "./test-tabs.vue";
-	import BaseDock from "@/components/base/base-dock.vue";
-	import BaseDragDialog from "@/components/base/base-drag-dialog.vue";
-	// onActivated(() => {
-	// 	console.log("激活", show.value);
-	// });
-	// onDeactivated(() => {
-	// 	console.log("卸载", show.value);
-	// });
-	const show = ref(false);
-	const showBtn = ref(false);
+import { ref } from "vue";
+import TestLineOverflowList from "./test-line-overflow-list.vue";
+import TestTabs from "./test-tabs.vue";
+import BaseDock from "@/components/base/base-dock.vue";
+// onActivated(() => {
+// 	console.log("激活", show.value);
+// });
+// onDeactivated(() => {
+// 	console.log("卸载", show.value);
+// });
+const show = ref(false);
+const showBtn = ref(false);
 </script>
 
 <style lang="scss" scoped>
-	.test__container {
-		position: relative;
-		box-sizing: border-box;
-		width: 100%;
-		height: 100%;
-		padding: 4px;
-		// overflow: hidden;
-	}
+.test__container {
+	position: relative;
+	box-sizing: border-box;
+	width: 100%;
+	height: 100%;
+	padding: 4px;
+	// overflow: hidden;
+}
 </style>

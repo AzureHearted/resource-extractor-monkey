@@ -1,19 +1,15 @@
 <template>
 	<!-- s 脚本应用容器 -->
-	<div
-		:data-host="state.host"
-		ref="appDOM"
-		class="web-img-collector__container"
-	>
+	<div :data-host="state.host" ref="appDOM" class="resource-extractor">
 		<!-- s 消息通知类信息容器 -->
 		<el-config-provider namespace="el">
-			<div class="web-img-collector__notification-container"></div>
+			<div class="resource-extractor__notification"></div>
 		</el-config-provider>
 		<!-- s 内容区 -->
-		<el-config-provider namespace="wic2">
+		<el-config-provider namespace="re">
 			<n-config-provider
-				namespace="wic2-n"
-				cls-prefix="wic2-n"
+				namespace="re-n"
+				cls-prefix="re-n"
 				inline-theme-disabled
 				preflight-style-disabled
 				:hljs="state.hljs"
@@ -22,11 +18,11 @@
 				<!-- s 布局 -->
 				<Layout />
 				<!-- s 悬浮按钮 -->
-				<hover-button :show="!globalStore.openWindow" :teleport-to="false" />
+				<HoverButton :show="!globalStore.openWindow" />
 				<!-- s 顶层元素的承载容器 -->
 				<div
 					ref="subWindowContainerDOM"
-					class="web-img-collector__top-container"
+					class="resource-extractor__modal-container"
 				></div>
 			</n-config-provider>
 		</el-config-provider>
@@ -35,11 +31,11 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, defineAsyncComponent } from "vue";
+import HoverButton from "@/views/hover-button.vue";
+
 // 导入仓库
 import useGlobalStore from "@/stores/GlobalStore";
 import usePatternStore from "@/stores/PatternStore";
-const globalStore = useGlobalStore();
-const patternStore = usePatternStore();
 
 // 导入高亮语法
 import hljs from "highlight.js/lib/core";
@@ -48,8 +44,9 @@ import javascript from "highlight.js/lib/languages/javascript";
 hljs.registerLanguage("css", css);
 hljs.registerLanguage("javascript", javascript);
 
-// 脚本界面DOM容器
-// const appDOM = useTemplateRef("appDOM");
+// 使用仓库
+const globalStore = useGlobalStore();
+const patternStore = usePatternStore();
 
 // s 状态数据
 const state = reactive({
@@ -60,16 +57,8 @@ const state = reactive({
 
 // 异步导入Layout组件
 const Layout = defineAsyncComponent(
-	() => import("@/views/layout/layout-index.vue")
+	() => import("@/views/layout/layout-index.vue"),
 );
-
-// 异步导入HoverButton组件
-const HoverButton = defineAsyncComponent(
-	() => import("@/views/app-hover-button.vue")
-);
-
-// 子窗口容器
-// const subWindowContainerDOM = useTemplateRef("subWindowContainerDOM");
 
 onMounted(() => {
 	// s 用户配置信息获取
@@ -92,7 +81,7 @@ dialog {
 }
 
 // 布局容器(鼠标可以穿透，只用于划定组件的活动范围，不遮挡其他内容)
-.web-img-collector__container {
+.resource-extractor {
 	/* 核心属性：阻止滚动溢出到父级 */
 	overscroll-behavior: contain;
 	box-sizing: border-box;
@@ -139,7 +128,7 @@ dialog {
 }
 
 // ! 子窗口容器样式(主要作为弹窗的容器)
-.web-img-collector__top-container {
+.resource-extractor__modal-container {
 	position: absolute;
 	inset: 0;
 	width: 100%;
@@ -166,7 +155,7 @@ dialog {
 
 <style lang="scss">
 // 导入修复样式
-@import "./styles/website/index.scss";
+@use "./styles/website/index.scss" as *;
 
 button i {
 	all: unset;

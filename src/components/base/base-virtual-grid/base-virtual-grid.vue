@@ -212,14 +212,14 @@ async function init() {
 	computedItemPosDebounce(props.items);
 }
 
+// w 对于 prop.items 只监听 id 变化
 watch(
-	[() => props.items, () => safeColumns.value],
-	async ([newItems]) => {
+	[() => props.items.map((item) => item.id), () => safeColumns.value],
+	async ([_newItemIds]) => {
 		await nextTick();
 		// items、gap 发生变化时重新计算布局
-		computedItemPosDebounce(newItems);
-	},
-	{ deep: true }
+		computedItemPosDebounce(props.items);
+	}
 );
 
 const computedItemPosDebounce = useDebounceFn((list: Item[]) => {

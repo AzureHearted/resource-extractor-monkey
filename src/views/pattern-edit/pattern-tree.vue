@@ -47,13 +47,13 @@
 </template>
 
 <script setup lang="ts">
-import { h, ref, computed, useTemplateRef } from "vue";
+import { h, ref, computed } from "vue";
 import { NButton } from "naive-ui";
 import type { TreeOption, TreeDropInfo, TreeProps } from "naive-ui";
 import { DeleteFilled, Plus } from "@element-plus/icons-vue";
 import { ElButton, ElPopconfirm } from "element-plus";
-import { Pattern } from "@/stores/PatternStore/class/Pattern";
-import { Rule } from "@/stores/PatternStore/class/Rule";
+import { Pattern } from "@/models/Pattern/Pattern";
+import { Rule } from "@/models/Rule/Rule";
 import BaseScrollbar from "@/components/base/base-scrollbar.vue";
 import BaseImg from "@/components/base/base-img.vue";
 
@@ -67,8 +67,6 @@ const {
 	adjustRulePosition,
 	moveRuleToPattern,
 } = patternStore;
-
-const treeRef = useTemplateRef("treeRef");
 
 const keyword = ref(""); //关键词
 const showIrrelevantNodes = ref(false); //展示无关节点
@@ -142,9 +140,9 @@ const data = computed<PatternNode[]>(() => {
 														margin: "2px",
 													},
 												}),
-										}
+										},
 									);
-							  },
+								},
 				} as RuleNode;
 			}),
 			// (方案前缀)渲染函数
@@ -155,7 +153,7 @@ const data = computed<PatternNode[]>(() => {
 							src: p.mainInfo.icon,
 							style: "width: 16px; height: 16px",
 						});
-				  },
+					},
 			// (方案后缀)渲染函数
 			suffix: p.id.includes("#")
 				? null
@@ -200,10 +198,10 @@ const data = computed<PatternNode[]>(() => {
 												margin: "2px",
 											},
 										}),
-								}
+								},
 							),
 						];
-				  },
+					},
 		} as PatternNode;
 	});
 });
@@ -225,7 +223,7 @@ const renderLabel: TreeProps["renderLabel"] = ({ option }) => {
 					: null,
 			title: node.label,
 		},
-		{ default: () => node.label }
+		{ default: () => node.label },
 	);
 };
 
@@ -305,7 +303,7 @@ const handleDrop: (data: TreeDropInfo) => void = ({
 		adjustRulePosition(
 			draggingRuleNode.id,
 			dropRuleNode.id,
-			dropPosition as any
+			dropPosition as any,
 		);
 	}
 
@@ -321,7 +319,7 @@ const handleDrop: (data: TreeDropInfo) => void = ({
 		adjustPatternPosition(
 			draggingPatternNode.id,
 			dropPatternNode.id,
-			dropPosition as any
+			dropPosition as any,
 		);
 	}
 };
@@ -363,13 +361,13 @@ const nodeProps: TreeProps["nodeProps"] = ({ option }) => {
 	gap: 6px;
 	height: 100%;
 
-	:deep(.wic2-button + .wic2-button) {
+	:deep(.re-button + .re-button) {
 		margin-left: 4px;
 	}
 }
 
-:deep(.wic2-n-card),
-:deep(.wic2-n-input) {
+:deep(.re-n-card),
+:deep(.re-n-input) {
 	background: rgba(255, 255, 255, 0.3);
 	backdrop-filter: blur(10px);
 }
@@ -377,12 +375,12 @@ const nodeProps: TreeProps["nodeProps"] = ({ option }) => {
 	border-radius: 4px;
 	overflow: hidden;
 }
-:deep(.wic2-n-tree) {
+:deep(.re-n-tree) {
 	border-radius: 4px;
 	background: rgba(255, 255, 255, 0.3);
 	backdrop-filter: blur(10px);
 
-	.wic2-n-tree-node-content__text {
+	.re-n-tree-node-content__text {
 		text-overflow: ellipsis;
 		overflow: hidden;
 		white-space: nowrap;

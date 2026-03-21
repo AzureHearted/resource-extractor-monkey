@@ -8,7 +8,7 @@
 				style="width: 100%; height: 100%"
 				content-style="overflow:hidden;"
 				:show-buttons="false"
-				@tab-active="nowType = $event as any"
+				@change="nowType = $event as any"
 			>
 				<!-- s 图片类 -->
 				<BaseTabPane name="image">
@@ -111,7 +111,7 @@
 							</n-icon>
 							其他
 							<n-badge
-								:value="filterCardList.other.length"
+								:value="filterCardList.unknown.length"
 								:max="999"
 								type="default"
 							>
@@ -119,7 +119,7 @@
 						</n-flex>
 					</template>
 					<GalleryBaseWaterfall
-						:card-list="filterCardList.other"
+						:card-list="filterCardList.unknown"
 						:search-keywords="filters.keyword"
 						:layout="galleryState.galleyLayout"
 					/>
@@ -164,15 +164,8 @@ const { filterCardList, nowType, filters } = storeToRefs(cardStore);
 	overflow: hidden; // 必须要设置溢出隐藏
 }
 
-:deep(.wic2-n-tabs-tab) {
-	padding-left: 12px;
-	padding-right: 0px;
-}
-
 :deep(.base-tabs__tab-item) {
 	font-size: 14px;
 	padding: 0 10px;
-	height: 28px;
-	line-height: 28px;
 }
 </style>

@@ -4,7 +4,8 @@
 			<el-checkbox
 				label="开启"
 				v-model="rule.preview.enable"
-				:indeterminate="false" />
+				:indeterminate="false"
+			/>
 		</el-form-item>
 		<el-form-item label="来源" label-width="54px" v-show="rule.preview.enable">
 			<el-select v-model="rule.preview.origin" placeholder="选择数据来源">
@@ -12,22 +13,26 @@
 				<el-option
 					value="region"
 					label="约束区域"
-					:disabled="!rule.region.enable" />
+					:disabled="!rule.region.enable"
+				/>
 				<el-option value="source" label="源" />
 			</el-select>
 		</el-form-item>
 		<el-form-item
 			label="选择器"
 			label-width="54px"
-			v-show="rule.preview.enable && rule.preview.origin === 'custom'">
+			v-show="rule.preview.enable && rule.preview.origin === 'custom'"
+		>
 			<el-input
 				v-model="rule.preview.selector"
 				placeholder="请输入css选择器"
-				clearable>
+				clearable
+			>
 				<template v-if="rule.region.enable" #prepend>
 					<span
 						:title="rule.region.selector"
-						@click="copy(rule.region.selector)">
+						@click="copy(rule.region.selector)"
+					>
 						{{ rule.region.selector }}
 					</span>
 				</template>
@@ -46,29 +51,31 @@
 		<el-form-item
 			label="属性名"
 			label-width="54px"
-			v-show="rule.preview.enable">
+			v-show="rule.preview.enable"
+		>
 			<el-input
 				v-model="rule.preview.name"
 				placeholder="请输入要匹配的属性值名称 (仅在“属性”类型下生效)"
-				clearable></el-input>
+				clearable
+			></el-input>
 		</el-form-item>
 		<FixFrom
 			:rule="rule"
 			:disable="rule.id.includes('#') || !rule.preview.enable"
-			type="preview" />
+			type="preview"
+		/>
 	</el-form>
 </template>
 
 <script setup lang="ts">
-	import { defineModel } from "vue";
-	import { useClipboard } from "@vueuse/core";
-	import { Rule } from "@/stores/PatternStore/class/Rule";
+import { useClipboard } from "@vueuse/core";
+import { Rule } from "@/models/Rule/Rule";
 
-	import FixFrom from "./card-from-fix.vue";
+import FixFrom from "./card-from-fix.vue";
 
-	const { copy } = useClipboard();
+const { copy } = useClipboard();
 
-	const rule = defineModel("rule", { type: Rule, required: true });
+const rule = defineModel("rule", { type: Rule, required: true });
 </script>
 
 <style lang="scss" scoped></style>

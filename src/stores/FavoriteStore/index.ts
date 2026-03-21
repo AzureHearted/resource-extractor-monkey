@@ -1,37 +1,33 @@
 import { defineStore } from "pinia";
-import { computed, reactive, ref } from "vue";
-import Card from "@/stores/CardStore/class/Card";
-import type { BaseMeta } from "@/stores/CardStore/interface";
-import { isEqualUrl, naturalCompare } from "@/utils/common";
-import type { ExcludeType } from "@/types/tools";
+import { computed, onActivated, reactive, ref, watch } from "vue";
+import { FavoriteCard } from "@/models/Card/FavoriteCard";
+import { naturalCompare } from "@/utils/common";
 import localforage from "localforage";
 import useCardStore from "@/stores/CardStore";
+import { useDebounceFn } from "@vueuse/core";
+import { useListIndexedDB } from "@/hooks/useIndexedDB";
+import type { Meta } from "@/models/Card/Meta";
+import type { Card } from "@/models/Card/Card";
 
 export default defineStore("FavoriteStore", () => {
 	const cardStore = useCardStore();
 	// s 基础信息
 	const info = reactive({
-		dbName: "WebImgCollector2",
+		dbName: "WebImgCollector2", // TODO 暂时不改名后续完善迁移逻辑
 		storeName: "favorite_card",
 	});
 
-	// s localforage仓库对象
-	const store = ref<LocalForage>();
-
-	async function open() {
-		store.value = localforage.createInstance({
-			driver: localforage.INDEXEDDB,
+	const favoriteDBStore = useListIndexedDB<ReturnType<FavoriteCard["toRaw"]>>(
+		info.storeName,
+		{
 			name: info.dbName,
-			storeName: info.storeName,
+			driver: localforage.INDEXEDDB,
 			description: "收藏的卡片数据",
-		});
-	}
-
-	// s 过滤关键词
-	const filterKeyword = ref("");
+		},
+	);
 
 	// s 卡片数据列表
-	const cardList = ref<Card[]>([]);
+	const cardList = ref<FavoriteCard[]>([]);
 
 	// j 类型->数量映射列表
 	const typeMap = computed<Map<string, number>>(() => {
@@ -61,13 +57,15 @@ export default defineStore("FavoriteStore", () => {
 		}, new Map<string, number>());
 	});
 
-	// j 仓库尺寸范围
-	const sizeRange = computed<{
+	interface ISizeRange {
 		width: [number, number];
 		height: [number, number];
 		max: number;
 		min: number;
-	}>(() => {
+	}
+
+	// j 仓库尺寸范围
+	const sizeRange = computed<ISizeRange>(() => {
 		return cardList.value.reduce(
 			(prev, curr) => {
 				const { width, height } = curr.source.meta;
@@ -84,23 +82,26 @@ export default defineStore("FavoriteStore", () => {
 				height: [0, 2000],
 				min: 0,
 				max: 2000,
-			}
+			},
 		);
 	});
 
 	// j 仓库中所有标签集合
 	const allTags = computed<{ [name: string]: number }>(() => {
-		return cardList.value.reduce((all, curr) => {
-			const { tags } = curr;
-			tags.forEach((tag) => {
-				if (Object.keys(all).includes(tag)) {
-					all[tag]++;
-				} else {
-					all[tag] = 1;
-				}
-			});
-			return all;
-		}, {} as { [name: string]: number });
+		return cardList.value.reduce(
+			(all, curr) => {
+				const { tags } = curr;
+				tags.forEach((tag) => {
+					if (Object.keys(all).includes(tag)) {
+						all[tag]++;
+					} else {
+						all[tag] = 1;
+					}
+				});
+				return all;
+			},
+			{} as { [name: string]: number },
+		);
 	});
 
 	// j 仓库中所有Key值列表
@@ -109,75 +110,24 @@ export default defineStore("FavoriteStore", () => {
 	});
 
 	// j 选中的卡片列表
-	const selectedCardList = computed<Card[]>(() => {
+	const selectedCardList = computed<FavoriteCard[]>(() => {
 		return cardList.value.filter((c) => c.isSelected);
 	});
 
 	// t 卡片类型(类型)
-	type CardType = ExcludeType<"all" | BaseMeta["type"] | "other", false>;
+	type CardType = "all" | Meta["type"];
+
 	// s 当前类型
 	const nowType = ref<CardType>("image");
 
 	// s 过滤器
 	const filters = reactive({
+		keyword: "",
 		type: [] as string[], //类型过滤器
 		extension: [] as string[], //扩展名过滤器
 		size: {
 			width: [250, 2000] as [number, number], //宽度过滤器
 			height: [250, 2000] as [number, number], //高度过滤器
-			marks: computed(() => {
-				const markStyle = reactive({
-					"font-size": "10px !important",
-					"margin-top": "0 !important",
-					bottom: "5px",
-				});
-				const tempMarks = {
-					360: {
-						label: "360",
-						style: markStyle,
-					},
-					720: {
-						label: "720",
-						style: {
-							...markStyle,
-							display: sizeRange.value.max / 720 < 3 ? "" : "none",
-						},
-					},
-					1080: {
-						label: "1080",
-						style: {
-							...markStyle,
-							display: sizeRange.value.max / 1080 < 3 ? "" : "none",
-						},
-					},
-					1920: {
-						label: "1920",
-						style: {
-							...markStyle,
-							display: sizeRange.value.max / 1920 < 3 ? "" : "none",
-						},
-					},
-					2560: {
-						label: "2560",
-						style: {
-							...markStyle,
-							display: sizeRange.value.max / 2560 < 3 ? "" : "none",
-						},
-					},
-					3840: {
-						label: "3840",
-						style: markStyle,
-					},
-					[`${sizeRange.value.max}`]: {
-						label: `${sizeRange.value.max}`,
-						style: {
-							...markStyle,
-							display: sizeRange.value.max > 1.8 * 3840 ? "" : "none",
-						},
-					},
-				};
-				return tempMarks;
-			}),
 		},
 	});
 
@@ -244,57 +194,86 @@ export default defineStore("FavoriteStore", () => {
 		// (访问器)获取分组数组
 		get groups(): sortGroup[] {
 			return Object.values(
-				this.options.reduce((prev, curr) => {
-					if (!prev[curr.group]) {
-						prev[curr.group] = {
-							type: "group",
-							key: curr.group,
-							label: curr.group,
-							children: [],
-						};
-					}
-					prev[curr.group].children.push({
-						...curr,
-						key: curr.value,
-					});
-					return prev;
-				}, <{ [key: string]: sortGroup }>{})
+				this.options.reduce(
+					(prev, curr) => {
+						if (!prev[curr.group]) {
+							prev[curr.group] = {
+								type: "group",
+								key: curr.group,
+								label: curr.group,
+								children: [],
+							};
+						}
+						prev[curr.group].children.push({
+							...curr,
+							key: curr.value,
+						});
+						return prev;
+					},
+					<{ [key: string]: sortGroup }>{},
+				),
 			);
 		},
 	});
 
-	// j 初步过滤后的卡片列表
-	const filterCardList = computed<{
-		[key in CardType]: Card[];
-	}>(() => {
-		const keywords = filterKeyword.value.trim().toLocaleLowerCase();
+	// t 卡片分组类型
+	type CardGroup = {
+		[key in CardType]: FavoriteCard[];
+	};
 
-		const image = [] as Card[],
-			video = [] as Card[],
-			audio = [] as Card[],
-			zip = [] as Card[],
-			html = [] as Card[],
-			other = [] as Card[];
+	// s 过滤器后的卡片列表
+	const filterCardList = ref<CardGroup>({
+		all: [],
+		image: [],
+		video: [],
+		zip: [],
+		audio: [],
+		html: [],
+		unknown: [],
+	});
+
+	watch(
+		() => [
+			filters.keyword,
+			filters.size.width,
+			filters.size.height,
+			filters.extension,
+			sortInfo.method,
+			cardList,
+		],
+		() => {
+			debounceUpdateFilterResult();
+		},
+		{ deep: true },
+	);
+
+	const debounceUpdateFilterResult = useDebounceFn(updateFilterResult, 300);
+
+	// f 更新过滤结果
+	function updateFilterResult() {
+		const keywords = filters.keyword.trim().toLocaleLowerCase();
+
+		const image = [] as FavoriteCard[],
+			video = [] as FavoriteCard[],
+			audio = [] as FavoriteCard[],
+			zip = [] as FavoriteCard[],
+			html = [] as FavoriteCard[],
+			unknown = [] as FavoriteCard[];
 		let all = [...cardList.value];
 
 		// s 先排序
 		switch (sortInfo.method) {
 			case "#":
-				all.sort((a, b) =>
-					naturalCompare(
-						a.source.originUrls ? a.source.originUrls[0] : "",
-						b.source.originUrls ? b.source.originUrls[0] : ""
-					)
-				);
+				all.sort((a, b) => b.timestamp - a.timestamp);
 				break;
 			case "name-asc":
 				all.sort((a, b) =>
-					naturalCompare(a.description.title, b.description.title)
+					naturalCompare(a.description.content, b.description.content),
 				);
 				break;
 			case "name-desc":
 				all.sort((a, b) =>
-					naturalCompare(b.description.title, a.description.title)
+					naturalCompare(b.description.content, a.description.content),
 				);
 				break;
 			case "width-asc":
@@ -312,33 +291,44 @@ export default defineStore("FavoriteStore", () => {
 		}
 		// s 再过滤
 		all = all.filter((card) => {
-			// console.log(c.source.meta.width, filters.size.width[1]);
 			const { tags } = card;
-			const { title } = card.description;
+			const { content: title } = card.description;
 			const {
 				type: sType,
 				width: sWidth,
 				height: sHeight,
 				ext: sExt,
 			} = card.source.meta;
+			const { type: pType, width: pWidth, height: pHeight } = card.preview.meta;
+
 			// s 是否扩展名是否匹配
 			const isExtensionMatch =
 				filters.extension.length > 0
 					? filters.extension.includes(String(sExt))
 					: true;
 			// s 判断是否是图片或者视频，如果是并且已经加载则判断是否符合尺寸过滤器
-			const isSizeMatch =
+			const isSourceSizeMatch =
 				sType === "image" || sType === "video"
 					? sWidth >= filters.size.width[0] &&
-					  sWidth <= filters.size.width[1] &&
-					  sHeight <= filters.size.height[1] &&
-					  sHeight >= filters.size.height[0]
+						sWidth <= filters.size.width[1] &&
+						sHeight <= filters.size.height[1] &&
+						sHeight >= filters.size.height[0]
+					: true;
+			const isPreviewSizeMatch =
+				pType === "image" || pType === "video"
+					? pWidth >= filters.size.width[0] &&
+						pWidth <= filters.size.width[1] &&
+						pHeight <= filters.size.height[1] &&
+						pHeight >= filters.size.height[0]
 					: true;
 			const isMatchKeyWords =
 				isKeywordsMatch(title, keywords) || isKeywordsMatch(tags, keywords);
 
 			// s 判断是否所有条件都匹配
-			const isMatch = isExtensionMatch && isSizeMatch && isMatchKeyWords;
+			const isMatch =
+				isExtensionMatch &&
+				(isSourceSizeMatch || isPreviewSizeMatch) &&
+				isMatchKeyWords;
 			if (!isMatch) card.isSelected = false; // 如果不匹配的需要将选中状态设置为false
 			if (isMatch) {
 				switch (sType) {
@@ -358,7 +348,7 @@ export default defineStore("FavoriteStore", () => {
 						zip.push(card);
 						break;
 					default:
-						other.push(card);
+						unknown.push(card);
 						break;
 				}
 			}
@@ -366,8 +356,16 @@ export default defineStore("FavoriteStore", () => {
 			return isMatch;
 		});
 
-		return { all, image, video, audio, zip, html, other };
-	});
+		filterCardList.value = {
+			all,
+			image,
+			video,
+			audio,
+			zip,
+			html,
+			unknown,
+		};
+	}
 
 	// f 匹配判断函数
 	function isKeywordsMatch(str: string | string[], keywords: string) {
@@ -380,250 +378,156 @@ export default defineStore("FavoriteStore", () => {
 		}
 	}
 
-	let process: Promise<any> | false = false;
+	// ? 被激活时也刷新
+	onActivated(() => {
+		refreshStore();
+	});
+
 	// f 刷新仓库数据
-	const refreshStore = async () => {
-		// s 判断仓库是否打开？没打开等待打开后重新调用
-		if (!store.value) {
-			open().then(() => refreshStore());
-			return;
-		}
-		if (process !== false) {
-			process.finally(() => refreshStore());
-			return;
-		}
+	async function refreshStore() {
+		// console.log("刷新收藏数据库");
+		await upgradeOldDBData();
 		// 记录旧卡数据
 		const oldList = [...cardList.value];
-		process = new Promise<Card[]>((resolve) => {
-			const list: Card[] = [];
-			store
-				.value!.iterate((value: InstanceType<typeof Card>) => {
-					//TODO 如果Card类型增添新的内容这里需要同步修改
-					const { id, source, preview, description, tags } = value;
-					const oldCard = oldList.find((x) => x.id === id);
-					list.push(
-						new Card({
-							id,
-							source,
-							preview,
-							description,
-							tags,
-							isFavorite: true,
-							isLoaded: oldCard ? oldCard.isLoaded : undefined,
-							isSelected: oldCard ? oldCard.isSelected : undefined,
-						})
-					);
-				})
-				.then(() => {
-					resolve(list);
-				})
-				.catch(() => {
-					resolve([]);
-				})
-				.finally(() => {
-					resolve(list);
-				});
-		});
-		process
-			.then((list) => {
-				// console.log("获取成功");
-				cardList.value = list;
-			})
-			.catch(() => {
-				// console.log("获取失败");
-				cardList.value = [];
-			})
-			.finally(() => {
-				process = false;
+		const list: FavoriteCard[] = [];
+		await favoriteDBStore.iterate((value) => {
+			//TODO 如果Card类型增添新的内容这里需要同步修改
+			const oldCard = oldList.find((x) => x.id === value.fingerprint);
+			const favCard = new FavoriteCard({
+				...value,
+				id: value.fingerprint,
+				isFavorite: true,
+				isLoaded: oldCard ? oldCard.isLoaded : undefined,
+				isSelected: oldCard ? oldCard.isSelected : undefined,
 			});
-	};
+
+			fixCardInfo(favCard);
+
+			list.push(favCard);
+		});
+
+		cardList.value = list;
+	}
+
+	// f 升级旧DB数据
+	async function upgradeOldDBData() {
+		await favoriteDBStore.iterate((value, key) => {
+			// 跳过新数据
+			if (value.fingerprint != null) return;
+			// 升级旧数据
+			const favCard = new FavoriteCard(value);
+
+			fixCardInfo(favCard, false); // 这里不更新数据库
+
+			favoriteDBStore.set(favCard.fingerprint, favCard.toJSON());
+			// 删除旧数据
+			favoriteDBStore.remove(key);
+		});
+	}
+
+	// f 修复卡片信息 (通常用于修复旧数据属性变更的情况)
+	function fixCardInfo(card: FavoriteCard, updateDBStore = true) {
+		const maybeTitle = (card.description as any)?.title?.trim();
+		if (
+			card.description.content.trim() == "" &&
+			maybeTitle != null &&
+			maybeTitle != ""
+		) {
+			card.description.content = (card.description as any).title;
+			// 更新数据库对应数据
+			if (updateDBStore) {
+				favoriteDBStore.set(card.fingerprint, card.toJSON());
+			}
+		}
+	}
 
 	// f 清空仓库数据
-	const clearStore = async () => {
-		// s 判断仓库是否打开？没打开等待打开后重新调用
-		if (!store.value) {
-			open().then(() => clearStore());
-			return;
-		}
-		await store.value.clear();
-		refreshStore();
-	};
+	async function clearStore() {
+		await favoriteDBStore.clear();
+		cardList.value = [];
+	}
 
-	// f 添加卡片
-	const addCard = async (cards: Card[]) => {
-		// s 判断仓库是否打开？没打开等待打开后重新调用
-		if (!store.value) {
-			open().then(() => addCard(cards));
-			return;
-		}
+	// f 查找卡片id
+	async function find(id: string) {
+		const item = cardList.value.find((c) => c.id === id);
+		if (item == null) return null;
+		return item as FavoriteCard;
+	}
 
+	// f 收藏卡片
+	function favoriteCard(card: FavoriteCard) {
+		cardList.value.push(card);
+	}
+
+	// f 添加卡片 (DB)
+	async function favorite(cards: Card[]) {
 		for (const card of cards) {
 			// 判断卡片是否已经存在
 			if (!(await isExist(card))) {
-				const rowCard = card.getRowData();
-				rowCard.isFavorite = true;
-				rowCard.isLoaded = false;
-				rowCard.isSelected = false;
-				await store.value.setItem(card.id, rowCard);
+				const rawCard = card.toJSON();
+				const favCard = new FavoriteCard(rawCard);
+				await favoriteDBStore.set(favCard.fingerprint, favCard.toJSON());
+				favoriteCard(favCard);
 				// console.log("成功收藏卡片", card);
 			} else {
 				// console.log("卡片已存在", card);
 			}
 		}
-		refreshStore();
-	};
+	}
 
 	// f 更新卡片
-	const updateCard = async (cards: Card[]) => {
-		// s 判断仓库是否打开？没打开等待打开后重新调用
-		if (!store.value) {
-			open().then(() => updateCard(cards));
-			return;
-		}
+	function updateCard(id: string, card: FavoriteCard) {
+		const index = cardList.value.findIndex((c) => c.id === id);
+		if (index === -1) return;
+		// cardList.value.splice(index, 1);
+		cardList.value[index] = card;
+	}
+
+	// f 更新卡片 (DB)
+	async function update(cards: Card[]) {
 		for (const card of cards) {
 			// 先查找卡片在仓库的id
-			const id = await findCardId(
-				(c) =>
-					isEqualUrl(c.source.url, card.source.url, { excludeSearch: true }) &&
-					isEqualUrl(c.preview.url, card.preview.url, { excludeSearch: true })
-			);
-			if (!id) continue; //如果id无效就跳过该卡片的更新
-			const rowCard = card.getRowData(); // 获取不带ID的未加工数据
-			await store.value.setItem(id, rowCard);
-			// console.log("成功更新卡片", card);
+			// 如果找不到卡片就跳过
+			const favCard = await find(card.fingerprint);
+			if (favCard == null) continue;
+			const newFavCard = new FavoriteCard({
+				...favCard,
+				...card.toJSON(),
+				timestamp: favCard.timestamp,
+			});
+			await favoriteDBStore.set(newFavCard.fingerprint, newFavCard.toJSON());
+			// 同步更新卡片数据
+			updateCard(newFavCard.fingerprint, newFavCard);
 		}
-		refreshStore();
-	};
+	}
 
 	// f 删除卡片
-	const deleteCard = async (cards: Card[]) => {
-		// s 判断仓库是否打开？没打开等待打开后重新调用
-		if (!store.value) {
-			open().then(() => deleteCard(cards));
-			return;
-		}
+	function deleteCard(id: string) {
+		const index = cardList.value.findIndex((c) => c.id === id);
+		if (index === -1) return;
+		cardList.value.splice(index, 1);
+	}
+
+	// f 取消收藏卡片 (DB)
+	async function unfavorite(cards: Card[]) {
 		for (const card of cards) {
 			// 先查找卡片在仓库的id
-			const id = await findCardId(
-				(c) =>
-					isEqualUrl(c.source.url, card.source.url, { excludeSearch: true }) &&
-					isEqualUrl(c.preview.url, card.preview.url, { excludeSearch: true })
-			);
-			if (!id) continue; //如果id无效就跳过该卡片的取消收藏
-			await store.value.removeItem(id);
-			// console.log("成功从Favorite仓库删除卡片", card);
+			// 如果找不到卡片就跳过
+			const favCard = await find(card.fingerprint);
+			if (favCard == null) continue;
+			await favoriteDBStore.remove(favCard.fingerprint);
+			// 同步更新卡片数据
+			deleteCard(favCard.fingerprint);
 		}
-		refreshStore();
-	};
+	}
 
-	// f 取消收藏卡片
-	const unFavoriteCard = async (cards: Card[]) => {
-		// s 判断仓库是否打开？没打开等待打开后重新调用
-		if (!store.value) {
-			open().then(() => unFavoriteCard(cards));
-			return;
-		}
-		for (const card of cards) {
-			// 先查找卡片在仓库的id
-			const id = await findCardId(
-				(c) =>
-					isEqualUrl(c.source.url, card.source.url, { excludeSearch: true }) &&
-					isEqualUrl(c.preview.url, card.preview.url, { excludeSearch: true })
-			);
-			if (!id) continue; //如果id无效就跳过该卡片的取消收藏
-			await store.value.removeItem(id);
-			// console.log("成功取消收藏卡片", card);
-		}
-		refreshStore();
-	};
-
-	// f 查找卡片id
-	const findCardId = async (
-		/** 匹配函数 */
-		matchComparator: (currCard: Card) => boolean,
-		refresh: boolean = false
-	): Promise<string | undefined> => {
-		// 先刷新仓库
-		if (refresh) {
-			await refreshStore();
-		}
-		return cardList.value.find((c) => matchComparator(c))?.id;
-	};
-
-	// f 查找卡片
-	const findCard = async (
-		/** 匹配函数 */
-		matchComparator: (currCard: Card) => boolean,
-		refresh: boolean = false
-	): Promise<Card | undefined> => {
-		// 先刷新仓库
-		if (refresh) {
-			await refreshStore();
-		}
-		return cardList.value.find((c) => matchComparator(c));
-	};
-
-	// f 查找卡片(通过数据)
-	const findCardByData = async (
-		/** 匹配函数 */
-		cardData: Card,
-		refresh: boolean = false
-	): Promise<Card | undefined> => {
-		// 先刷新仓库
-		if (refresh) {
-			await refreshStore();
-		}
-		return cardList.value.find(
-			(c) =>
-				isEqualUrl(c.source.url, cardData.source.url, {
-					excludeSearch: true,
-				}) &&
-				isEqualUrl(c.preview.url, cardData.preview.url, { excludeSearch: true })
-		);
-	};
-
-	// f 查询卡片(通过id)
-	const findCardById = async (
-		id: string,
-		refresh: boolean = false
-	): Promise<Card | undefined> => {
-		// 先刷新仓库
-		if (refresh) {
-			await refreshStore();
-		}
-		// console.log("查找", id);
-		return cardList.value.find((c) => c.id === id);
-	};
-
-	// f 查询多张卡片(通过id)
-	const findCardsById = async (
-		ids: string[],
-		refresh: boolean = false
-	): Promise<Card[]> => {
-		// 先刷新仓库
-		if (refresh) {
-			await refreshStore();
-		}
-		return cardList.value.filter((c) => ids.includes(c.id)) || [];
-	};
-
-	// f 判断卡片是否存在
-	/** 若source.url和preview.url相同则视为同一张卡片 */
-	const isExist = async (card: Card, refresh: boolean = false) => {
-		// 先刷新仓库
-		if (refresh) {
-			await refreshStore();
-		}
-		// 判断是否包含卡片
-		return cardList.value.some(
-			(c) =>
-				isEqualUrl(c.source.url, card.source.url, { excludeSearch: true }) &&
-				isEqualUrl(c.preview.url, card.preview.url, { excludeSearch: true })
-		);
-	};
+	// f 判断卡片是否存在 (DB)
+	async function isExist(card: Card) {
+		// 尝试从收藏DB中获取
+		return (await favoriteDBStore.get(card.fingerprint)) != null;
+	}
 
 	return {
-		store,
 		cardList,
 		sizeRange,
 		nowType,
@@ -636,17 +540,12 @@ export default defineStore("FavoriteStore", () => {
 		selectedCardList,
 		keys,
 		allTags,
-		filterKeyword,
 		refreshStore,
 		clearStore,
-		addCard,
-		updateCard,
-		deleteCard,
-		unFavoriteCard,
-		findCard,
-		findCardByData,
-		findCardById,
-		findCardsById,
+		find,
+		favorite,
+		unfavorite,
+		update,
 		isExist,
 		downloadCards: cardStore.downloadCards,
 	};

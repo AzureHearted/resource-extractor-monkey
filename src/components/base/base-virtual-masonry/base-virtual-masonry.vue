@@ -214,14 +214,14 @@ async function init() {
 	computedItemPosDebounce(props.items);
 }
 
+// w 对于 prop.items 只监听 id 变化
 watch(
-	[() => props.items, () => safeColumns.value],
-	async ([newItems]) => {
+	[() => props.items.map((item) => item.id), () => safeColumns.value],
+	async ([_newItemIds]) => {
 		await nextTick();
 		// items、gap 发生变化时重新计算布局
-		computedItemPosDebounce(newItems);
-	},
-	{ deep: true }
+		computedItemPosDebounce(props.items);
+	}
 );
 
 const computedItemPosDebounce = useDebounceFn((list: Item[]) => {
@@ -346,9 +346,16 @@ function computeVisibleState() {
 		}
 	}
 
-	visiblePosList.sort((a, b) => a.realIndex - b.realIndex);
-	state.visiblePosList = visiblePosList;
-	state.visibleList = visiblePosList.map((p) => state.list[p.realIndex]);
+	// 按照真实索引排序
+	const sortedPosList = [...visiblePosList].sort(
+		(a, b) => a.realIndex - b.realIndex
+	);
+	// 按照真实索引排序后的数据
+	const sortedDataList = sortedPosList.map((p) => state.list[p.realIndex]);
+
+	// 一次性同步到响应式状态
+	state.visiblePosList = sortedPosList;
+	state.visibleList = sortedDataList;
 }
 
 // f (辅助函数) 二分查找：返回第一个 top > value 的 index

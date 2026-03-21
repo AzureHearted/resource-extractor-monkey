@@ -13,14 +13,15 @@
 				ref="gridRef"
 				:items="cardList"
 				:gap="4"
-				:columns="state.columns"
+				:columns="!state.isMobile ? galleryState.column : undefined"
+				:breakpoints="state.isMobile ? state.breakpoints : undefined"
 				:allow-item-transition="galleryState.allowTransition"
 				:scroll-container="scrollBarRef?.viewportDOM"
 			>
 				<template #="{ item }">
 					<GalleryCard
 						:key="(item as Card).id"
-						v-model:data="(item as Card)"
+						v-model:data="item as Card"
 						:highlight-key="searchKeywords"
 						:is-mobile="state.isMobile"
 						@change:selected="(item as Card).isSelected = $event"
@@ -41,13 +42,14 @@
 				ref="masonryRef"
 				:items="virtualMasonryItem"
 				:gap="4"
-				:columns="state.columns"
+				:columns="!state.isMobile ? galleryState.column : undefined"
+				:breakpoints="state.isMobile ? state.breakpoints : undefined"
 				:allow-item-transition="galleryState.allowTransition"
 				:scroll-container="scrollBarRef?.viewportDOM"
 			>
 				<template #="{ item }">
 					<GalleryCard
-						v-model:data="(item.data as Card)"
+						v-model:data="item.data as Card"
 						:highlight-key="searchKeywords"
 						:is-mobile="state.isMobile"
 						@change:selected="(item.data as Card).isSelected = $event"
@@ -77,7 +79,7 @@ import {
 import BaseScrollbar from "@/components/base/base-scrollbar.vue";
 import type { ImgReadyInfo } from "@/components/base/base-img.vue";
 import GalleryCard from "@/components/utils/gallery-card.vue";
-import Card from "@/stores/CardStore/class/Card";
+import { Card } from "@/models/Card/Card";
 import BaseVirtualGrid from "@/components/base/base-virtual-grid/base-virtual-grid.vue";
 import BaseVirtualMasonry from "@/components/base/base-virtual-masonry/base-virtual-masonry.vue";
 import type { Item as VirtualMasonryItem } from "@/components/base/base-virtual-masonry/type";
@@ -91,6 +93,8 @@ import type { CarouselSlide } from "@fancyapps/ui";
 import { storeToRefs } from "pinia";
 import { useGlobalStore, useCardStore, useFavoriteStore } from "@/stores";
 import { useBaseContextMenu } from "@/components/base/base-context-menu";
+import { GM_openInTab } from "$";
+import type { Meta } from "@/models/Card/Meta";
 
 const globalStore = useGlobalStore();
 const { galleryState } = storeToRefs(globalStore);
@@ -102,8 +106,8 @@ const favoriteStore = useFavoriteStore();
 const {
 	refreshStore: refreshFavoriteStore,
 	isExist: isFavorite,
-	addCard: toFavoriteCard,
-	unFavoriteCard,
+	favorite: toFavoriteCard,
+	unfavorite: unFavoriteCard,
 } = favoriteStore;
 
 const props = withDefaults(
@@ -115,7 +119,7 @@ const props = withDefaults(
 	{
 		cardList: () => [],
 		layout: "grid",
-	}
+	},
 );
 
 // s 滚动条组件引用
@@ -126,7 +130,7 @@ const masonryRef = useTemplateRef("masonryRef");
 // s 组件状态数据
 const state = reactive({
 	// 列数
-	columns: 5,
+	// columns: 5,
 	// 是否使用自定义滚动条
 	useCustomScrollbar: true,
 	// 移动端标识符
@@ -254,12 +258,12 @@ function onMouseWheel(e: WheelEvent) {
 	if (e.ctrlKey) {
 		e.preventDefault();
 		if (e.deltaY < 0) {
-			if (state.columns - 1 > 0) {
-				state.columns--;
+			if (galleryState.value.column - 1 > 0) {
+				galleryState.value.column--;
 			}
 		} else {
-			if (state.columns + 1 < 15) {
-				state.columns++;
+			if (galleryState.value.column + 1 < 15) {
+				galleryState.value.column++;
 			}
 		}
 	}
@@ -270,15 +274,12 @@ type FancyboxType =
 	| "image"
 	| "iframe"
 	| "youtube"
-	| "html"
 	| "ajax"
 	| "html5video"
 	| "inline"
 	| false;
 
-function getFancyboxType(
-	metaType: false | "image" | "video" | "audio" | "zip" | "html" | "other"
-) {
+function getFancyboxType(metaType: Meta["type"]) {
 	let type: FancyboxType = "iframe";
 	if (!metaType) return type;
 	switch (metaType) {
@@ -288,14 +289,12 @@ function getFancyboxType(
 		case "video":
 			type = "html5video";
 			break;
-		case "html":
-			type = "iframe";
-			break;
 		case "audio":
 		case "zip":
-		case "other":
+		case "html":
+		case "unknown":
 		default:
-			type = "inline";
+			type = "iframe";
 	}
 
 	return type;
@@ -340,9 +339,54 @@ async function openFancybox(startId: string) {
 		Carousel: {
 			...configFancybox.Carousel,
 			Toolbar: {
-				...toolbar,
+				enabled: true,
+				display: {
+					left: ["open", "cardDownload"],
+					middle: ["counter"],
+					right: ["rotateCCW", "rotateCW", "toLocate", "thumbs", "close"],
+				},
 				items: {
 					...toolbar.items,
+					// f 打开按钮
+					open: {
+						tpl: /*html*/ `
+							<button class="f-button" title="{{NEW_TAB_OPENS}}">
+								<svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13">
+									</path>
+								</svg>
+							</button>
+						`,
+						// 点击事件定义
+						click: (instance) => {
+							const index = instance.getPageIndex();
+							const card = props.cardList[index];
+							const url = card.source.url;
+							if (!url) return;
+							GM_openInTab(url, {
+								active: true,
+								insert: true,
+								setParent: true,
+							});
+						},
+					},
+					// f 下载按钮
+					cardDownload: {
+						tpl: /*html*/ `
+							<button class="f-button" title="{{DOWNLOAD}}">
+								<svg tabindex="-1" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+									<path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2M7 11l5 5 5-5M12 4v12">
+									</path>
+								</svg>
+							</button>
+						`,
+						// 点击事件定义
+						click: async (instance) => {
+							const index = instance.getPageIndex();
+							const card = props.cardList[index];
+							await cardStore.downloadCards([card]);
+						},
+					},
 					// f 定位按钮
 					toLocate: {
 						tpl: /*html*/ `
@@ -358,15 +402,14 @@ async function openFancybox(startId: string) {
 							`,
 						click(instance, _e) {
 							const index = instance.getPageIndex();
-							const slides = instance.getSlides();
-							console.log("定位元素", slides[index]);
+							const card = props.cardList[index];
 							// 关闭 Fancybox
 							Fancybox.close();
 							// 定位元素
 							if (props.layout === "grid") {
-								gridRef.value?.scrollToItem(props.cardList[index].id);
+								gridRef.value?.scrollToItem(card.id);
 							} else {
-								masonryRef.value?.scrollToItem(props.cardList[index].id);
+								masonryRef.value?.scrollToItem(card.id);
 							}
 						},
 					},
@@ -427,10 +470,18 @@ async function onCardContextMenu(event: PointerEvent, id: string) {
 				globalStore.openWindow = false;
 				break;
 			case "openSource":
-				window.open(card.source.url, "_blank");
+				GM_openInTab(card.source.url, {
+					active: true,
+					insert: true,
+					setParent: true,
+				});
 				break;
 			case "openPreview":
-				window.open(card.preview.url, "_blank");
+				GM_openInTab(card.preview.url, {
+					active: true,
+					insert: true,
+					setParent: true,
+				});
 				break;
 			case "copySource":
 			case "copyCard":
@@ -438,7 +489,7 @@ async function onCardContextMenu(event: PointerEvent, id: string) {
 				copy(
 					result === "copySource"
 						? card.source.url
-						: JSON.stringify(card.getRowData())
+						: JSON.stringify(card, null, 2),
 				)
 					.then(() => {
 						ElNotification({
@@ -447,15 +498,15 @@ async function onCardContextMenu(event: PointerEvent, id: string) {
 							message:
 								result === "copySource"
 									? card.source.url
-									: `卡片数据：${card.description.title}`,
-							appendTo: ".web-img-collector__notification-container",
+									: `卡片数据：${card.description.content}`,
+							appendTo: ".resource-extractor__notification",
 						});
 					})
 					.catch(() => {
 						ElNotification({
 							type: "error",
 							title: "复制失败",
-							appendTo: ".web-img-collector__notification-container",
+							appendTo: ".resource-extractor__notification",
 						});
 					});
 				break;

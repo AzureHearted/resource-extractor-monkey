@@ -1,5 +1,9 @@
 <template>
-	<Scrollbar show-back-top-button back-to-top-behavior="smooth">
+	<Scrollbar
+		show-back-top-button
+		back-to-top-behavior="smooth"
+		overflow-x="hidden"
+	>
 		<div class="style-sheet-manager__container">
 			<!-- 获取当前页面样式表 -->
 			<n-card embedded class="style-sheet-manager__toolbar">
@@ -147,7 +151,7 @@ const filteredStyleSheetList = computed<StyleSheet[]>(() => {
 					isMatch &&
 					![...cssRules].some((r) => {
 						const selectorText = r.cssText;
-						return new RegExp(/\.(wic2-|var-)/g).test(selectorText);
+						return new RegExp(/\.(re-|var-)/g).test(selectorText);
 					});
 			}
 		} else {
@@ -175,10 +179,13 @@ const getStyleSheets = () => {
 		(sh as StyleSheet).dom = sh.ownerNode as HTMLElement;
 		(sh as StyleSheet).attributes = !sh.ownerNode
 			? {}
-			: [...(sh.ownerNode as HTMLElement).attributes].reduce((prev, curr) => {
-					prev[curr.name] = curr.value;
-					return prev;
-			  }, {} as Record<string, string>);
+			: [...(sh.ownerNode as HTMLElement).attributes].reduce(
+					(prev, curr) => {
+						prev[curr.name] = curr.value;
+						return prev;
+					},
+					{} as Record<string, string>,
+				);
 		return sh as StyleSheet;
 	});
 	styleSheetList.value = styleSheetsList;
@@ -220,7 +227,7 @@ const railStyle = ({
 	gap: 8px;
 	padding: 4px;
 }
-.style-sheet-manager__container > .style-sheet-manager__toolbar.wic2-n-card {
+.style-sheet-manager__container > .style-sheet-manager__toolbar.re-n-card {
 	box-sizing: border-box;
 	position: sticky;
 	top: 4px;
@@ -229,7 +236,7 @@ const railStyle = ({
 	max-width: 100%;
 	background: white;
 
-	:deep(.wic2-n-card__content) {
+	:deep(.re-n-card__content) {
 		padding: 4px;
 	}
 }

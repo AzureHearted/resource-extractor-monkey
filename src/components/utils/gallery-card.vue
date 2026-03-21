@@ -117,19 +117,7 @@
 		</template>
 		<!-- s 卡片主体(图片) -->
 		<template #default>
-			<div
-				ref="imgWrapRef"
-				style="height: 100%"
-				data-fancybox="web-img-collector"
-				:data-id="data.id"
-				:href="data.source.url"
-				:data-type="showType"
-				:data-preload="showType === 'iframe' ? false : true"
-				:data-thumb="data.preview.url"
-				:data-source-type="data.source.type"
-				:data-preview-type="data.preview.type"
-				:data-download-src="data.source.url"
-			>
+			<div ref="imgWrapRef" style="height: 100%" :data-id="data.id">
 				<template v-if="data.preview.meta.type === 'image'">
 					<!-- s 纯图片类型 -->
 					<BaseImg
@@ -211,7 +199,7 @@
 				<div v-if="false" class="extra-tag-list">
 					<BaseLineOverFlowList
 						:list="tags"
-						model-to=".web-img-collector__top-container"
+						model-to=".resource-extractor__modal-container"
 					>
 						<template #default="{ item, openShowMore }">
 							<var-chip
@@ -225,7 +213,7 @@
 						</template>
 						<template #modal-title>
 							<span
-								:title="data.description.title"
+								:title="data.description.content"
 								style="
 									font-size: 12px;
 									overflow: inherit;
@@ -233,7 +221,7 @@
 									text-overflow: inherit;
 								"
 							>
-								{{ data.description.title }}
+								{{ data.description.content }}
 							</span>
 						</template>
 						<template #modal-content>
@@ -272,18 +260,22 @@
 						class="base-tag-list__title-tag"
 						type="info"
 						size="small"
-						:title="data.description.title.trim()"
+						:title="data.description.content.trim()"
 					>
-						<span v-html="description"></span>
+						<!-- <span v-html="description"></span> -->
+						<BaseHighlightText
+							:text="data.description.content"
+							:keyword="highlightKey"
+						></BaseHighlightText>
 					</el-tag>
 					<!-- s 尺寸信息 -->
 					<el-tag
 						class="base-tag-list__scale-tag"
 						v-if="data.source.meta.type === 'image' && data.isLoaded"
 						size="small"
-						:title="`${data.source.meta.width}x${data.source.meta.height}`"
+						:title="`${validMeta.width}x${validMeta.height}`"
 					>
-						{{ data.source.meta.width }}x{{ data.source.meta.height }}
+						{{ validMeta.width }}x{{ validMeta.height }}
 					</el-tag>
 					<!-- s 扩展名信息 -->
 					<el-tag
@@ -334,7 +326,7 @@ import BaseImg from "@/components/base/base-img.vue";
 import BaseVideo from "@/components/base/base-video.vue";
 import BaseCheckbox from "@/components/base/base-checkbox.vue";
 import BaseLineOverFlowList from "@/components/base/base-line-overflow-list.vue";
-import Card from "@/stores/CardStore/class/Card";
+import { Card } from "@/models/Card/Card";
 import type { ImgReadyInfo } from "@/components/base/base-img.vue";
 import { GM_openInTab } from "$";
 import { ElMessageBox } from "@/plugin/element-plus";
@@ -345,6 +337,7 @@ import HtmlTypeImg from "@svg/html.svg";
 // 导入仓库
 import { useGlobalStore } from "@/stores";
 import { storeToRefs } from "pinia";
+import BaseHighlightText from "../base/base-highlight-text.vue";
 
 const globalStore = useGlobalStore();
 const { galleryState } = storeToRefs(globalStore);
@@ -352,7 +345,7 @@ const { galleryState } = storeToRefs(globalStore);
 // s 卡片数据
 const data = defineModel<Card>("data", { required: true });
 
-const props = withDefaults(
+withDefaults(
 	defineProps<{
 		viewport?: IntersectionObserverInit["root"];
 		/** 图片视口检测是否只检测一次  @default true */
@@ -382,7 +375,7 @@ const props = withDefaults(
 		showFavoriteButton: true,
 		showToLocateButton: true,
 		downloading: false,
-	}
+	},
 );
 
 // ? 定义emits
@@ -408,59 +401,27 @@ const size: ComputedRef<string> = computed(() => {
 	}
 });
 
+// j 有效meta
+const validMeta = computed(() => {
+	if (data.value.source.meta.valid) {
+		return data.value.source.meta;
+	} else {
+		return data.value.preview.meta;
+	}
+});
+
 interface Tag {
 	id: string;
 	label: string;
 }
 // j 标签
 const tags = computed<Tag[]>(() => {
-	return data.value.tags.map((t) => {
+	return data.value.tags.map((tag) => {
 		return {
 			id: crypto.randomUUID(),
-			label: t,
+			label: tag,
 		};
 	});
-});
-
-// j 描述标签
-const description = computed<string>(() => {
-	const row = data.value.description.title.trim();
-	const key = props.highlightKey?.trim();
-	let reg: RegExp | undefined;
-	if (key && row.includes(key)) {
-		reg = new RegExp(key, "gi");
-	}
-	if (reg) {
-		return row.replace(reg, function (k) {
-			return /*html*/ `
-					<span class="highlight-keywords" >${k}</span>
-				`;
-		});
-	} else {
-		return row;
-	}
-});
-
-// 定义Fancybox的默认类型
-type FancyboxType =
-	| "image"
-	| "iframe"
-	| "youtube"
-	| "html"
-	| "ajax"
-	| "html5video"
-	| false;
-// j 计算默认类型
-const showType: ComputedRef<FancyboxType> = computed(() => {
-	const { type: metaType } = data.value.source.meta;
-	let type: FancyboxType = "image";
-	if (!metaType) return type;
-	if (metaType === "html") {
-		type = "iframe";
-	} else if (metaType === "video") {
-		type = "html5video";
-	}
-	return type;
 });
 
 // f 页面定位元素
@@ -478,19 +439,19 @@ function toLocate(item: Card) {
 // f 重命名
 function rename(item: Card) {
 	// 删除卡片数据模型中的卡片。
-	ElMessageBox.prompt(`重命名卡片"${item.description.title}"为……`, "重命名", {
-		appendTo: ".web-img-collector__notification-container",
+	ElMessageBox.prompt(`重命名卡片"${item.description.content}"为……`, "重命名", {
+		appendTo: ".resource-extractor__notification",
 		confirmButtonText: "确认",
 		cancelButtonText: "取消",
 		inputPlaceholder: "请输入新卡片名称",
-		inputValue: legalizationPathString(item.description.title),
+		inputValue: legalizationPathString(item.description.content),
 		draggable: true,
 	})
 		.then(({ value: newName }) => {
 			// 确认
-			item.description.title = legalizationPathString(newName);
+			item.description.content = legalizationPathString(newName);
 			// 触发标题变化事件
-			emits("change:title", item.id!, item.description.title);
+			emits("change:title", item.id!, item.description.content);
 		})
 		.catch(() => {
 			// 取消
@@ -525,11 +486,11 @@ const handleTagsSave = (newTags: string[]) => {
 	}
 }
 
-:deep(.wic2-button) {
+:deep(.re-button) {
 	padding: 2px 4px;
 	border: unset;
 	box-shadow: var(--el-box-shadow);
-	.wic2-icon {
+	.re-icon {
 		font-size: 16px;
 	}
 }
@@ -558,7 +519,10 @@ const handleTagsSave = (newTags: string[]) => {
 	opacity: 0;
 	visibility: hidden;
 	transform: scale(0.8); /* 可加轻微缩放效果 */
-	transition: transform 0.5s ease, opacity 0.5s ease, visibility 0s ease 0.5s;
+	transition:
+		transform 0.5s ease,
+		opacity 0.5s ease,
+		visibility 0s ease 0.5s;
 }
 
 // 卡片悬浮时才显示按钮组
@@ -566,7 +530,10 @@ const handleTagsSave = (newTags: string[]) => {
 	opacity: 1;
 	visibility: visible;
 	transform: scale(1); /* hover 放大到原始大小 */
-	transition: transform 0.3s ease, opacity 0.3s ease, visibility 0s ease;
+	transition:
+		transform 0.3s ease,
+		opacity 0.3s ease,
+		visibility 0s ease;
 }
 
 .card-checkbox {
@@ -593,7 +560,10 @@ const handleTagsSave = (newTags: string[]) => {
 	/* opacity: 0; */
 	/* visibility: hidden; */
 	/* transform: scale(0.8);  */
-	transition: transform 0.3s, opacity 0.3s ease, visibility 0.3s ease;
+	transition:
+		transform 0.3s,
+		opacity 0.3s ease,
+		visibility 0.3s ease;
 
 	pointer-events: none;
 	* {
@@ -601,13 +571,13 @@ const handleTagsSave = (newTags: string[]) => {
 	}
 
 	// s 标签样式
-	:deep(span.wic2-tag) {
+	:deep(span.re-tag) {
 		box-sizing: border-box;
 		line-height: 20px;
 		padding: 0 4px;
 		border: unset;
 
-		.wic2-tag__content {
+		.re-tag__content {
 			overflow: hidden;
 			text-overflow: ellipsis;
 			white-space: nowrap;

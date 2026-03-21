@@ -88,7 +88,7 @@
 												editingPattern.mainInfo.matchHost.splice(
 													index + 1,
 													0,
-													''
+													'',
 												)
 											"
 										>
@@ -249,7 +249,7 @@
 						<el-switch
 							v-model="editingRule.enable"
 							:disabled="disabled"
-							style="--wic2-switch-off-color: #ff9f00"
+							style="--re-switch-off-color: #ff9f00"
 							inline-prompt
 							active-text="启用"
 							inactive-text="禁用"
@@ -277,40 +277,6 @@
 					</div>
 				</div>
 			</template>
-			<!-- 路径正则过滤器 -->
-			<!-- <el-form-item label="过滤器">
-				<el-input
-					v-model="editingRule.filter"
-					placeholder="输入正则表达式">
-					<template #prefix> / </template>
-					<template #suffix> / </template>
-					<template #append>
-						<el-select
-							style="width: 120px"
-							multiple
-							collapse-tags
-							collapse-tags-tooltip
-							clearable
-							v-model="editingPattern.mainInfo.filter.flags"
-							placeholder="修饰符">
-							<el-tooltip
-								:show-after="500"
-								effect="dark"
-								content="ignore - 不区分大小写"
-								placement="top">
-								<el-option :value="'i'" label="i" />
-							</el-tooltip>
-							<el-tooltip
-								:show-after="500"
-								effect="dark"
-								content="特殊字符圆点 . 中包含换行符 \n"
-								placement="top">
-								<el-option :value="'s'" label="s" />
-							</el-tooltip>
-						</el-select>
-					</template>
-				</el-input>
-			</el-form-item> -->
 			<!-- 表单Tabs -->
 			<FormTabs />
 		</el-card>
@@ -323,8 +289,8 @@ import { useClipboard } from "@vueuse/core";
 import FormTabs from "./pattern-edit-form-tabs.vue";
 import BaseImg from "@/components/base/base-img.vue";
 import { ElNotification } from "@/plugin/element-plus";
-import { Pattern } from "@/stores/PatternStore/class/Pattern";
-import { Rule } from "@/stores/PatternStore/class/Rule";
+import { Pattern } from "@/models/Pattern/Pattern";
+import { Rule } from "@/models/Rule/Rule";
 
 import { storeToRefs } from "pinia";
 import usePatternStore from "@/stores/PatternStore";
@@ -341,7 +307,6 @@ const disabled = computed(() => {
 
 // f 保存结果
 function save() {
-	// console.log(editingPattern.value?.getJson());
 	editingPattern.value?.backupData(); //先进行备份
 	saveUserPatternInfo(); // 备份后进行数据存储
 }
@@ -353,7 +318,7 @@ function reset() {
 // f 拷贝方案(或规则)至剪贴板
 function copyToClipboard(obj: Pattern | Rule) {
 	const { copy } = useClipboard();
-	const rowData = JSON.stringify(obj.getRowData({ includeId: false }), null, 2);
+	const rowData = JSON.stringify(obj.toRaw({ includeId: false }), null, 2);
 	copy(rowData)
 		.then(() => {
 			ElNotification({
@@ -363,7 +328,7 @@ function copyToClipboard(obj: Pattern | Rule) {
 					obj instanceof Pattern
 						? `方案“${obj.mainInfo.name}”拷贝成功！`
 						: `规则“${obj.name}”拷贝成功！`,
-				appendTo: ".web-img-collector__notification-container",
+				appendTo: ".resource-extractor__notification",
 			});
 		})
 		.catch(() => {
@@ -374,20 +339,20 @@ function copyToClipboard(obj: Pattern | Rule) {
 					obj instanceof Pattern
 						? `方案“${obj.mainInfo.name}”拷贝失败`
 						: `规则“${obj.name}”拷贝失败`,
-				appendTo: ".web-img-collector__notification-container",
+				appendTo: ".resource-extractor__notification",
 			});
 		});
 }
 
 // f 保存方案(或规则)至本地文件
 function saveToFile(obj: Pattern | Rule) {
-	const rowData = JSON.stringify(obj.getRowData({ includeId: true }), null, 2);
+	const rowData = JSON.stringify(obj.toRaw({ includeId: true }), null, 2);
 	// 将文本转为blob
 	const blob = new Blob([rowData], { type: "text/plain;charset=utf-8" });
 	if (obj instanceof Pattern) {
-		saveAs(blob, `WebImgCollector2 方案-${obj.mainInfo.name}.txt`);
+		saveAs(blob, `Resource Extractor Monkey 方案-${obj.mainInfo.name}.txt`);
 	} else {
-		saveAs(blob, `WebImgCollector2 规则-${obj.name}.txt`);
+		saveAs(blob, `Resource Extractor Monkey 规则-${obj.name}.txt`);
 	}
 }
 
@@ -415,7 +380,7 @@ function pasteRule() {
 					type: "error",
 					title: "失败",
 					message: "剪贴板内容解析失败",
-					appendTo: ".web-img-collector__notification-container",
+					appendTo: ".resource-extractor__notification",
 				});
 				return;
 			}
@@ -432,7 +397,7 @@ function pasteRule() {
 						type: "error",
 						title: "失败",
 						message: "请在方案中进行此操作",
-						appendTo: ".web-img-collector__notification-container",
+						appendTo: ".resource-extractor__notification",
 					});
 					return;
 				}
@@ -443,7 +408,7 @@ function pasteRule() {
 					type: "success",
 					title: "成功",
 					message: "成功解析为规则",
-					appendTo: ".web-img-collector__notification-container",
+					appendTo: ".resource-extractor__notification",
 				});
 			} catch (e) {
 				// 如果解析失败则提示错误
@@ -451,7 +416,7 @@ function pasteRule() {
 					type: "error",
 					title: "失败",
 					message: "剪贴板内容不符合规则的数据格式",
-					appendTo: ".web-img-collector__notification-container",
+					appendTo: ".resource-extractor__notification",
 				});
 			}
 		})
@@ -460,7 +425,7 @@ function pasteRule() {
 				type: "error",
 				title: "失败",
 				message: "剪贴板内容读取失败",
-				appendTo: ".web-img-collector__notification-container",
+				appendTo: ".resource-extractor__notification",
 			});
 		});
 }
@@ -476,17 +441,17 @@ function pasteRule() {
 	}
 }
 
-:deep(.wic2-card) {
+:deep(.re-card) {
 	overflow: visible;
 	background: rgba(255, 255, 255, 0.3);
 	backdrop-filter: blur(10px);
 }
-:deep(.wic2-card__header),
-:deep(.wic2-card__footer) {
+:deep(.re-card__header),
+:deep(.re-card__footer) {
 	display: flex;
 	padding: 8px 20px;
 }
-:deep(.wic2-card__body) {
+:deep(.re-card__body) {
 	padding-bottom: 0;
 }
 .form-card-header {
@@ -499,7 +464,7 @@ function pasteRule() {
 		display: flex;
 		align-items: center;
 		gap: 8px;
-		:deep(.wic2-input) {
+		:deep(.re-input) {
 			width: 180px;
 		}
 		:deep(span) {
@@ -512,11 +477,10 @@ function pasteRule() {
 	}
 }
 
-.pattern-form__container :deep(.wic2-form-item__label) {
+.pattern-form__container :deep(.re-form-item__label) {
 	color: black;
 }
-.pattern-form__container
-	:deep(.wic2-input-group__append .wic2-select__wrapper) {
+.pattern-form__container :deep(.re-input-group__append .re-select__wrapper) {
 	box-shadow: unset;
 }
 </style>

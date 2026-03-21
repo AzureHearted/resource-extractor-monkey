@@ -1,12 +1,12 @@
 import { defineStore } from "pinia";
-import { ref, reactive, computed, watch, nextTick } from "vue";
+import { ref, reactive, computed, watch } from "vue";
+import type { Ref } from "vue";
 import { ElNotification, ElMessageBox } from "@/plugin/element-plus";
-import type { BaseMeta } from "@/stores/CardStore/interface";
-import type { ExcludeType } from "@/types/tools";
 
 // 导入类
-import Card from "./class/Card";
-import { TaskQueue } from "@/utils/taskQueue"; // 任务队列
+import { Card } from "@/models/Card/Card";
+import { Meta } from "@/models/Card/Meta";
+
 // 导入工具
 import getCard from "./utils/get-cards";
 import {
@@ -24,8 +24,10 @@ import JSZip from "jszip";
 import { saveAs } from "file-saver"; //* 用于原生浏览器"保存"来实现文件保存
 
 // 导入其他仓库
-import useLoadingStore from "@/stores/LoadingStore";
-import usePatternStore from "@/stores/PatternStore";
+import { useLoadingStore, usePatternStore } from "@/stores";
+import { useParallelTask } from "@/hooks/useParallelTask";
+import { useDebounceFn } from "@vueuse/core";
+import { cloneDeep } from "lodash";
 
 export default defineStore("CardStore", () => {
 	const loadingStore = useLoadingStore();
@@ -49,114 +51,61 @@ export default defineStore("CardStore", () => {
 		urlBlobMap: new Map<string, Blob>(),
 	});
 
-	//* 设置初始类型
-	data.typeMap.set("image", 0);
-	data.typeMap.set("html", 0);
-
-	// j 仓库尺寸范围
-	const sizeRange = computed<{
+	interface ISizeRange {
 		width: [number, number];
 		height: [number, number];
 		max: number;
 		min: number;
-	}>(() => {
-		return data.cardList.reduce(
-			(prev, curr) => {
-				const { width, height } = curr.source.meta;
-				if (prev.width[0] > width) prev.width[0] = width;
-				if (prev.height[0] > height) prev.height[0] = height;
-				if (prev.width[1] < width) prev.width[1] = width;
-				if (prev.height[1] < height) prev.height[1] = height;
-				prev.min = Math.min(prev.min, prev.width[0], prev.height[0]);
-				prev.max = Math.max(prev.max, prev.width[1], prev.height[1]);
-				return prev;
-			},
-			{
-				width: [0, 2000],
-				height: [0, 2000],
-				min: 0,
-				max: 2000,
-			}
-		);
+	}
+
+	// s 初始尺寸范围
+	const initSizeRange: ISizeRange = {
+		width: [200, 1024],
+		height: [200, 1024],
+		min: 0,
+		max: 1024,
+	};
+
+	// j 仓库尺寸范围
+	const sizeRange = computed<ISizeRange>(() => {
+		return data.cardList.reduce((prev, curr) => {
+			const { width, height } = curr.source.meta;
+			if (prev.width[0] > width) prev.width[0] = width;
+			if (prev.height[0] > height) prev.height[0] = height;
+			if (prev.width[1] < width) prev.width[1] = width;
+			if (prev.height[1] < height) prev.height[1] = height;
+			prev.min = Math.min(prev.min, prev.width[0], prev.height[0]);
+			prev.max = Math.max(prev.max, prev.width[1], prev.height[1]);
+			return prev;
+		}, cloneDeep(initSizeRange));
 	});
 
 	// w 监听仓库尺寸范围变化
 	watch(
-		[() => sizeRange.value.width[1], () => sizeRange.value.height[1]],
+		() => [sizeRange.value.width[1], sizeRange.value.height[1]],
 		([maxW, maxH]) => {
-			// console.log("仓库最大尺寸变化");
-			filters.size.width[1] = maxW; // 更新过滤器最大宽度。
-			filters.size.height[1] = maxH; // 更新过滤器最大宽度。
-		}
+			filters.size.width[1] = maxW;
+			filters.size.height[1] = maxH;
+		},
 	);
 
 	// t 卡片类型(类型)
-	type CardType = ExcludeType<"all" | BaseMeta["type"], false>;
+	type CardType = "all" | Meta["type"];
+
 	// s 当前类型
 	const nowType = ref<CardType>("image");
+
 	// s 过滤器
 	const filters = reactive({
 		keyword: "",
+		type: [] as string[], //类型过滤器
+		extension: [] as string[], //扩展名过滤器
 		size: {
 			width: [250, sizeRange.value.width[1]] as [number, number], //宽度过滤器
 			height: [250, sizeRange.value.height[1]] as [number, number], //高度过滤器
-			marks: computed(() => {
-				const markStyle = reactive({
-					"font-size": "10px !important",
-					"margin-top": "0 !important",
-					bottom: "5px",
-				});
-				const tempMarks = {
-					360: {
-						label: "360",
-						style: markStyle,
-					},
-					720: {
-						label: "720",
-						style: {
-							...markStyle,
-							display: sizeRange.value.max / 720 < 3 ? "" : "none",
-						},
-					},
-					1080: {
-						label: "1080",
-						style: {
-							...markStyle,
-							display: sizeRange.value.max / 1080 < 3 ? "" : "none",
-						},
-					},
-					1920: {
-						label: "1920",
-						style: {
-							...markStyle,
-							display: sizeRange.value.max / 1920 < 3 ? "" : "none",
-						},
-					},
-					2560: {
-						label: "2560",
-						style: {
-							...markStyle,
-							display: sizeRange.value.max / 2560 < 3 ? "" : "none",
-						},
-					},
-					3840: {
-						label: "3840",
-						style: markStyle,
-					},
-					[`${sizeRange.value.max}`]: {
-						label: `${sizeRange.value.max}`,
-						style: {
-							...markStyle,
-							display: sizeRange.value.max > 1.8 * 3840 ? "" : "none",
-						},
-					},
-				};
-				return tempMarks;
-			}),
 		},
-		type: [] as string[], //类型过滤器
-		extension: [] as string[], //扩展名过滤器
 	});
+
 	// s 排序相关
 	const sortOptions = [
 		{ value: "#", label: "默认排序", group: "#" },
@@ -173,36 +122,71 @@ export default defineStore("CardStore", () => {
 		key: string;
 		children: ((typeof sortOptions)[number] & { key: string })[];
 	};
+
 	// s 排序对象
-	const sort = reactive({
+	const sortInfo = reactive({
 		method: "#" as (typeof sortOptions)[number]["value"],
 		options: sortOptions,
 		// (访问器)获取分组数组
 		get groups(): sortGroup[] {
 			return Object.values(
-				this.options.reduce((prev, curr) => {
-					if (!prev[curr.group]) {
-						prev[curr.group] = {
-							type: "group",
-							key: curr.group,
-							label: curr.group,
-							children: [],
-						};
-					}
-					prev[curr.group].children.push({
-						...curr,
-						key: curr.value,
-					});
-					return prev;
-				}, <{ [key: string]: sortGroup }>{})
+				this.options.reduce(
+					(prev, curr) => {
+						if (!prev[curr.group]) {
+							prev[curr.group] = {
+								type: "group",
+								key: curr.group,
+								label: curr.group,
+								children: [],
+							};
+						}
+						prev[curr.group].children.push({
+							...curr,
+							key: curr.value,
+						});
+						return prev;
+					},
+					<{ [key: string]: sortGroup }>{},
+				),
 			);
 		},
 	});
 
-	// j 过滤后的卡片
-	const filterCardList = computed<{
+	// t 卡片分组类型
+	type CardGroup = {
 		[key in CardType]: Card[];
-	}>(() => {
+	};
+
+	// s 过滤器后的卡片列表
+	const filterCardList = ref<CardGroup>({
+		all: [],
+		image: [],
+		video: [],
+		zip: [],
+		audio: [],
+		html: [],
+		unknown: [],
+	});
+
+	watch(
+		() => [
+			filters.keyword,
+			filters.size.width,
+			filters.size.height,
+			filters.extension,
+			sortInfo.method,
+			data.cardList,
+		],
+		() => {
+			debounceUpdateFilterResult();
+		},
+		{ deep: true },
+	);
+
+	const debounceUpdateFilterResult = useDebounceFn(updateFilterResult, 300);
+
+	// f 更新过滤结果
+	function updateFilterResult() {
 		const keywords = filters.keyword.trim().toLocaleLowerCase();
 
 		const image = [] as Card[],
@@ -210,19 +194,19 @@ export default defineStore("CardStore", () => {
 			audio = [] as Card[],
 			html = [] as Card[],
 			zip = [] as Card[],
-			other = [] as Card[];
+			unknown = [] as Card[];
 		let all = [...data.cardList];
 
 		// s 先排序
-		switch (sort.method) {
+		switch (sortInfo.method) {
 			case "name-asc":
 				all.sort((a, b) =>
-					naturalCompare(a.description.title, b.description.title)
+					naturalCompare(a.description.content, b.description.content),
 				);
 				break;
 			case "name-desc":
 				all.sort((a, b) =>
-					naturalCompare(b.description.title, a.description.title)
+					naturalCompare(b.description.content, a.description.content),
 				);
 				break;
 			case "width-asc":
@@ -242,13 +226,14 @@ export default defineStore("CardStore", () => {
 		// s 再过滤
 		all = all.filter((card) => {
 			const { id, isLoaded, tags } = card;
-			const { title } = card.description;
+			const { content: title } = card.description;
 			const {
 				type: sType,
 				width: sWidth,
 				height: sHeight,
 				ext: sExt,
 			} = card.source.meta;
+			const { type: pType, width: pWidth, height: pHeight } = card.preview.meta;
 			//* 暂时取消最大尺寸限制的过滤
 			// s 是否未被排除
 			const isNotExclude = !data.excludeIdSet.has(id);
@@ -258,17 +243,29 @@ export default defineStore("CardStore", () => {
 					? filters.extension.includes(String(sExt))
 					: true;
 			// s 判断是否是图片或者视频，如果是并且已经加载则判断是否符合尺寸过滤器
-			const isSizeMatch =
+			const isSourceSizeMatch =
 				(sType === "image" || sType === "video") && isLoaded
-					? sWidth! >= filters.size.width[0] &&
-					  sHeight! >= filters.size.height[0]
+					? sWidth >= filters.size.width[0] &&
+						// sWidth <= filters.size.width[1] &&
+						// sHeight <= filters.size.height[1] &&
+						sHeight >= filters.size.height[0]
+					: true;
+			const isPreviewSizeMatch =
+				(pType === "image" || pType === "video") && isLoaded
+					? pWidth >= filters.size.width[0] &&
+						// pWidth <= filters.size.width[1] &&
+						// pHeight <= filters.size.height[1] &&
+						pHeight >= filters.size.height[0]
 					: true;
 			const isMatchKeyWords =
 				isKeywordsMatch(title, keywords) || isKeywordsMatch(tags, keywords);
 
 			// s 判断是否所有条件都匹配
 			const isMatch =
-				isNotExclude && isExtensionMatch && isSizeMatch && isMatchKeyWords;
+				isNotExclude &&
+				isExtensionMatch &&
+				(isSourceSizeMatch || isPreviewSizeMatch) &&
+				isMatchKeyWords;
 			if (!isMatch) card.isSelected = false; // 如果不匹配的需要将选中状态设置为false
 			if (isMatch) {
 				switch (sType) {
@@ -288,15 +285,23 @@ export default defineStore("CardStore", () => {
 						zip.push(card);
 						break;
 					default:
-						other.push(card);
+						unknown.push(card);
 						break;
 				}
 			}
 			return isMatch;
 		});
 
-		return { all, image, video, zip, audio, html, other };
-	});
+		filterCardList.value = {
+			all,
+			image,
+			video,
+			zip,
+			audio,
+			html,
+			unknown,
+		};
+	}
 
 	// f 匹配判断函数
 	function isKeywordsMatch(str: string | string[], keywords: string) {
@@ -310,9 +315,7 @@ export default defineStore("CardStore", () => {
 	}
 
 	// j 选中的卡片
-	const selectionCardList = computed<{
-		[key in CardType]: Card[];
-	}>(() => {
+	const selectionCardList = computed<CardGroup>(() => {
 		return {
 			all: filterCardList.value.all.filter((x) => x.isSelected),
 			image: filterCardList.value.image.filter((x) => x.isSelected),
@@ -320,7 +323,7 @@ export default defineStore("CardStore", () => {
 			audio: filterCardList.value.audio.filter((x) => x.isSelected),
 			zip: filterCardList.value.zip.filter((x) => x.isSelected),
 			html: filterCardList.value.html.filter((x) => x.isSelected),
-			other: filterCardList.value.other.filter((x) => x.isSelected),
+			unknown: filterCardList.value.unknown.filter((x) => x.isSelected),
 		};
 	});
 
@@ -365,16 +368,7 @@ export default defineStore("CardStore", () => {
 	});
 
 	// f 获取页面资源
-	async function getPageCard(
-		options: {
-			onGet: (stop: () => void) => void;
-		} = {
-			onGet: () => {},
-		}
-	) {
-		const { onGet } = options;
-		let stopFlag = false;
-
+	async function getPageCard(options: { stopFlag?: Ref<boolean> }) {
 		const patternId = patternStore.used.id;
 		const patternNow =
 			patternStore.findPattern(patternId) || patternStore.list[0];
@@ -385,26 +379,29 @@ export default defineStore("CardStore", () => {
 				title: "提示",
 				type: "warning",
 				message: "该方案没有包含任何规则！(请为方案添加规则后再进行此操作)",
-				appendTo: ".web-img-collector__notification-container",
+				appendTo: ".resource-extractor__notification",
 			});
 			return;
 		}
 
 		// 记录新卡片数据
-		const newCardList: Card[] = [];
+		let newCardList: Card[] = [];
+		let totalNewCardCount = 0;
 
 		loadingStore.start();
 
 		// s 依次执行每个规则
 		for (let i = 0; i < patternNow.rules.length; i++) {
-			if (stopFlag) break;
+			if (options.stopFlag?.value) break;
 			const rule = patternNow.rules[i];
-			if (!rule.enable) continue; //为启用的规则就跳过
+			// 跳过未启用的规则
+			if (!rule.enable) continue;
 			await getCard(
 				// 规则配置
 				rule,
 				// 选项配置
 				{
+					excludeParentSelectors: [".resource-extractor"],
 					// * 当获取到所有基准dom时的回调
 					onAllDOMGet: async (doms) => {
 						// console.log("匹配到的DOM", doms);
@@ -413,25 +410,24 @@ export default defineStore("CardStore", () => {
 					},
 					// * 当获得卡片时的回调
 					onCardGet: async (card, index, dom, addCard, stop) => {
-						if (stopFlag) {
-							stop();
-							return;
-						}
 						// 更新进度条
 						loadingStore.update(index + 1);
 						const sourceMeta = card.source.meta;
 						const previewMeta = card.preview.meta;
-						// console.log(sourceMeta, previewMeta);
 
-						// ? 判断该卡片中的链接是否已经存在于集合中，如果存在则不添加到卡片列表中。
 						if (
-							(!previewMeta.valid &&
-								!sourceMeta.valid &&
-								(sourceMeta.type === "image" || sourceMeta.type === "video")) ||
+							card.source.url.trim() === "" ||
 							(data.urlSet.has(card.source.url) &&
 								data.urlSet.has(card.preview.url))
 						)
 							return;
+
+						switch (sourceMeta.type) {
+							case "image":
+							case "video":
+								if (!previewMeta.valid && !sourceMeta.valid) return;
+								break;
+						}
 
 						if (dom) {
 							// 记录dom用于排序
@@ -449,7 +445,7 @@ export default defineStore("CardStore", () => {
 								// 如果已经存在了就++
 								data.typeMap.set(
 									sourceMeta.type,
-									data.typeMap.get(sourceMeta.type)! + 1
+									data.typeMap.get(sourceMeta.type)! + 1,
 								);
 							} else {
 								data.typeMap.set(sourceMeta.type, 1);
@@ -462,7 +458,7 @@ export default defineStore("CardStore", () => {
 								// 如果已经存在了就++
 								data.extensionMap.set(
 									sourceMeta.ext,
-									data.extensionMap.get(sourceMeta.ext)! + 1
+									data.extensionMap.get(sourceMeta.ext)! + 1,
 								);
 							} else {
 								data.extensionMap.set(sourceMeta.ext, 1);
@@ -475,41 +471,42 @@ export default defineStore("CardStore", () => {
 						}
 
 						// 记录卡片
-						newCardList.push(card);
+						newCardList[index] = card;
+						totalNewCardCount++;
 
-						await addCard(); //执行回调函数
-						// ? 判断是否终止后续操作
-						onGet(() => {
+						await addCard(); // 执行回调函数
+
+						if (options.stopFlag?.value) {
 							stop();
-							stopFlag = true;
-						});
+							return;
+						}
 					},
-					// * 匹配结束后的回调
-					onFinished() {},
-				}
+					// * 当前规则匹配结束后的回调
+					onFinished() {
+						const validNewCardList = newCardList.filter((x) => x != null);
+						data.cardList.push(...validNewCardList);
+						newCardList = [];
+					},
+				},
 			);
 		}
 
-		data.cardList.push(...newCardList);
-
-		nextTick(() => {
-			if (!newCardList.length) {
-				ElNotification({
-					title: "提示",
-					type: "info",
-					message: "该方案未匹配到任何有效结果",
-					appendTo: ".web-img-collector__notification-container",
-				});
-			}
-		});
+		if (!totalNewCardCount) {
+			ElNotification({
+				title: "提示",
+				type: "info",
+				message: "该方案未匹配到任何有效结果",
+				appendTo: ".resource-extractor__notification",
+			});
+		}
 
 		loadingStore.end();
 	}
 
 	// f 重置过滤器
 	function resetFilters() {
-		filters.size.width = [250, sizeRange.value.width[1]];
-		filters.size.height = [250, sizeRange.value.height[1]];
+		filters.size.width = [initSizeRange.width[0], initSizeRange.width[1]];
+		filters.size.height = [initSizeRange.height[0], initSizeRange.height[1]];
 		filters.extension = [];
 		filters.type = [];
 	}
@@ -534,8 +531,8 @@ export default defineStore("CardStore", () => {
 	}
 
 	// f 查询卡片
-	function findCard(id: string): Card | undefined {
-		return data.cardList.find((c) => c.id === id);
+	function findCard(id: string): Card | null {
+		return data.cardList.find((c) => c.id === id) ?? null;
 	}
 
 	// f 查询多张卡片
@@ -559,7 +556,7 @@ export default defineStore("CardStore", () => {
 					card.source.blob = blob;
 				}
 			}
-			let initName = card.description.title.trim();
+			let initName = card.description.content.trim();
 			if (!initName) {
 				initName = getNameByUrl(card.source.url);
 			}
@@ -567,7 +564,7 @@ export default defineStore("CardStore", () => {
 			// console.log(name);
 			// 下载完成后让用户进行文件名确认
 			ElMessageBox.prompt("文件已准备完成,请确认文件名", "提示", {
-				appendTo: ".web-img-collector__notification-container",
+				appendTo: ".resource-extractor__notification",
 				confirmButtonText: "确认",
 				cancelButtonText: "取消",
 				inputPlaceholder: "请输入要保存的文件名称",
@@ -597,92 +594,18 @@ export default defineStore("CardStore", () => {
 				title: "提示",
 				message: "开始下载……",
 				type: "info",
-				appendTo: ".web-img-collector__notification-container",
+				appendTo: ".resource-extractor__notification",
 			});
 
 			// 大于1的时候进行打包
 			// 创建zip容器
 			const zipContainer = new JSZip();
-			// 创建任务队列实例
-			const taskQueue = new TaskQueue({
-				interval: 10,
-				maxConcurrent: 1,
-				// 每个任务处理完成时的回调
-				onTaskComplete(_, completed) {
-					loadingStore.update(completed);
-				},
-				// 所有任务处理完成时的回调
-				async onAllTasksComplete() {
-					ElNotification({
-						title: "提示",
-						message: "下载完成！正在打包……",
-						type: "info",
-						appendTo: ".web-img-collector__notification-container",
-					});
 
-					loadingStore.update(0, zipContainer.length);
-					// s 生成压缩包
-					const zip: Blob = await zipContainer.generateAsync(
-						{
-							type: "blob",
-							compression: "DEFLATE",
-						},
-						// 压缩的进度回调
-						(metadata) => {
-							loadingStore.updatePercent(metadata.percent * 0.01);
-						}
-					);
+			// 计算补零数
+			const paddingZeroCount = String(cards.length).length;
 
-					// 下载压缩包
-					// 获取标题
-					let initZipName: string;
-					const titles = [
-						document.title,
-						...[...document.querySelectorAll("h1")].map((dom) => dom.innerText),
-						...[...document.querySelectorAll("title")].map(
-							(dom) => dom.innerText
-						),
-					]
-						.filter((title) => !!title && !!title.trim().length)
-						.map((title) => title.replace("\\", "-").replace(",", "_"));
-					if (titles.length) {
-						initZipName = titles[0]; // 如果标题获取成功就使用首个标题
-					} else {
-						initZipName = getNameByUrl(safeDecodeURI(location.href)); // 如果标题获取失败就直接使用href提取标题
-					}
-
-					// s 下载完成后让用户进行文件名确认
-					ElMessageBox.prompt("压缩包已准备完成,请确认文件名", "提示", {
-						appendTo: ".web-img-collector__notification-container",
-						confirmButtonText: "确认",
-						cancelButtonText: "取消",
-						inputPlaceholder: "请输入要保存的压缩包名称",
-						inputValue: legalizationPathString(initZipName),
-						closeOnClickModal: false,
-						draggable: true,
-					})
-						.then(({ value: zipName }) => {
-							zipName = legalizationPathString(zipName);
-							console.log("保存压缩包名称:", zipName);
-							saveAs(zip, `${zipName}.zip`);
-
-							ElNotification({
-								title: "成功",
-								message: "开始下载压缩包……",
-								type: "success",
-								appendTo: ".web-img-collector__notification-container",
-							});
-						})
-						.catch(() => {
-							// console.log("取消操作");
-						});
-
-					loadingStore.end(); // 结束进度条
-					// console.groupEnd();
-				},
-			});
-			// 添加任务
-			taskQueue.addTask(
+			// 使用并行任务队列
+			let { run } = useParallelTask(
 				cards.map((card, i) => {
 					return {
 						handle: () =>
@@ -703,7 +626,7 @@ export default defineStore("CardStore", () => {
 										card.source.meta.type = getBlobType(card.source.blob);
 										card.source.meta.ext = getExtByBlob(card.source.blob);
 									}
-									let name = card.description.title.trim();
+									let name = card.description.content.trim();
 									if (!name) {
 										name = getNameByUrl(card.source.url);
 									}
@@ -711,22 +634,106 @@ export default defineStore("CardStore", () => {
 										name = name + `.${card.source.meta.ext}`;
 									}
 									// 将blob存入zip容器
-									zipContainer.file(`${i} - ${name}`, card.source.blob);
+									zipContainer.file(
+										`${String(i).padStart(paddingZeroCount, "0")} - ${name}`,
+										card.source.blob,
+									);
 									resolve(zipContainer);
 								})();
 							}),
 					};
-				})
+				}),
+				{
+					// 并行任务数
+					parallelCount: 4,
+					// 每个任务处理完成时的回调
+					onTaskComplete(_index, _result, completed) {
+						loadingStore.update(completed);
+					},
+					// 所有任务处理完成时的回调
+					async onAllTasksComplete() {
+						ElNotification({
+							title: "提示",
+							message: "下载完成！正在打包……",
+							type: "info",
+							appendTo: ".resource-extractor__notification",
+						});
+
+						loadingStore.update(0, zipContainer.length);
+						// s 生成压缩包
+						const zip: Blob = await zipContainer.generateAsync(
+							{
+								type: "blob",
+								compression: "DEFLATE",
+							},
+							// 压缩的进度回调
+							(metadata) => {
+								loadingStore.updatePercent(metadata.percent * 0.01);
+							},
+						);
+
+						// 下载压缩包
+						// 获取标题
+						let initZipName: string;
+						const titles = [
+							document.title,
+							...[...document.querySelectorAll("h1")].map(
+								(dom) => dom.innerText,
+							),
+							...[...document.querySelectorAll("title")].map(
+								(dom) => dom.innerText,
+							),
+						]
+							.filter((title) => !!title && !!title.trim().length)
+							.map((title) => title.replace("\\", "-").replace(",", "_"));
+						if (titles.length) {
+							initZipName = titles[0]; // 如果标题获取成功就使用首个标题
+						} else {
+							initZipName = getNameByUrl(safeDecodeURI(location.href)); // 如果标题获取失败就直接使用href提取标题
+						}
+
+						// s 下载完成后让用户进行文件名确认
+						ElMessageBox.prompt("压缩包已准备完成,请确认文件名", "提示", {
+							appendTo: ".resource-extractor__notification",
+							confirmButtonText: "确认",
+							cancelButtonText: "取消",
+							inputPlaceholder: "请输入要保存的压缩包名称",
+							inputValue: legalizationPathString(initZipName),
+							closeOnClickModal: false,
+							draggable: true,
+						})
+							.then(({ value: zipName }) => {
+								zipName = legalizationPathString(zipName);
+								console.log("保存压缩包名称:", zipName);
+								saveAs(zip, `${zipName}.zip`);
+
+								ElNotification({
+									title: "成功",
+									message: "开始下载压缩包……",
+									type: "success",
+									appendTo: ".resource-extractor__notification",
+								});
+							})
+							.catch(() => {
+								// console.log("取消操作");
+							});
+
+						loadingStore.end(); // 结束进度条
+						// console.groupEnd();
+					},
+				},
 			);
+
 			// 运行队列
-			taskQueue.run();
+			await run();
 		}
 	}
 
 	return {
 		data,
+		initSizeRange,
 		sizeRange,
-		sort,
+		sort: sortInfo,
 		filters,
 		nowType,
 		selectionCardList,

@@ -132,7 +132,7 @@ withDefaults(
 	}>(),
 	{
 		showButtons: false,
-	}
+	},
 );
 
 // emits 定义
@@ -216,7 +216,7 @@ function toggleTab(direction: "pre" | "next") {
 // f 滚动到指定tab
 function scrollIntoViewToTab(
 	index: number,
-	behavior: ScrollOptions["behavior"] = "auto"
+	behavior: ScrollOptions["behavior"] = "auto",
 ) {
 	if (!tabDOMs.value) return;
 	const tabDOM = tabDOMs.value[index];
@@ -238,7 +238,7 @@ onActivated(() => {
 function registerTab(tab: TabItemRegistered) {
 	if (tabs.length + 1 > MAX_TAB_COUNT) {
 		console.warn(
-			`[base-tab] 为保证性能，超出 ${MAX_TAB_COUNT} 个的 base-tab-pane 将被忽略`
+			`[base-tab] 为保证性能，超出 ${MAX_TAB_COUNT} 个的 base-tab-pane 将被忽略`,
 		);
 		return;
 	}
@@ -261,7 +261,7 @@ function registerTab(tab: TabItemRegistered) {
 // f 更新Tab
 async function updateTab(
 	id: string,
-	{ name: newName, label: newLabel }: Partial<TabItem>
+	{ name: newName, label: newLabel }: Partial<TabItem>,
 ) {
 	const tab = tabs.find((t) => t.id === id);
 	if (tab) {
@@ -318,7 +318,7 @@ watchDebounced(
 	},
 	{
 		debounce: 300,
-	}
+	},
 );
 
 // s nav的Scroll尺寸
@@ -353,7 +353,7 @@ useMutationObserver(
 		childList: true,
 		subtree: true,
 		characterData: true,
-	}
+	},
 );
 
 // 监听nav的滚动并记录滚动位置
@@ -462,7 +462,7 @@ const navWrapBounding = useElementBounding(navWrapDOM);
 
 // bounding 缓存
 const tabBoundingCache = shallowReactive(
-	new Map<string, UseElementBoundingReturn>()
+	new Map<string, UseElementBoundingReturn>(),
 );
 // 组件卸载时清除缓存
 onUnmounted(() => tabBoundingCache.clear());
@@ -649,9 +649,7 @@ provide(symbol_BaseTabs, provideObj);
 
 .base-tabs__tab-item {
 	padding: 0px 16px;
-	height: 36px;
-	line-height: 36px;
-	font-size: 16px;
+	line-height: 2;
 	text-wrap: nowrap;
 	cursor: pointer;
 	user-select: none;

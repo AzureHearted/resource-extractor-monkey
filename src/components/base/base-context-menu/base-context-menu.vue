@@ -1,5 +1,9 @@
 <template>
-	<div class="base-context-menu__overlay" @click.self="hideMenu">
+	<div
+		class="base-context-menu__overlay"
+		@click.self="hideMenu"
+		@contextmenu.prevent
+	>
 		<div
 			ref="contextMenuDOM"
 			class="base-context-menu__menu"
@@ -25,14 +29,14 @@
 import { onClickOutside } from "@vueuse/core";
 import { shallowReactive, useTemplateRef } from "vue";
 
-const props = withDefaults(
+withDefaults(
 	defineProps<{
 		/** 字体大小 @default 14 */
 		fontSize?: number;
 	}>(),
 	{
 		fontSize: 14,
-	}
+	},
 );
 
 const contextMenuDOM = useTemplateRef("contextMenuDOM");
@@ -57,7 +61,7 @@ let resolveAction: Function | null = null; // 用于存储 Promise 的 resolve �
  */
 function showMenu<T>(
 	e: PointerEvent,
-	menuOptions: Array<MenuOption<T>>
+	menuOptions: Array<MenuOption<T>>,
 ): Promise<T | null> {
 	// 阻止默认右键菜单
 	e.preventDefault();
@@ -152,8 +156,9 @@ async function handleHide() {
 	return new Promise(() => {
 		menuDOM.style.opacity = "1";
 		menuDOM.style.transform = `scale(1)`;
+
 		requestAnimationFrame(() => {
-			menuDOM.style.transition = "0.25s ease, opacity 0.25s ease";
+			menuDOM.style.transition = "0.25s ease";
 			menuDOM.style.opacity = "0";
 			menuDOM.style.transform = `scale(0.8)`;
 
@@ -193,6 +198,23 @@ defineExpose({
 <style lang="scss" scoped>
 * {
 	box-sizing: border-box;
+	// 组件全局变量
+	--backdrop-filter: blur(4px) saturate(120%);
+	--box-shadow-color: rgba(0, 0, 0, 0.2);
+
+	// 亮色主题
+	--background-color: hsla(0, 0%, 100%, 0.75);
+	--border-color: hsla(210, 100%, 50%, 0.5);
+
+	--color: black;
+
+	// 暗色主题
+	@media (prefers-color-scheme: dark) {
+		--background-color: hsla(0, 0%, 16%, 0.75);
+		--border-color: hsla(0, 0%, 80%, 0.5);
+
+		--color: white;
+	}
 }
 /* 菜单容器，覆盖全屏，用于点击隐藏 */
 .base-context-menu__overlay {
@@ -202,29 +224,33 @@ defineExpose({
 	left: 0;
 	width: 100vw;
 	height: 100vh;
-	z-index: 1000; /* 确保菜单在最上层 */
+	z-index: 9999; /* 确保菜单在最上层 */
 	pointer-events: none; /* 禁止点击 */
 }
 
 /* 菜单本体 */
 .base-context-menu__menu {
 	font-size: calc(v-bind("fontSize") * 1px);
-	position: absolute; /* 绝对定位，由 JS 设置 x, y */
+	position: absolute;
 	list-style: none;
 	padding: 0.15em;
 	margin: 0;
 	min-width: 150px;
 	border-radius: 4px;
 
-	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+	box-shadow: 0 2px 10px var(--box-shadow-color);
 
 	user-select: none;
 
 	visibility: hidden;
-	transition: background 0.5s ease, border 0.5s ease, box-shadow 0.5s ease;
+	transition:
+		background 0.5s ease,
+		border 0.5s ease,
+		box-shadow 0.5s ease;
 
 	&.show {
 		visibility: visible;
+		// 当显示菜单时允许点击
 		pointer-events: all;
 	}
 
@@ -235,12 +261,12 @@ defineExpose({
 		inset: 0;
 		border-radius: inherit;
 
-		background: hsla(0, 0%, 100%, 0.75);
-		border: 1px solid hsla(210, 100%, 50%, 0.5);
+		background-color: var(--background-color);
+		border: 1px solid var(--border-color);
 
 		/* 核心：模糊背后的内容 */
-		backdrop-filter: blur(4px) saturate(120%);
-		-webkit-backdrop-filter: blur(4px) saturate(120%);
+		backdrop-filter: var(--backdrop-filter);
+		-webkit-backdrop-filter: var(--backdrop-filter);
 		z-index: -1;
 	}
 }
@@ -250,7 +276,7 @@ defineExpose({
 	padding: 0.5em 0.75em;
 	cursor: pointer;
 	white-space: nowrap;
-	color: black;
+	color: var(--color);
 	border-radius: 2px;
 
 	transition: 0.3s;
@@ -268,19 +294,6 @@ defineExpose({
 		&:hover {
 			background-color: unset;
 		}
-	}
-}
-
-/** 暗黑模式样式 */
-@media (prefers-color-scheme: dark) {
-	.base-context-menu__menu {
-		&::before {
-			background-color: hsla(0, 0%, 16%, 0.75);
-			border: 1px solid hsla(0, 0%, 80%, 0.5);
-		}
-	}
-	.base-context-menu__item {
-		color: white;
 	}
 }
 </style>

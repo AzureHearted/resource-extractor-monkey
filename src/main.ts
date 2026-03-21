@@ -13,9 +13,7 @@ import App from "./App.vue";
 import "@/plugin/naive-ui";
 
 // 创建 Vue 容器
-const fragment = document.createDocumentFragment();
 const appContainer = document.createElement("div");
-fragment.appendChild(appContainer);
 // 创建 Vue 应用
 const app = createApp(App);
 
@@ -26,9 +24,8 @@ app.use(createPinia());
 // f 初始化函数
 function init() {
 	lowerHighZIndex();
+	document.documentElement.appendChild(appContainer);
 	app.mount(appContainer); // 挂载app
-	// document.documentElement.appendChild(appContainer);
-	document.documentElement.appendChild(fragment);
 }
 
 if (document.readyState !== "loading") {

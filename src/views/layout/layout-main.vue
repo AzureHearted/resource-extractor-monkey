@@ -1,6 +1,6 @@
 <template>
-	<div class="main__container">
-		<n-layout class="main__layout" has-sider>
+	<div class="resource-extractor__main">
+		<n-layout has-sider>
 			<n-layout-sider
 				v-if="false"
 				style="z-index: 10"
@@ -19,7 +19,7 @@
 						? {
 								transform: ' translateX(60%) translateY(-50%) ',
 								scale: 1.5,
-						  }
+							}
 						: {}
 				"
 				@collapse="collapsed = true"
@@ -27,7 +27,7 @@
 			>
 				<NavMenu />
 			</n-layout-sider>
-			<n-layout class="main__content">
+			<n-layout>
 				<keep-alive :include="/gallery|pattern|favorite|setting/i">
 					<component :is="nowPage" />
 				</keep-alive>
@@ -78,26 +78,23 @@ const nowPage = computed(() => {
 </script>
 
 <style lang="scss" scoped>
-.main__container {
+.resource-extractor__main {
 	position: relative;
 	box-sizing: border-box;
 	width: 100%;
 	height: 100%;
-	// padding: 4px;
-	// background: orange;
 	overflow: hidden;
 	display: flex;
-	// gap: 4px;
 }
 
-:deep(.wic2-n-layout) {
+:deep(.re-n-layout) {
 	background: unset;
 
-	.wic2-n-layout-sider {
+	.re-n-layout-sider {
 		background: rgba(255, 255, 255, 0.3);
 		backdrop-filter: blur(10px);
 	}
-	.wic2-n-card {
+	.re-n-card {
 		background: unset;
 	}
 }

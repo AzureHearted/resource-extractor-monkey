@@ -1,6 +1,10 @@
 <template>
 	<div class="setting__container">
-		<Tabs :show-buttons="false" style="height: 100%">
+		<Tabs
+			:show-buttons="false"
+			style="height: 100%"
+			content-style="overflow: hidden;"
+		>
 			<TabPane name="setting" label="全局设置">
 				<GlobalSetting />
 			</TabPane>

@@ -1,8 +1,4 @@
-@import "./element/fix";
-@import "./fancybox/fix";
-@import "./varlet-ui/fix";
-@import "./naive-ui/fix";
-
-
-
-
+@use "./element/fix" as elementFix;
+@use "./fancybox/fix" as fancyboxFix;
+@use "./varlet-ui/fix" as varletUIFix;
+@use "./naive-ui/fix" as naiveUIFix;

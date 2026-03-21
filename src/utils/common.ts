@@ -109,8 +109,8 @@ export function getNameByUrl(url: string): string {
 		return url.replace(/[/\\]/, "-");
 	}
 	// 去除查询参数和结尾的“/”
-	url = url.replace(/([/\\])$/, "").replace(urlObj.search, "");
-	const list = url.match(/(?<=[/\\]+)([^\\/\r\n$]+)$/g) || [];
+	urlObj.href = urlObj.href.replace(/([/\\])$/, "");
+	const list = urlObj.href.match(/([^\?\\/\r\n\$\#]+?)$/g) || [];
 	if (list.length > 0) {
 		return list[0] || url;
 	} else {
