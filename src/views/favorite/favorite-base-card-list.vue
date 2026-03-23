@@ -29,18 +29,18 @@
 						:show-download-button="
 							(item as FavoriteCard).source.meta.type !== 'html'
 						"
-						@change:selected="(item as FavoriteCard).isSelected = $event"
 						@change:title="updateCard([item as FavoriteCard])"
 						@loaded="handleLoaded"
-						@download="handleDownload"
+						@download="handleDownloadCard"
 						@toggle-favorite="handleToggleFavorite(item as FavoriteCard)"
 						@save:tags="handleTagsSave(item as FavoriteCard)"
 						@dblclick="onCardDbClick((item as FavoriteCard).id)"
 						@contextmenu="onCardContextMenu($event, (item as FavoriteCard).id)"
 					>
 						<template #custom-button="{ openUrl }">
-							<el-button
+							<n-button
 								type="warning"
+								text
 								@click="openUrl((item as FavoriteCard).source.originUrls![0])"
 								title="打开卡片对应的来源地址"
 								v-ripple
@@ -48,7 +48,7 @@
 								<template #icon>
 									<icon-material-symbols-open-in-new-down-rounded />
 								</template>
-							</el-button>
+							</n-button>
 						</template>
 					</GalleryCard>
 				</template>
@@ -75,10 +75,9 @@
 						:show-download-button="
 							(item.data as FavoriteCard).source.meta.type !== 'html'
 						"
-						@change:selected="(item.data as FavoriteCard).isSelected = $event"
 						@change:title="updateCard([item.data as FavoriteCard])"
 						@loaded="handleLoaded"
-						@download="handleDownload"
+						@download="handleDownloadCard"
 						@toggle-favorite="handleToggleFavorite(item.data as FavoriteCard)"
 						@save:tags="handleTagsSave(item.data as FavoriteCard)"
 						@dblclick="onCardDbClick((item.data as FavoriteCard).id)"
@@ -87,18 +86,19 @@
 						"
 					>
 						<template #custom-button="{ openUrl }">
-							<el-button
+							<n-button
 								type="warning"
+								text
+								title="打开卡片对应的来源地址"
+								v-ripple
 								@click="
 									openUrl((item.data as FavoriteCard).source.originUrls![0])
 								"
-								title="打开卡片对应的来源地址"
-								v-ripple
 							>
 								<template #icon>
 									<icon-material-symbols-open-in-new-down-rounded />
 								</template>
-							</el-button>
+							</n-button>
 						</template>
 					</GalleryCard>
 				</template>
@@ -126,7 +126,6 @@ import { FavoriteCard } from "@/models/Card/FavoriteCard";
 import type { ImgReadyInfo } from "@/components/base/base-img.vue";
 import { isEqualUrl, isMobile as judgeIsMobile } from "@/utils/common";
 import { useClipboard } from "@vueuse/core";
-import { ElNotification } from "element-plus";
 import { Fancybox, configFancybox } from "@/plugin/fancyapps-ui";
 import type { CarouselSlide } from "@fancyapps/ui";
 
@@ -135,6 +134,10 @@ import { useGlobalStore, useCardStore, useFavoriteStore } from "@/stores";
 import { useBaseContextMenu } from "@/components/base/base-context-menu";
 import { GM_openInTab } from "$";
 import type { Meta } from "@/models/Card/Meta";
+import { useDialog, useNotification } from "@/plugin/naive-ui";
+
+const dialog = useDialog();
+const notification = useNotification();
 
 const globalStore = useGlobalStore();
 const cardStore = useCardStore();
@@ -142,7 +145,7 @@ const favoriteStore = useFavoriteStore();
 
 const { galleryState } = storeToRefs(globalStore);
 const { update: updateCard, find: findCard, unfavorite } = favoriteStore;
-const { downloadCards } = cardStore;
+const { downloadCard, downloadCards } = cardStore;
 
 const props = withDefaults(
 	defineProps<{
@@ -220,15 +223,25 @@ const virtualMasonryItem = computed<Array<VirtualMasonryItem>>(() => {
 });
 
 // f 处理卡片下载
-const handleDownload = async (id: string) => {
+async function handleDownloadCard(id: string) {
 	// console.log("下载", id);
 	const card = await findCard(id);
 	if (!card) return;
 	// console.log("找到card", card);
-	await downloadCards([card]);
-	// 更新卡片
+	await downloadCard(card, { dialog });
+	// 最后同步跟新数据库数据
 	updateCard([card]);
-};
+}
+
+async function handleDownloadCards(cards: FavoriteCard[]) {
+	await downloadCards(cards, {
+		dialog,
+		notification,
+		initZipName: `RE收藏集 ${new Date().toJSON()}`,
+	});
+	// 最后同步跟新数据库数据
+	updateCard(cards);
+}
 
 // f 处理收藏/取消收藏
 const handleToggleFavorite = (card: FavoriteCard) => {
@@ -368,6 +381,15 @@ async function openFancybox(startId: string) {
 				},
 				items: {
 					...toolbar.items,
+					// f 关闭按钮
+					close: {
+						tpl: /*html*/ `
+							<button class="f-button" title="{{CLOSE}}"><svg tabindex="-1" width="24" height="24" viewBox="0 0 24 24"><path d="M19.286 4.714 4.714 19.286M4.714 4.714l14.572 14.572"></path></svg></button>
+						`,
+						click() {
+							Fancybox.close();
+						},
+					},
 					// f 打开按钮
 					open: {
 						tpl: /*html*/ `
@@ -405,7 +427,7 @@ async function openFancybox(startId: string) {
 						click: async (instance) => {
 							const index = instance.getPageIndex();
 							const card = props.cardList[index];
-							await cardStore.downloadCards([card]);
+							await cardStore.downloadCard(card, { dialog });
 						},
 					},
 					// f 定位按钮
@@ -457,19 +479,27 @@ const { showContextMenu } = useBaseContextMenu({
 async function onCardContextMenu(event: PointerEvent, id: string) {
 	const card = props.cardList.find((x) => x.id === id);
 	if (!card) return;
-	const options: Parameters<typeof showContextMenu>[1] = [
+
+	const selectionCard = [...favoriteStore.selectionCardList[cardStore.nowType]];
+	if (!selectionCard.includes(card)) selectionCard.push(card);
+
+	const result = await showContextMenu(event, [
 		{ label: "预览", command: "preview" },
-		{ label: "打开源链接", command: "openSource" },
-		{ label: "复制源链接", command: "copySource" },
-		{ label: "打开预览链接", command: "openPreview" },
-		{ label: "定位来源地址", command: "locateSourceAddress" },
+		{ label: "打开源", command: "openSource" },
+		{ label: "打开预览源", command: "openPreview" },
+		{ label: "复制源", command: "copySource" },
+		{ label: "定位来源", command: "locateSourceAddress" },
 		{ label: "取消收藏", command: "unfavorite" },
 		{ label: "复制卡片数据", command: "copyCard" },
-		{ label: "下载", command: "download" },
-	] as const;
+		{
+			label:
+				selectionCard.length > 1
+					? `下载所选(${selectionCard.length}个)`
+					: "下载",
+			command: "download",
+		},
+	] as const);
 
-	type resultType = (typeof options)[number]["command"] | null;
-	const result: resultType = await showContextMenu(event, options as any);
 	if (result) {
 		switch (result) {
 			case "preview":
@@ -495,21 +525,19 @@ async function onCardContextMenu(event: PointerEvent, id: string) {
 						: JSON.stringify(card, null, 2),
 				)
 					.then(() => {
-						ElNotification({
-							type: "success",
+						notification.success({
 							title: "复制成功",
-							message:
+							content:
 								result === "copySource"
 									? card.source.url
 									: `卡片数据：${card.description.content}`,
-							appendTo: ".resource-extractor__notification",
+							duration: 3000,
 						});
 					})
 					.catch(() => {
-						ElNotification({
-							type: "error",
+						notification.error({
 							title: "复制失败",
-							appendTo: ".resource-extractor__notification",
+							duration: 3000,
 						});
 					});
 				break;
@@ -517,7 +545,11 @@ async function onCardContextMenu(event: PointerEvent, id: string) {
 				handleToggleFavorite(card);
 				break;
 			case "download":
-				handleDownload(id);
+				if (selectionCard.length > 1) {
+					handleDownloadCards(selectionCard);
+				} else if (selectionCard.length === 1) {
+					handleDownloadCard(selectionCard[0].id);
+				}
 				break;
 		}
 	}

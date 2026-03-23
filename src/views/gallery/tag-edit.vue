@@ -9,7 +9,7 @@
 		:click-outside-close="false"
 		:dialog-style="{
 			backdropFilter: 'blur(5px)',
-			background: 'rgba(255, 255, 255, 0.5)',
+			background: `getTheme(${globalStore.theme},background)`,
 		}"
 		@before-close="handleClose"
 	>
@@ -42,9 +42,11 @@
 
 <script setup lang="ts">
 import BaseDragDialog from "@/components/base/base-drag-dialog.vue";
+import { useGlobalStore } from "@/stores";
 import { ref, nextTick } from "vue";
 const show = defineModel("show", { type: Boolean, default: false });
-// const tags = defineModel("tags", { type: Array<string>, default: () => [] });
+
+const globalStore = useGlobalStore();
 
 const props = withDefaults(
 	defineProps<{
@@ -57,7 +59,7 @@ const props = withDefaults(
 	{
 		initWidth: 300,
 		initHeight: 200,
-	}
+	},
 );
 
 const tagList = ref(props.tags || []);

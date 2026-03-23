@@ -1,5 +1,10 @@
 <template>
-	<n-flex class="toolbar-wrap" :size="4">
+	<n-flex
+		ref="toolbarRef"
+		class="toolbar-wrap"
+		:data-theme="globalStore.theme"
+		:size="4"
+	>
 		<!-- s 方案选择器 -->
 		<n-select
 			class="pattern-selector"
@@ -25,39 +30,33 @@
 				:trigger="isMobile ? 'click' : 'hover'"
 				:teleport="false"
 			>
-				<var-button-group type="primary">
+				<n-button-group type="primary">
 					<!-- s 加载按钮 -->
-					<var-button @click.stop="getCards" v-if="!loadingStore.loading" block>
+					<n-button @click.stop="getCards" v-if="!loadingStore.loading">
 						加载
-					</var-button>
-					<var-button @click.stop="stopGetCards" v-else block>
-						停止
-					</var-button>
-					<var-button style="padding: 0 4px">
+					</n-button>
+					<n-button @click.stop="stopGetCards" v-else> 停止 </n-button>
+					<n-button style="padding: 0 4px">
 						<icon-material-symbols-arrow-drop-down-rounded
-							style="fill: white"
-							width="24"
-							height="24"
+							style="font-size: 24px"
 						/>
-					</var-button>
-				</var-button-group>
+					</n-button>
+				</n-button-group>
 				<template #menu>
 					<var-cell
+						v-if="!loadingStore.loading"
 						@click="reload"
 						title="重新加载"
-						v-if="!loadingStore.loading"
 						ripple
 					>
 						<template #icon>
-							<icon-ant-design-reload-outlined />
+							<icon-ant-design-reload-outlined style="margin-right: 6px" />
 						</template>
 					</var-cell>
 					<var-cell @click="resetFilters" title="重置过滤器" ripple>
 						<template #icon>
-							<Icon
-								icon="material-symbols:reset-settings-rounded"
-								width="1.2em"
-								height="1.2em"
+							<icon-material-symbols:reset-settings-rounded
+								style="margin-right: 6px"
 							/>
 						</template>
 					</var-cell>
@@ -68,7 +67,7 @@
 						ripple
 					>
 						<template #icon>
-							<icon-mdi-delete-empty style="color: red" />
+							<icon-mdi-delete-empty style="margin-right: 6px; color: red" />
 						</template>
 					</var-cell>
 				</template>
@@ -82,9 +81,41 @@
 			:to="false"
 			:options="sort.groups"
 		/>
+		<!-- s 扩展名过滤器 -->
+		<n-select
+			class="ext-selector"
+			v-if="nowType !== 'html'"
+			v-model:value="storeFilters.extension"
+			placeholder="扩展名过滤"
+			multiple
+			clearable
+			:to="false"
+			:render-tag="renderTag"
+			:render-label="renderOptionLabelWithCount"
+			:options="extOptions"
+			max-tag-count="responsive"
+		/>
+		<!-- s 关键词过滤 -->
+		<n-badge
+			class="keyword-filter-input"
+			:value="filterCardList.all.length"
+			:offset="[-14, 0]"
+			:max="999"
+			type="info"
+		>
+			<n-input
+				type="text"
+				v-model:value="filters.keyword"
+				placeholder="输入检索关键词"
+				clearable
+				@update:value="handleKeywordFilter()"
+				@clear="handleKeywordFilter('')"
+				@keydown.enter="handleKeywordFilter()"
+			/>
+		</n-badge>
 		<!-- s 选择器 -->
 		<n-badge
-			:offset="[-116, 2]"
+			:offset="[-116, 0]"
 			type="success"
 			:max="999"
 			:show="!!currentCardList.length"
@@ -92,11 +123,11 @@
 			style="align-items: center"
 		>
 			<!-- 选择器按钮组 -->
-			<var-button-group class="control-button-group">
-				<var-button type="primary" @click="checkAll"> 全选 </var-button>
-				<var-button type="info" @click="inverseAll"> 反选 </var-button>
-				<var-button @click="cancel"> 取消 </var-button>
-			</var-button-group>
+			<n-button-group>
+				<n-button type="primary" @click="checkAll"> 全选 </n-button>
+				<n-button type="info" @click="inverseAll"> 反选 </n-button>
+				<n-button @click="cancel"> 取消 </n-button>
+			</n-button-group>
 		</n-badge>
 		<!-- s 下载控制 -->
 		<n-badge
@@ -111,25 +142,23 @@
 				:trigger="isMobile ? 'click' : 'hover'"
 				:teleport="false"
 			>
-				<var-button-group type="primary">
-					<var-button
+				<n-button-group type="primary">
+					<n-button
 						:disabled="!checkedCardList.length"
 						@click.stop="downloadSelected"
 					>
 						下载
-					</var-button>
-					<var-button
+					</n-button>
+					<n-button
 						v-if="!!currentCardList.length"
 						:disabled="!currentCardList.length || loadingStore.loading"
 						style="padding: 0 4px"
 					>
 						<icon-material-symbols-arrow-drop-down-rounded
-							style="fill: white"
-							width="24"
-							height="24"
+							style="font-size: 24px"
 						/>
-					</var-button>
-				</var-button-group>
+					</n-button>
+				</n-button-group>
 				<template #menu>
 					<var-cell
 						title="全部下载"
@@ -138,7 +167,7 @@
 						ripple
 					>
 						<template #icon>
-							<icon-mdi-auto-download />
+							<icon-mdi-auto-download style="margin-right: 6px" />
 						</template>
 					</var-cell>
 					<var-cell
@@ -148,7 +177,7 @@
 						ripple
 					>
 						<template #icon>
-							<icon-mdi-delete-sweep style="color: red" />
+							<icon-mdi-delete-sweep style="margin-right: 6px; color: red" />
 						</template>
 					</var-cell>
 					<var-cell
@@ -158,58 +187,14 @@
 						ripple
 					>
 						<template #icon>
-							<icon-mdi-book-favorite style="color: purple" />
-						</template>
-					</var-cell>
-					<var-cell
-						title="批量添加标签"
-						@click="showTagEdit = true"
-						v-if="!!checkedCardList.length"
-						ripple
-					>
-						<template #icon>
-							<icon-mdi-tag-text style="color: purple" />
+							<icon-mdi-book-favorite
+								style="margin-right: 6px; color: purple"
+							/>
 						</template>
 					</var-cell>
 				</template>
 			</var-menu>
 		</n-badge>
-		<!-- s 过滤控制器 -->
-		<n-flex :size="4">
-			<!-- s 扩展名过滤器 -->
-			<n-select
-				class="ext-selector"
-				v-if="nowType !== 'html'"
-				v-model:value="storeFilters.extension"
-				placeholder="扩展名过滤"
-				multiple
-				clearable
-				:to="false"
-				:render-tag="renderTag"
-				:render-label="renderOptionLabelWithCount"
-				:options="extOptions"
-				max-tag-count="responsive"
-			/>
-			<!-- s 关键词过滤 -->
-			<n-badge
-				class="keyword-filter-input"
-				:offset="[-4, 2]"
-				:value="filterCardList.all.length"
-				:max="999"
-				type="info"
-				style="align-items: center"
-			>
-				<n-input
-					type="text"
-					v-model:value="filters.keyword"
-					placeholder="输入检索关键词"
-					clearable
-					@update:value="handleKeywordFilter()"
-					@clear="handleKeywordFilter('')"
-					@keydown.enter="handleKeywordFilter()"
-				/>
-			</n-badge>
-		</n-flex>
 		<!-- s 尺寸过滤器 -->
 		<n-flex
 			v-if="nowType === 'image' || nowType === 'video'"
@@ -256,24 +241,15 @@
 			</n-flex>
 		</n-flex>
 		<!-- j 进度条 -->
-		<el-progress
+		<n-progress
 			class="toolbar-loading"
-			striped
-			striped-flow
 			:class="{ 'loading-active': loadingStore.loading }"
-			:status="loadingStore.percentage === 100 ? 'success' : ''"
-			:stroke-width="16"
-			:text-inside="true"
+			type="line"
 			:percentage="Number(loadingStore.percentage.toFixed(2))"
+			indicator-placement="outside"
+			processing
 		>
-		</el-progress>
-		<!-- s Tag编辑器  -->
-		<TagEdit
-			:title="`批量添加标签(${checkedCardList.length}个卡片)`"
-			v-model:show="showTagEdit"
-			@on-save="batchAddTag"
-		>
-		</TagEdit>
+		</n-progress>
 	</n-flex>
 </template>
 
@@ -284,8 +260,11 @@ import { NTag, NBadge } from "naive-ui";
 import type { SelectOption, SelectRenderTag, SliderProps } from "naive-ui";
 import { Pattern } from "@/models/Pattern/Pattern";
 import BaseImg from "@/components/base/base-img.vue";
-import TagEdit from "./tag-edit.vue";
-import { Icon } from "@iconify/vue";
+
+import { useDialog, useNotification } from "@/plugin/naive-ui";
+
+const dialog = useDialog();
+const notification = useNotification();
 
 // 导入公用ts库
 import { byteAutoUnit, isMobile as judgeIsMobile } from "@/utils/common";
@@ -374,6 +353,7 @@ watch(
 	},
 );
 
+// 当前卡片列表
 const currentCardList = computed<Card[]>(() => {
 	return filterCardList.value[nowType.value] ?? [];
 });
@@ -397,9 +377,7 @@ const checkedTotalSizeTip = computed(() => {
 	}, 0);
 	// 合成显示文本
 	if (totalByte) {
-		return ` (${byteAutoUnit(totalByte)})${
-			existUnDownload ? " 存在未下载" : ""
-		}`;
+		return ` (${byteAutoUnit(totalByte)})${existUnDownload ? " 有未下载" : ""}`;
 	} else {
 		return "";
 	}
@@ -513,6 +491,7 @@ async function getCards() {
 	stopGetCardsFlag.value = false;
 	await cardStore.getPageCard({
 		stopFlag: stopGetCardsFlag,
+		notification,
 	});
 }
 
@@ -588,20 +567,26 @@ function resetFilters() {
 function downloadSelected() {
 	const cards =
 		filterCardList.value[nowType.value].filter((x) => x.isSelected) || [];
-	cardStore.downloadCards(cards);
+	if (cards.length > 1) {
+		cardStore.downloadCards(cards, { dialog, notification });
+	} else if (cards.length === 1) {
+		cardStore.downloadCard(cards[0], { dialog });
+	}
 }
 
 // f 下载全部
 function downloadAll() {
 	const cards = filterCardList.value[nowType.value] || [];
-	cardStore.downloadCards(cards);
+	if (cards.length > 1) {
+		cardStore.downloadCards(cards, { dialog, notification });
+	} else if (cards.length === 1) {
+		cardStore.downloadCard(cards[0], { dialog });
+	}
 }
 
 // f 删除选中项
 function deleteSelected() {
-	const ids = filterCardList.value[nowType.value]
-		.filter((x) => x.isSelected)
-		.map((x) => x.id);
+	const ids = selectionCardList.value[nowType.value].map((x) => x.id);
 	cardStore.removeCard(ids);
 }
 
@@ -612,25 +597,21 @@ function favoriteSelected() {
 		(card) => (card.isFavorite = true),
 	); // 更新卡片收藏状态
 }
-
-const showTagEdit = ref(false);
-// f 批量添加标签
-const batchAddTag = (tags: string[]) => {
-	selectionCardList.value[nowType.value].forEach((c) => {
-		c.tags = [...new Set([...c.tags, ...tags])];
-	});
-};
 </script>
 
 <style lang="scss" scoped>
-@use "@/styles/shadow.scss" as shadow;
-
 // 工具栏容器
 .toolbar-wrap {
 	padding: 6px;
 	padding-top: 12px;
-	background: rgba(255, 255, 255, 0.6);
-	box-shadow: shadow.$elevation;
+	background: rgba(getTheme(light, background), 0.35);
+	// box-shadow: getTheme(light, box-shadow);
+
+	// 暗色主题
+	&[data-theme="dark"] {
+		background: rgba(getTheme(dark, background), 0.5);
+		// box-shadow: getTheme(dark, box-shadow);
+	}
 }
 
 // 方案选择器样式
@@ -641,18 +622,9 @@ const batchAddTag = (tags: string[]) => {
 // 排序方式选择器
 .sort-method-selector {
 	width: 130px;
-}
-// 控制按钮组样式
-.control-button-group {
-	height: fit-content;
-}
-
-// 控制组样式
-.filter-control {
-	flex: 0;
-	display: flex;
-	flex-flow: row nowrap;
-	gap: 4px;
+	:deep(.re-n-base-selection-input__content) {
+		user-select: none;
+	}
 }
 
 // 关键词过滤器
@@ -663,7 +635,11 @@ const batchAddTag = (tags: string[]) => {
 // 类型、扩展名选择器样式
 .type-select,
 .ext-selector {
-	width: 130px;
+	width: 150px;
+
+	:deep(.re-n-base-select-option__content) {
+		flex: 1;
+	}
 }
 
 // 尺寸过滤器样式
@@ -684,7 +660,7 @@ const batchAddTag = (tags: string[]) => {
 .toolbar-loading {
 	width: 100%;
 	display: block;
-	/* transform: translateY(-20px); */
+
 	margin: 0;
 	height: 0;
 	opacity: 0;
@@ -699,7 +675,7 @@ const batchAddTag = (tags: string[]) => {
 	&.loading-active {
 		opacity: 1;
 		height: 16px;
-		margin: 4px 8px;
+		margin: 0 10px;
 		visibility: visible;
 
 		transition:
@@ -708,24 +684,5 @@ const batchAddTag = (tags: string[]) => {
 			height 0.3s ease,
 			margin 0.3s ease;
 	}
-
-	:deep(.re-progress-bar__inner) {
-		line-height: 0;
-	}
-}
-
-// 样式修复
-:deep(.re-badge) {
-	display: block;
-}
-:deep(.re-n-badge-sup) {
-	z-index: 5;
-}
-
-:deep(.re-n-base-select-option__content) {
-	flex: 1;
-}
-:deep(.var-menu__menu) {
-	width: max-content;
 }
 </style>

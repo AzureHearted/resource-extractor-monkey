@@ -24,11 +24,10 @@
 						v-model:data="item as Card"
 						:highlight-key="searchKeywords"
 						:is-mobile="state.isMobile"
-						@change:selected="(item as Card).isSelected = $event"
 						@delete="removeCard([$event])"
 						@loaded="handleLoaded"
 						@error="handleError"
-						@download="handleDownload"
+						@download="handleDownloadCard"
 						@toggle-favorite="handleToFavorite((item as Card).id, $event)"
 						@dblclick="onCardDbClick((item as Card).id)"
 						@contextmenu="onCardContextMenu($event, (item as Card).id)"
@@ -52,10 +51,9 @@
 						v-model:data="item.data as Card"
 						:highlight-key="searchKeywords"
 						:is-mobile="state.isMobile"
-						@change:selected="(item.data as Card).isSelected = $event"
 						@delete="removeCard([$event])"
 						@loaded="handleLoaded"
-						@download="handleDownload"
+						@download="handleDownloadCard"
 						@toggle-favorite="handleToFavorite((item.data as Card).id, $event)"
 						@dblclick="onCardDbClick((item.data as Card).id)"
 						@contextmenu="onCardContextMenu($event, (item.data as Card).id)"
@@ -85,7 +83,6 @@ import BaseVirtualMasonry from "@/components/base/base-virtual-masonry/base-virt
 import type { Item as VirtualMasonryItem } from "@/components/base/base-virtual-masonry/type";
 import { isEqualUrl, isMobile as judgeIsMobile } from "@/utils/common";
 import { useClipboard } from "@vueuse/core";
-import { ElNotification } from "element-plus";
 import { Fancybox, configFancybox } from "@/plugin/fancyapps-ui";
 import type { CarouselSlide } from "@fancyapps/ui";
 
@@ -95,12 +92,16 @@ import { useGlobalStore, useCardStore, useFavoriteStore } from "@/stores";
 import { useBaseContextMenu } from "@/components/base/base-context-menu";
 import { GM_openInTab } from "$";
 import type { Meta } from "@/models/Card/Meta";
+import { useDialog, useNotification } from "@/plugin/naive-ui";
+
+const dialog = useDialog();
+const notification = useNotification();
 
 const globalStore = useGlobalStore();
 const { galleryState } = storeToRefs(globalStore);
 // s 卡片仓库
 const cardStore = useCardStore();
-const { findCard, removeCard, downloadCards } = cardStore;
+const { findCard, removeCard, downloadCard, downloadCards } = cardStore;
 // s 收藏仓库
 const favoriteStore = useFavoriteStore();
 const {
@@ -210,12 +211,17 @@ const handleError = async (id: string) => {
 };
 
 // f 处理下载事件
-const handleDownload = async (id: string) => {
+async function handleDownloadCard(id: string) {
 	// console.log("下载", id);
 	const card = findCard(id);
 	if (!card) return;
-	downloadCards([card]);
-};
+	await downloadCard(card, { dialog });
+}
+
+// f 处理多卡片下载
+async function handleDownloadCards(cards: Card[]) {
+	await downloadCards(cards, { dialog, notification });
+}
 
 // f 处理收藏切换
 const handleToFavorite = async (id: string, val: boolean) => {
@@ -329,11 +335,6 @@ async function openFancybox(startId: string) {
 	const index = props.cardList.findIndex((x) => x.id === startId);
 	if (index < 0) return;
 
-	const toolbar =
-		typeof configFancybox.Carousel?.Toolbar === "object"
-			? configFancybox.Carousel?.Toolbar
-			: {};
-
 	Fancybox.show(fancyboxItems.value, {
 		...configFancybox,
 		Carousel: {
@@ -346,7 +347,15 @@ async function openFancybox(startId: string) {
 					right: ["rotateCCW", "rotateCW", "toLocate", "thumbs", "close"],
 				},
 				items: {
-					...toolbar.items,
+					// f 关闭按钮
+					close: {
+						tpl: /*html*/ `
+        <button class="f-button" title="{{CLOSE}}"><svg tabindex="-1" width="24" height="24" viewBox="0 0 24 24"><path d="M19.286 4.714 4.714 19.286M4.714 4.714l14.572 14.572"></path></svg></button>
+      `,
+						click() {
+							Fancybox.close();
+						},
+					},
 					// f 打开按钮
 					open: {
 						tpl: /*html*/ `
@@ -384,7 +393,7 @@ async function openFancybox(startId: string) {
 						click: async (instance) => {
 							const index = instance.getPageIndex();
 							const card = props.cardList[index];
-							await cardStore.downloadCards([card]);
+							await cardStore.downloadCard(card, { dialog });
 						},
 					},
 					// f 定位按钮
@@ -435,22 +444,37 @@ const { showContextMenu } = useBaseContextMenu({
 async function onCardContextMenu(event: PointerEvent, id: string) {
 	const card = props.cardList.find((x) => x.id === id);
 	if (!card) return;
-	const options: Parameters<typeof showContextMenu>[1] = [
+
+	const selectionCard = [...cardStore.selectionCardList[cardStore.nowType]];
+	if (!selectionCard.includes(card)) selectionCard.push(card);
+
+	const result = await showContextMenu(event, [
 		{ label: "预览", command: "preview" },
 		{
 			label: card.isFavorite ? "取消收藏" : "收藏",
 			command: "favorite",
 		},
+		{ label: "打开源", command: "openSource" },
+		{ label: "复制源", command: "copySource" },
+		{ label: "打开预览源", command: "openPreview" },
 		{ label: "页面中定位", command: "locateInPage" },
-		{ label: "打开源链接", command: "openSource" },
-		{ label: "复制源链接", command: "copySource" },
-		{ label: "打开预览链接", command: "openPreview" },
 		{ label: "复制卡片数据", command: "copyCard" },
-		{ label: "下载", command: "download" },
-	] as const;
+		{
+			label:
+				selectionCard.length > 1
+					? `下载所选(${selectionCard.length}个)`
+					: "下载",
+			command: "download",
+		},
+		{
+			label:
+				selectionCard.length > 1
+					? `删除所选(${selectionCard.length}个)`
+					: "删除",
+			command: "remove",
+		},
+	] as const);
 
-	type resultType = (typeof options)[number]["command"] | null;
-	const result: resultType = await showContextMenu(event, options as any);
 	if (result) {
 		switch (result) {
 			case "preview":
@@ -492,26 +516,32 @@ async function onCardContextMenu(event: PointerEvent, id: string) {
 						: JSON.stringify(card, null, 2),
 				)
 					.then(() => {
-						ElNotification({
-							type: "success",
+						notification.success({
 							title: "复制成功",
-							message:
+							content:
 								result === "copySource"
 									? card.source.url
 									: `卡片数据：${card.description.content}`,
-							appendTo: ".resource-extractor__notification",
+							duration: 3000,
 						});
 					})
 					.catch(() => {
-						ElNotification({
-							type: "error",
+						notification.error({
 							title: "复制失败",
-							appendTo: ".resource-extractor__notification",
+							duration: 3000,
 						});
 					});
 				break;
 			case "download":
-				handleDownload(id);
+				if (selectionCard.length > 1) {
+					await handleDownloadCards(selectionCard);
+				} else if (selectionCard.length === 1) {
+					await handleDownloadCard(selectionCard[0].id);
+				}
+				break;
+			case "remove":
+				const ids = selectionCard.map((c) => c.id);
+				removeCard(ids);
 				break;
 		}
 	}
