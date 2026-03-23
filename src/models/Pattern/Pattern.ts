@@ -129,12 +129,33 @@ export class Pattern implements IPattern {
 	}
 
 	// 判断是否发生更改
-	public isChange() {
-		return (
-			!isEqual(this.mainInfo, cloneDeep(this.backup?.mainInfo)) ||
-			this.rules.some((x) => x.isChange()) ||
-			this.rules.length !== this.backup?.rules.length
-		);
+	public isChange(key?: keyof RawPattern) {
+		if (!this.backup) return false;
+
+		if (key) {
+			return !isEqual(this[key], this.backup[key]);
+		}
+
+		// 主信息
+		if (!isEqual(this.mainInfo, this.backup.mainInfo)) {
+			return true;
+		}
+
+		// 数量变化
+		if (this.rules.length !== this.backup.rules.length) {
+			return true;
+		}
+
+		// 顺序变化
+		const currentIds = this.rules.map((r) => r.id);
+		const backupIds = this.backup.rules.map((r) => r.id);
+
+		if (!isEqual(currentIds, backupIds)) {
+			return true;
+		}
+
+		// 子项变化
+		return this.rules.some((rule) => rule.isChange());
 	}
 
 	// 获取JSON
@@ -173,6 +194,7 @@ export const defaultPattern = new Pattern({
 				infoType: "attribute",
 				name: "href|srcset|data-src|src|content",
 				fix: [],
+				assertionType: "auto",
 			},
 		}),
 		new Rule({
@@ -188,6 +210,7 @@ export const defaultPattern = new Pattern({
 				infoType: "property",
 				name: "src",
 				fix: [],
+				assertionType: "auto",
 			},
 		}),
 		new Rule({
@@ -203,6 +226,7 @@ export const defaultPattern = new Pattern({
 				infoType: "property",
 				name: "href",
 				fix: [],
+				assertionType: "auto",
 			},
 			preview: {
 				enable: true,
@@ -211,6 +235,7 @@ export const defaultPattern = new Pattern({
 				infoType: "attribute",
 				name: "srcset|data-src|src|data-srcset",
 				fix: [],
+				assertionType: "auto",
 			},
 		}),
 		new Rule({
@@ -226,6 +251,7 @@ export const defaultPattern = new Pattern({
 				infoType: "property",
 				name: "href",
 				fix: [],
+				assertionType: "auto",
 			},
 			preview: {
 				enable: true,
@@ -234,6 +260,7 @@ export const defaultPattern = new Pattern({
 				infoType: "attribute",
 				name: "data-src|srcset|src|data-srcset",
 				fix: [],
+				assertionType: "auto",
 			},
 		}),
 	],
