@@ -15,8 +15,6 @@ dist-ssr
 coverage
 *.local
 temp
-dist
-dist/*.user.js
 
 /cypress/videos/
 /cypress/screenshots/

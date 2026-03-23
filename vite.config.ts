@@ -1,9 +1,6 @@
 import { fileURLToPath, URL } from "node:url";
-// import path from "path";
-// const pathSrc = path.resolve(__dirname, "src");
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
-// import VueDevTools from "vite-plugin-vue-devtools";
 
 // 导入monkey插件
 import monkey, { util } from "vite-plugin-monkey";
@@ -15,8 +12,6 @@ import components from "unplugin-vue-components/vite";
 import autoImport from "unplugin-auto-import/vite";
 // varlet组件库的自动引入配置
 import { VarletImportResolver } from "@varlet/import-resolver";
-// element-plus组件库的自动引入配置
-import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
 import IconsResolver from "unplugin-icons/resolver";
 import Icons from "unplugin-icons/vite";
 
@@ -38,12 +33,7 @@ export default defineConfig({
 		svgLoader(),
 		// s 自动导入
 		autoImport({
-			resolvers: [
-				VarletImportResolver({ autoImport: true }),
-				ElementPlusResolver({
-					importStyle: "sass",
-				}),
-			],
+			resolvers: [VarletImportResolver({ autoImport: true })],
 			imports: [
 				util.unimportPreset,
 				{
@@ -61,9 +51,6 @@ export default defineConfig({
 		components({
 			resolvers: [
 				VarletImportResolver(),
-				ElementPlusResolver({
-					importStyle: "sass",
-				}),
 				NaiveUiResolver(),
 				// 自动注册图标组件
 				IconsResolver({
@@ -76,6 +63,7 @@ export default defineConfig({
 		Icons({
 			autoInstall: true,
 			scale: 1,
+			compiler: "vue3",
 		}),
 		// s 打包体积分析
 		visualizer({
@@ -90,12 +78,10 @@ export default defineConfig({
 		// 预处理器配置项
 		preprocessorOptions: {
 			scss: {
-				// s element-plus的自定义前缀设置导入
-				additionalData: `@use "@/styles/element/index.scss" as *;`,
+				additionalData: `
+					@use "@/styles/theme.scss" as *;
+				`,
 			},
-			// less: {
-			// 	math: "always", // 启用 Less 预处理器中的数学运算功能
-			// },
 		},
 	},
 	resolve: {
