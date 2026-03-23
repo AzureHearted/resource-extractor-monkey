@@ -3,7 +3,7 @@ import { computed, onActivated, reactive, ref, watch } from "vue";
 import { FavoriteCard } from "@/models/Card/FavoriteCard";
 import { naturalCompare } from "@/utils/common";
 import localforage from "localforage";
-import useCardStore from "@/stores/CardStore";
+import { useCardStore } from "@/stores";
 import { useDebounceFn } from "@vueuse/core";
 import { useListIndexedDB } from "@/hooks/useIndexedDB";
 import type { Meta } from "@/models/Card/Meta";
@@ -109,9 +109,17 @@ export default defineStore("FavoriteStore", () => {
 		return cardList.value.map((c) => c.id);
 	});
 
-	// j 选中的卡片列表
-	const selectedCardList = computed<FavoriteCard[]>(() => {
-		return cardList.value.filter((c) => c.isSelected);
+	// j 选中的卡片
+	const selectionCardList = computed<CardGroup>(() => {
+		return {
+			all: filterCardList.value.all.filter((x) => x.isSelected),
+			image: filterCardList.value.image.filter((x) => x.isSelected),
+			video: filterCardList.value.video.filter((x) => x.isSelected),
+			audio: filterCardList.value.audio.filter((x) => x.isSelected),
+			zip: filterCardList.value.zip.filter((x) => x.isSelected),
+			html: filterCardList.value.html.filter((x) => x.isSelected),
+			unknown: filterCardList.value.unknown.filter((x) => x.isSelected),
+		};
 	});
 
 	// t 卡片类型(类型)
@@ -537,7 +545,7 @@ export default defineStore("FavoriteStore", () => {
 		typeOptions,
 		extensionOptions,
 		filterCardList,
-		selectedCardList,
+		selectionCardList,
 		keys,
 		allTags,
 		refreshStore,
@@ -548,5 +556,6 @@ export default defineStore("FavoriteStore", () => {
 		update,
 		isExist,
 		downloadCards: cardStore.downloadCards,
+		downloadCard: cardStore.downloadCard,
 	};
 });

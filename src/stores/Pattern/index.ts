@@ -7,7 +7,6 @@ import {
 	getUserPatternList,
 	setUserPatternList,
 } from "./utils/handle-user-data";
-import { ElNotification } from "@/plugin/element-plus";
 
 export default defineStore("PatternStore", () => {
 	// s 方案列表
@@ -33,8 +32,23 @@ export default defineStore("PatternStore", () => {
 
 	// f 获取初始方案id
 	function setInitPattern() {
-		let targetPattern: Pattern | null = null;
+		const matchs = getMatchPatterns();
+		if (matchs.length === 0) return;
+		const [targetPattern] = matchs;
+		console.log("初始方案", targetPattern);
+		if (targetPattern) {
+			used.id = targetPattern.id;
+			editing.pid = targetPattern.id;
+			if (targetPattern.rules.length) {
+				editing.rid = targetPattern.rules[0].id;
+			}
+		} else {
+			// s 没有匹配到则使用默认规则
+			used.id = "#";
+		}
+	}
 
+	function getMatchPatterns() {
 		const matchedPatterns: Pattern[] = list.value.filter((p) => {
 			if (p.id.includes("#")) return false;
 			// s 先过滤域名
@@ -42,6 +56,9 @@ export default defineStore("PatternStore", () => {
 				return new RegExp(`${host}`).test(location.origin);
 			});
 		});
+
+		const matchs = new Array<Pattern>();
+
 		if (matchedPatterns.length) {
 			// s 在路径过滤
 			for (let i = 0; i < matchedPatterns.length; i++) {
@@ -70,35 +87,22 @@ export default defineStore("PatternStore", () => {
 					}
 
 					if (isMatch) {
-						targetPattern = pattern;
+						// targetPattern = pattern;
+						matchs.push(pattern);
 						break;
 					}
 				} else {
 					// 过滤器表达式为空直接将当前方案定为目标方案
-					targetPattern = pattern;
+					matchs.push(pattern);
 					break;
 				}
 			}
 			// console.log(targetPattern);
-			if (!targetPattern) {
-				targetPattern = defaultPattern;
+			if (matchs.length === 0) {
+				matchs.push(defaultPattern);
 			}
 		}
-		console.log("初始方案", targetPattern);
-		if (targetPattern) {
-			used.id = targetPattern.id;
-			editing.pid = targetPattern.id;
-			if (targetPattern.rules.length) {
-				editing.rid = targetPattern.rules[0].id;
-			}
-			// return targetPattern.id;
-			//? 初始化filter
-			// initFilter(targetPattern);
-		} else {
-			// s 没有匹配到则使用默认规则
-			used.id = "#";
-			// return "#";
-		}
+		return matchs;
 	}
 
 	// s 当前方案信息
@@ -255,58 +259,6 @@ export default defineStore("PatternStore", () => {
 		}
 	}
 
-	// 粘贴方案
-	function pastePattern() {
-		navigator.clipboard
-			.readText()
-			.then((dataStr) => {
-				console.log("剪贴板文本：", dataStr);
-				// 先尝试解析成一个对象
-				let obj: any;
-				try {
-					obj = JSON.parse(dataStr);
-				} catch (e) {
-					ElNotification({
-						type: "error",
-						title: "失败",
-						message: "剪贴板内容解析失败",
-						appendTo: ".resource-extractor__notification",
-					});
-					return;
-				}
-				// 如果成功解析成对象,则进一步尝试解析为方案
-				let pattern: Pattern | false = false;
-				try {
-					pattern = new Pattern(obj);
-					// 如果成功解析为方案则添加为方案
-					list.value.push(pattern);
-					saveUserPatternInfo();
-					ElNotification({
-						type: "success",
-						title: "成功",
-						message: "成功解析为方案",
-						appendTo: ".resource-extractor__notification",
-					});
-				} catch (e) {
-					// 如果解析失败则提示错误
-					ElNotification({
-						type: "error",
-						title: "失败",
-						message: "剪贴板内容不符合方案的数据格式",
-						appendTo: ".resource-extractor__notification",
-					});
-				}
-			})
-			.catch(() => {
-				ElNotification({
-					type: "error",
-					title: "失败",
-					message: "剪贴板内容读取失败",
-					appendTo: ".resource-extractor__notification",
-				});
-			});
-	}
-
 	return {
 		list,
 		used,
@@ -317,9 +269,9 @@ export default defineStore("PatternStore", () => {
 		getUserPatternInfo,
 		saveUserPatternInfo,
 		setInitPattern,
+		getMatchPatterns,
 		createPattern,
 		deletePattern,
-		pastePattern,
 		findPattern,
 		findPatternIndex,
 		getCurrentPattern,

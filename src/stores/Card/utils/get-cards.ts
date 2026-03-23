@@ -129,16 +129,22 @@ export default function getCard(rule: Rule, options: Partial<Options>) {
 										// 	sourceValue,
 										// );
 									}
-									// 推断类型
-									try {
-										meta.type = inferUrlType(new URL(sourceValue));
-										// console.log(
-										// 	`(${i}) source 元信息类型推断成功:`,
-										// 	meta,
-										// 	sourceValue,
-										// );
-									} catch {}
 								}
+
+								// 推断类型
+								try {
+									if (rule.source.assertionType !== "auto") {
+										meta.type = rule.source.assertionType;
+									} else {
+										if (!meta.valid || meta.type === "unknown")
+											meta.type = inferUrlType(new URL(sourceValue));
+									}
+									// console.log(
+									// 	`(${i}) source 元信息类型推断成功:`,
+									// 	meta,
+									// 	sourceValue,
+									// );
+								} catch {}
 
 								if (!meta.ext) {
 									meta.ext = getExtByUrl(sourceValue);
@@ -192,19 +198,17 @@ export default function getCard(rule: Rule, options: Partial<Options>) {
 										rule.preview.fix,
 									);
 
+									let meta: Meta;
+
 									if (previewValue === source.url && source.meta.valid) {
-										return {
-											url: previewValue,
-											dom,
-											meta: new Meta({ ...source.meta }),
-										};
+										meta = new Meta({ ...source.meta });
 									} else {
 										// 元信息获取
 										// console.timeLog(
 										// 	`任务：${i}`,
 										// 	"获取preview信息 => 尝试通过DOM获取元信息"
 										// );
-										let meta = await getMeta(dom, { url: previewValue }); // 获取元信息(通过dom)
+										meta = await getMeta(dom, { url: previewValue }); // 获取元信息(通过dom)
 										// console.log("第 1 次获取 preview 元信息 (dom)", meta);
 										if (!meta.valid) {
 											// console.timeLog(
@@ -217,17 +221,33 @@ export default function getCard(rule: Rule, options: Partial<Options>) {
 											// 	meta,
 											// );
 										}
-
-										if (!meta.ext) {
-											meta.ext = getExtByUrl(previewValue);
-										}
-
-										return {
-											url: previewValue,
-											dom,
-											meta,
-										};
 									}
+
+									// 推断类型
+									try {
+										if (rule.preview.assertionType !== "auto") {
+											meta.type = rule.preview.assertionType;
+										} else {
+											if (!meta.valid || meta.type === "unknown") {
+												meta.type = inferUrlType(new URL(previewValue));
+											}
+										}
+										// console.log(
+										// 	`(${i}) preview 元信息类型推断成功:`,
+										// 	meta,
+										// 	sourceValue,
+										// );
+									} catch {}
+
+									if (!meta.ext) {
+										meta.ext = getExtByUrl(previewValue);
+									}
+
+									return {
+										url: previewValue,
+										dom,
+										meta,
+									};
 								},
 							});
 						} else {
@@ -250,6 +270,10 @@ export default function getCard(rule: Rule, options: Partial<Options>) {
 								// 如果无效在使用匹配到的内容判断
 								preview.meta = await getMeta(preview.url);
 							}
+
+							// 由于没有启用 preview 匹配，所以使用 source 类型
+							preview.meta.type = source.meta.type;
+
 							if (!preview.meta.ext) {
 								preview.meta.ext = getExtByUrl(preview.url);
 							}
@@ -418,18 +442,31 @@ export default function getCard(rule: Rule, options: Partial<Options>) {
 							host: location.host,
 						};
 						// 对source进行进一步处理
-						source.url = await fixResult(source.url, rule.source.fix);
+						source.url = await fixResult(source.url.trim(), rule.source.fix);
 						// 获取source.meta
 						// 先使用dom进行判断
-						source.meta = await getMeta(source.dom as HTMLElement, {
-							url: source.url,
-						});
+						if (source.dom != null)
+							source.meta = await getMeta(source.dom, { url: source.url });
 
-						source.meta.ext = getExtByUrl(source.url);
 						// 如果还是获取到无效的元信息，则尝试通过url获取元信息 (前提是规则中没有启用 preview 匹配功能)
 						if (!source.meta.valid && !rule.preview.enable) {
 							// 如果无效在使用匹配到的内容判断
 							source.meta = await getMeta(source.url);
+						}
+
+						// 类型判断
+						try {
+							if (rule.source.assertionType !== "auto") {
+								source.meta.type = rule.source.assertionType;
+							} else {
+								if (!source.meta.valid || source.meta.type === "unknown") {
+									source.meta.type = inferUrlType(new URL(source.url));
+								}
+							}
+						} catch {}
+
+						if (!source.meta.ext) {
+							source.meta.ext = getExtByUrl(source.url);
 						}
 
 						// s 获取preview信息
@@ -467,13 +504,31 @@ export default function getCard(rule: Rule, options: Partial<Options>) {
 
 						// 获取preview.meta
 						// 先使用dom进行判断
-						preview.meta = await getMeta(preview.dom as HTMLElement, {
-							url: preview.url,
-						});
-						preview.meta.ext = getExtByUrl(preview.url);
+						if (preview.dom != null)
+							preview.meta = await getMeta(preview.dom, { url: preview.url });
+
 						if (!preview.meta.valid) {
 							// 如果无效在使用匹配到的内容判断
 							preview.meta = await getMeta(preview.url);
+						}
+
+						// 类型判断
+						try {
+							if (rule.preview.enable) {
+								if (rule.preview.assertionType !== "auto") {
+									preview.meta.type = rule.preview.assertionType;
+								} else {
+									if (!preview.meta.valid || preview.meta.type === "unknown") {
+										preview.meta.type = inferUrlType(new URL(preview.url));
+									}
+								}
+							} else {
+								preview.meta.type = source.meta.type;
+							}
+						} catch {}
+
+						if (!preview.meta.ext) {
+							preview.meta.ext = getExtByUrl(preview.url);
 						}
 
 						// s 获取description信息
@@ -555,7 +610,8 @@ export default function getCard(rule: Rule, options: Partial<Options>) {
 		}
 
 		let { run, stop } = useParallelTask(taskList, {
-			parallelCount: 4,
+			parallelCount: 3,
+			refillDelay: 250,
 			onTaskComplete: async (_index, _card, _completedCount, _stop) => {
 				// console.log("完成", card);
 			},
@@ -577,7 +633,7 @@ export default function getCard(rule: Rule, options: Partial<Options>) {
 
 // 获取在region模式下信息的处理函数
 async function handleRegionGetInfo<T>(options: {
-	rule: BaseMatch; // 规则对象
+	rule: BaseMatch | Omit<BaseMatch, "assertionType">; // 规则对象
 	regionDOM: HTMLElement | Document | null; // 区域DOM
 	targetDOM?: HTMLElement | undefined | null; // 指定DOM
 	callback: (value: string, dom: HTMLElement | null) => Promise<T>;

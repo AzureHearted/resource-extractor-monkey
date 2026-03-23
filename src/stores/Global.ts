@@ -1,6 +1,12 @@
-import { onMounted, reactive, ref, watch } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import { defineStore } from "pinia";
 import { GM_getValue, GM_setValue } from "$";
+import { useDark, usePreferredDark } from "@vueuse/core";
+
+import { StyleProvider, Themes } from "@varlet/ui";
+import { menuConfig } from "@/views/layout/menuConfig";
+
+type Theme = "light" | "dark" | "auto";
 
 export default defineStore("Global", () => {
 	/** 窗口打开状态 */
@@ -8,7 +14,7 @@ export default defineStore("Global", () => {
 	/** 导航是否折叠 */
 	const navCollapse = ref(true);
 	/** 当前标签页 */
-	const tab = ref("Gallery");
+	const tab = ref<(typeof menuConfig)[number]["key"]>("Gallery");
 
 	/** 图库状态配置 */
 	const galleryState = reactive({
@@ -22,7 +28,40 @@ export default defineStore("Global", () => {
 		column: 5,
 		/** 页面加载后使用匹配的方案（如果没有，则使用默认方案）获取页面资源 @default false */
 		pageLoadedGetResource: true,
+		/** 主题 */
+		theme: "auto" as Theme,
 	});
+
+	// 判断当前系统主题偏好是否是暗黑模式
+	const isSystemDarkTheme = usePreferredDark();
+
+	const isDark = useDark();
+
+	/** 当前主题 */
+	const theme = computed<Omit<Theme, "auto">>(() => {
+		if (galleryState.theme === "auto") {
+			return isDark.value ? "dark" : "light";
+		} else {
+			return galleryState.theme;
+		}
+	});
+
+	watch(
+		() => galleryState.theme,
+		(t) => {
+			updataTheme(t);
+		},
+	);
+
+	function updataTheme(theme: Theme) {
+		if (theme !== "auto") {
+			isDark.value = theme === "dark";
+			StyleProvider(theme === "dark" ? Themes.dark : null);
+		} else {
+			isDark.value = isSystemDarkTheme.value;
+			StyleProvider(isSystemDarkTheme.value ? Themes.dark : null);
+		}
+	}
 
 	// w 组件挂载时从油猴存储内读取配置
 	onMounted(() => {
@@ -43,6 +82,7 @@ export default defineStore("Global", () => {
 				galleyLayout: "grid",
 				column: 5,
 				pageLoadedGetResource: false,
+				theme: "auto",
 			},
 		);
 
@@ -52,6 +92,7 @@ export default defineStore("Global", () => {
 		galleryState.column = galleryStateRowInfo.column || 5;
 		galleryState.pageLoadedGetResource =
 			galleryStateRowInfo.pageLoadedGetResource;
+		galleryState.theme = galleryStateRowInfo.theme || "auto";
 	}
 
 	// 监听 galleryState
@@ -64,5 +105,12 @@ export default defineStore("Global", () => {
 		{ deep: true },
 	);
 
-	return { openWindow, tab, navCollapse, galleryState };
+	return {
+		openWindow,
+		tab,
+		navCollapse,
+		galleryState,
+		theme,
+		updataTheme,
+	};
 });
