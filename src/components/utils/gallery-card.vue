@@ -1,6 +1,6 @@
 <template>
 	<BaseCard
-		class="gallery-card"
+		class="re-gallery-card"
 		:data-id="data.id"
 		background-color="transparent"
 		style="border: unset"
@@ -9,115 +9,111 @@
 		:data-preview-type="data.preview.meta.type"
 		:data-checked="data.isSelected"
 		layout="absolute"
+		:data-theme="globalStore.theme"
 	>
 		<!-- s 卡片顶部 -->
 		<template #header>
-			<div class="gallery-card-header">
-				<!-- s header左侧 -->
-				<div class="gallery-card-header-left">
-					<!-- s 复选框 -->
-					<div class="card-checkbox">
-						<!-- s 选中复选框 -->
-						<BaseCheckbox
-							v-if="showCheckBox"
-							:checked="data.isSelected"
-							@change="emits('change:selected', $event)"
-						/>
-						<!-- s 收藏复选框 -->
-						<BaseCheckbox
-							v-if="showFavoriteButton && data.isLoaded"
-							:checked="data.isFavorite"
-							checked-color="red"
-							@change="emits('toggle-favorite', $event)"
+			<n-flex class="re-gallery-card__header" :size="4" :wrap="false">
+				<n-checkbox size="small" v-model:checked="data.isSelected">
+					<span
+						class="re-gallery-card-header-title"
+						:title="data.description.content"
+					>
+						<BaseHighlightText
+							:text="data.description.content"
+							:keyword="highlightKey"
 						>
-							<template #checked>
-								<icon-mdi-favorite />
+						</BaseHighlightText>
+					</span>
+				</n-checkbox>
+				<!-- s 删除按钮 -->
+				<n-popconfirm
+					v-if="showDeleteButton"
+					@positive-click="$emit('delete', data.id)"
+					positive-text="确定"
+					negative-text="取消"
+					to=".resource-extractor__notification"
+				>
+					<template #trigger>
+						<n-button size="small" type="error" text>
+							<template #icon>
+								<icon-material-symbols-delete />
 							</template>
-							<template #un-checked>
-								<icon-mdi-favorite-border />
-							</template>
-						</BaseCheckbox>
-					</div>
-				</div>
-				<!-- s header右侧 -->
-				<div v-if="data.isLoaded" class="gallery-card-header-right">
-					<!-- s 卡片按钮组 -->
-					<div class="card-button-group">
-						<!-- s 自定义按钮组 -->
-						<el-button-group size="small">
-							<slot name="custom-button" :openUrl="openUrl"></slot>
-						</el-button-group>
-						<el-button-group size="small">
-							<!-- s 删除 -->
-							<el-button
-								v-if="showDeleteButton"
-								type="danger"
-								@click="emits('delete', data.id)"
-							>
-								<template #icon>
-									<icon-material-symbols-delete />
-								</template>
-							</el-button>
-						</el-button-group>
-						<el-button-group size="small">
-							<!-- s 重命名 -->
-							<el-button type="primary" @click="rename(data)" title="重命名">
-								<template #icon>
-									<icon-ep-edit />
-								</template>
-							</el-button>
-						</el-button-group>
-						<el-button-group size="small">
-							<!-- s 在页面中定位 -->
-							<el-button
-								type="primary"
-								@click="toLocate(data)"
-								v-if="data.source.dom"
-								title="在页面中定位"
-							>
-								<template #icon>
-									<icon-material-symbols-location-on-outline />
-								</template>
-							</el-button>
-							<!-- s 下载(图片或视频类) -->
-							<el-button
-								v-if="
-									(data.source.meta.type === 'image' ||
-										data.preview.meta.type === 'image' ||
-										data.source.meta.type === 'zip' ||
-										data.preview.meta.type === 'zip' ||
-										data.source.meta.type === 'video' ||
-										data.preview.meta.type === 'video') &&
-									showDownloadButton
-								"
-								:loading="data.downloading"
-								type="success"
-								title="下载"
-								@click="emits('download', data.id)"
-							>
-								<template #icon>
-									<icon-material-symbols-download />
-								</template>
-							</el-button>
-							<!-- s 打开(网址类) -->
-							<el-button
-								v-if="data.source.meta.type === 'html'"
-								type="default"
-								@click="openUrl(data.source.url)"
-								title="打开地址"
-							>
-								<template #icon>
-									<icon-material-symbols-open-in-new-rounded />
-								</template>
-							</el-button>
-						</el-button-group>
-					</div>
-				</div>
-			</div>
+						</n-button>
+					</template>
+					<template #icon>
+						<icon-material-symbols-delete />
+					</template>
+					确认删除？
+				</n-popconfirm>
+				<!-- s 其他按钮插槽 -->
+				<slot name="custom-button" :openUrl="openUrl"></slot>
+				<!-- s 重命名 -->
+				<n-button type="info" text @click="rename(data)" title="重命名">
+					<template #icon>
+						<icon-ep-edit />
+					</template>
+				</n-button>
+				<!-- s 在页面中定位 -->
+				<n-button
+					type="warning"
+					text
+					@click="toLocate(data)"
+					v-if="data.source.dom"
+					title="在页面中定位"
+				>
+					<template #icon>
+						<icon-material-symbols-location-on-outline />
+					</template>
+				</n-button>
+				<!-- s 下载(图片或视频类) -->
+				<n-button
+					v-if="
+						(data.source.meta.type === 'image' ||
+							data.source.meta.type === 'zip' ||
+							data.source.meta.type === 'video' ||
+							data.source.meta.type === 'html') &&
+						showDownloadButton
+					"
+					:loading="data.downloading"
+					type="success"
+					text
+					title="下载"
+					@click="emits('download', data.id)"
+				>
+					<template #icon>
+						<icon-material-symbols-download />
+					</template>
+				</n-button>
+				<!-- s 打开(网址类) -->
+				<n-button
+					v-if="data.source.meta.type === 'html'"
+					type="success"
+					text
+					@click="openUrl(data.source.url)"
+					title="打开地址"
+				>
+					<template #icon>
+						<icon-material-symbols-open-in-new-rounded />
+					</template>
+				</n-button>
+				<n-button
+					v-if="showFavoriteButton"
+					size="small"
+					:color="data.isFavorite ? 'red' : ''"
+					text
+					@click="$emit('toggle-favorite', !data.isFavorite)"
+				>
+					<template #icon>
+						<icon-mdi-favorite v-if="data.isFavorite" />
+						<icon-mdi-favorite-border v-else />
+					</template>
+				</n-button>
+			</n-flex>
 		</template>
-		<!-- s 卡片主体(图片) -->
+		<!-- s 卡片封面 (图片、视频) -->
 		<template #default>
-			<div ref="imgWrapRef" style="height: 100%" :data-id="data.id">
+			<div class="re-gallery-card__content" :data-id="data.id">
 				<template v-if="data.preview.meta.type === 'image'">
 					<!-- s 纯图片类型 -->
 					<BaseImg
@@ -161,7 +157,6 @@
 							data.source.meta.type === 'html'
 						"
 						muted
-						hover-play
 						hover-anew-start
 						loop
 						:show-controls="false"
@@ -177,7 +172,6 @@
 				<!-- s html的其他类型 -->
 				<template v-else>
 					<BaseImg
-						src=""
 						:init-show="true"
 						@mounted="emits('mounted')"
 						@loaded="emits('loaded', data.id, $event)"
@@ -194,7 +188,7 @@
 		</template>
 		<!-- s 卡片底部 -->
 		<template #footer>
-			<div class="gallery-card-footer" align="center" :size="2">
+			<n-flex class="re-gallery-card__footer" align="center" :size="2">
 				<!-- s 额外标签 -->
 				<div v-if="false" class="extra-tag-list">
 					<BaseLineOverFlowList
@@ -254,55 +248,41 @@
 					</BaseLineOverFlowList>
 				</div>
 				<!-- s 基本信息标签 -->
-				<div class="base-tag-list">
-					<!-- s 描述标签 -->
-					<el-tag
-						class="base-tag-list__title-tag"
-						type="info"
-						size="small"
-						:title="data.description.content.trim()"
-					>
-						<!-- <span v-html="description"></span> -->
-						<BaseHighlightText
-							:text="data.description.content"
-							:keyword="highlightKey"
-						></BaseHighlightText>
-					</el-tag>
+				<n-flex class="base-tag-list" :size="4">
 					<!-- s 尺寸信息 -->
-					<el-tag
-						class="base-tag-list__scale-tag"
+					<n-tag
 						v-if="data.source.meta.type === 'image' && data.isLoaded"
 						size="small"
+						type="primary"
 						:title="`${validMeta.width}x${validMeta.height}`"
 					>
 						{{ validMeta.width }}x{{ validMeta.height }}
-					</el-tag>
+					</n-tag>
 					<!-- s 扩展名信息 -->
-					<el-tag
-						class="base-tag-list__ext-tag"
+					<n-tag
 						v-if="
 							!!data.source.meta.ext &&
 							data.isLoaded &&
 							data.source.meta.type != 'html'
 						"
 						size="small"
+						strong
+						type="info"
 						:title="data.source.meta.ext"
 					>
 						{{ data.source.meta.ext }}
-					</el-tag>
+					</n-tag>
 					<!-- s 网页标签 -->
-					<el-tag
-						class="base-tag-list__html-tag"
+					<n-tag
 						v-if="data.source.meta.type === 'html'"
 						type="warning"
 						size="small"
 						title="网页"
 					>
 						网页
-					</el-tag>
+					</n-tag>
 					<!-- s 文件大小信息 -->
-					<el-tag
-						class="base-tag-list__size-tag"
+					<n-tag
 						v-if="
 							!!data.source.blob && !!data.source.blob.size && data.isLoaded
 						"
@@ -311,25 +291,24 @@
 						:title="size"
 					>
 						{{ size }}
-					</el-tag>
-				</div>
-			</div>
+					</n-tag>
+				</n-flex>
+			</n-flex>
 		</template>
 	</BaseCard>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, h, ref } from "vue";
 import type { ComputedRef } from "vue";
 import BaseCard from "@/components/base/base-card.vue";
 import BaseImg from "@/components/base/base-img.vue";
 import BaseVideo from "@/components/base/base-video.vue";
-import BaseCheckbox from "@/components/base/base-checkbox.vue";
 import BaseLineOverFlowList from "@/components/base/base-line-overflow-list.vue";
 import { Card } from "@/models/Card/Card";
 import type { ImgReadyInfo } from "@/components/base/base-img.vue";
 import { GM_openInTab } from "$";
-import { ElMessageBox } from "@/plugin/element-plus";
+import { useDialog } from "@/plugin/naive-ui";
 // 导入公用TS库
 import { byteAutoUnit, legalizationPathString } from "@/utils/common";
 // 导入svg
@@ -338,6 +317,10 @@ import HtmlTypeImg from "@svg/html.svg";
 import { useGlobalStore } from "@/stores";
 import { storeToRefs } from "pinia";
 import BaseHighlightText from "../base/base-highlight-text.vue";
+import FilenameInputVue from "./filename-input.vue/filename-input.vue.vue";
+import { NButton, NFlex, type FormValidationStatus } from "naive-ui";
+
+const dialog = useDialog();
 
 const globalStore = useGlobalStore();
 const { galleryState } = storeToRefs(globalStore);
@@ -436,26 +419,83 @@ function toLocate(item: Card) {
 	}); // 滚动到指定元素位置，平滑滚动，并居中显示。
 	globalStore.openWindow = false;
 }
+
 // f 重命名
-function rename(item: Card) {
-	// 删除卡片数据模型中的卡片。
-	ElMessageBox.prompt(`重命名卡片"${item.description.content}"为……`, "重命名", {
-		appendTo: ".resource-extractor__notification",
-		confirmButtonText: "确认",
-		cancelButtonText: "取消",
-		inputPlaceholder: "请输入新卡片名称",
-		inputValue: legalizationPathString(item.description.content),
-		draggable: true,
-	})
-		.then(({ value: newName }) => {
-			// 确认
-			item.description.content = legalizationPathString(newName);
-			// 触发标题变化事件
-			emits("change:title", item.id!, item.description.content);
-		})
-		.catch(() => {
-			// 取消
+async function rename(card: Card) {
+	const initName = card.description.content;
+
+	let res = await new Promise<{ value: string; isOk: boolean }>((resolve) => {
+		const text = ref(legalizationPathString(initName));
+		const status = ref<FormValidationStatus>("success");
+		const allowPositive = computed(() => status.value !== "success");
+
+		const d = dialog.success({
+			title: "重命名",
+			// 内容自定义
+			content() {
+				return h(FilenameInputVue, {
+					name: text.value,
+					label: "新名称：",
+					placeholder: "输入要保存的文件名称",
+					clearable: true,
+					"onUpdate:name": (val) => {
+						text.value = val;
+					},
+					"onUpdata:status": (val) => {
+						status.value = val;
+					},
+				});
+			},
+			draggable: true,
+			closeOnEsc: true,
+			// 操作按钮自定义
+			action() {
+				return h(
+					NFlex,
+					{ size: 4 },
+					{
+						default: () => {
+							return [
+								h(
+									NButton,
+									{
+										type: "default",
+										style: "margin-right:12px",
+										onClick() {
+											resolve({ value: initName, isOk: false });
+											d.destroy();
+										},
+									},
+									{ default: () => "取消" },
+								),
+								h(
+									NButton,
+									{
+										type: "primary",
+										disabled: allowPositive.value,
+										onClick() {
+											resolve({ value: text.value, isOk: true });
+											d.destroy();
+										},
+									},
+									{ default: () => "确认" },
+								),
+							];
+						},
+					},
+				);
+			},
+			onMaskClick() {
+				resolve({ value: initName, isOk: false });
+			},
 		});
+	});
+
+	if (!res.isOk) return;
+	card.description.content = legalizationPathString(res.value);
+
+	// 触发标题变化事件;
+	emits("change:title", card.id!, card.description.content);
 }
 
 // f 打开网址
@@ -474,176 +514,87 @@ const handleTagsSave = (newTags: string[]) => {
 </script>
 
 <style lang="scss" scoped>
-// 卡片顶部
-.gallery-card-header {
-	position: relative;
-	display: flex;
-	padding: 2px;
-
-	pointer-events: none;
-	* {
-		pointer-events: auto;
-	}
-}
-
-:deep(.re-button) {
-	padding: 2px 4px;
-	border: unset;
-	box-shadow: var(--el-box-shadow);
-	.re-icon {
-		font-size: 16px;
-	}
-}
-
-// header左侧
-.gallery-card-header-left {
-	flex: 0;
-}
-
-// header右侧
-.gallery-card-header-right {
-	margin-left: auto;
-	display: flex;
-	flex-flow: row-reverse;
-	align-items: center;
-}
-
-// 卡片按钮组样式
-.card-button-group {
-	height: fit-content;
-	display: flex;
-	gap: 4px;
-	pointer-events: none;
-	transform: rotateX(-90deg);
-
-	opacity: 0;
-	visibility: hidden;
-	transform: scale(0.8); /* 可加轻微缩放效果 */
-	transition:
-		transform 0.5s ease,
-		opacity 0.5s ease,
-		visibility 0s ease 0.5s;
-}
-
-// 卡片悬浮时才显示按钮组
-.gallery-card:hover .gallery-card-header-right .card-button-group {
-	opacity: 1;
-	visibility: visible;
-	transform: scale(1); /* hover 放大到原始大小 */
-	transition:
-		transform 0.3s ease,
-		opacity 0.3s ease,
-		visibility 0s ease;
-}
-
-.card-checkbox {
-	position: absolute;
-	display: flex;
-	// top: -2px;
-	// left: -2px;
-	transform: translate(-2px, -2px);
-	filter: drop-shadow(0 0 1px #ffffff);
-}
-
-// 卡片底部
-/* :deep(.base-card-footer) {
-	overflow: hidden;
-} */
-
-.gallery-card-footer {
-	display: flex;
-	flex-flow: row wrap;
-	overflow: hidden;
-	gap: 2px;
-	padding: 2px;
-
-	/* opacity: 0; */
-	/* visibility: hidden; */
-	/* transform: scale(0.8);  */
-	transition:
-		transform 0.3s,
-		opacity 0.3s ease,
-		visibility 0.3s ease;
-
-	pointer-events: none;
-	* {
-		pointer-events: auto;
-	}
-
-	// s 标签样式
-	:deep(span.re-tag) {
-		box-sizing: border-box;
-		line-height: 20px;
-		padding: 0 4px;
-		border: unset;
-
-		.re-tag__content {
-			overflow: hidden;
-			text-overflow: ellipsis;
-			white-space: nowrap;
-		}
-	}
-
-	// s 额外标签
-	.extra-tag-list {
-		flex: 1;
-		overflow: hidden;
-	}
-
-	.base-tag-list {
-		width: 100%;
+.re-gallery-card {
+	// 卡片的 header
+	&__header {
 		display: flex;
-		gap: 4px;
+		align-items: center;
 
-		& > * {
-			flex: content;
+		overflow: hidden;
+
+		line-height: 1;
+		padding: 0 4px;
+
+		backdrop-filter: blur(12px) saturate(1.2);
+		-webkit-backdrop-filter: blur(12px) saturate(1.2);
+		background-color: rgba(getTheme(light, background), 0.2);
+		color: getTheme(light, color);
+
+		:deep(.re-n-checkbox) {
+			flex: 1;
 			overflow: hidden;
+			text-wrap: nowrap;
 			text-overflow: ellipsis;
-			white-space: nowrap;
+
+			.re-n-checkbox-box-wrapper {
+				margin-left: 2px;
+			}
+
+			.re-n-checkbox__label {
+				overflow: hidden;
+				text-wrap: nowrap;
+				text-overflow: ellipsis;
+			}
 		}
 
-		.base-tag-list__title-tag {
-			min-width: 40px;
-		}
-
-		.base-tag-list__ext-tag,
-		.base-tag-list__html-tag,
-		.base-tag-list__scale-tag {
-			flex-shrink: 0;
+		// 卡片 header 暗黑样式
+		.re-gallery-card[data-theme="dark"] & {
+			background-color: rgba(getTheme(dark, background), 0.5);
+			color: getTheme(dark, color);
 		}
 	}
+	// 卡片的 footer
+	&__footer {
+		overflow: hidden;
+		padding: 2px;
 
-	// s 高亮文本样式
-	:deep(.highlight-keywords) {
-		background-color: yellow;
+		transition:
+			transform 0.3s,
+			opacity 0.3s ease,
+			visibility 0.3s ease;
+
+		pointer-events: none;
+		* {
+			pointer-events: auto;
+		}
+
+		// s 标签样式
+		:deep(span.re-tag) {
+			box-sizing: border-box;
+			line-height: 20px;
+			padding: 0 4px;
+			border: unset;
+
+			.re-tag__content {
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+		}
+
+		// s 额外标签
+		.extra-tag-list {
+			flex: 1;
+			overflow: hidden;
+		}
+
+		.base-tag-list {
+			width: 100%;
+		}
 	}
-}
-
-.gallery-card:hover .gallery-card-footer {
-	opacity: 1;
-	visibility: visible;
-	transform: scale(1); /* hover 放大到原始大小 */
-	/* transition: transform 0.3s ease 0.3s, opacity 0.3s ease 0.3s, visibility 0.3s ease 0.3s; */
-}
-
-.gallery-card[data-show="true"] .gallery-card-footer,
-.gallery-card:hover .gallery-card-footer {
-	transform: translateY(0);
-}
-
-// 进场过渡,退场过渡
-.v-enter-from,
-.v-leave-to {
-	position: absolute;
-	opacity: 0;
-}
-
-// 进入的过程中
-.v-enter-active {
-	transition: 0.4s;
-}
-// 离开的过程中
-.v-leave-active {
-	transition: 0.4s;
+	// 卡片的 content
+	&__content {
+		height: 100%;
+	}
 }
 </style>
