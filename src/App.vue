@@ -1,41 +1,55 @@
 <template>
 	<!-- s 脚本应用容器 -->
-	<div :data-host="state.host" ref="appDOM" class="resource-extractor">
+	<div
+		:data-host="state.host"
+		ref="appDOM"
+		class="resource-extractor"
+		:data-theme="globalStore.theme"
+	>
+		<div ref="stylesContainer" class="resource-extractor__styles"></div>
 		<!-- s 消息通知类信息容器 -->
-		<el-config-provider namespace="el">
-			<div class="resource-extractor__notification"></div>
-		</el-config-provider>
+		<div class="resource-extractor__notification"></div>
 		<!-- s 内容区 -->
-		<el-config-provider namespace="re">
-			<n-config-provider
-				namespace="re-n"
-				cls-prefix="re-n"
-				inline-theme-disabled
-				preflight-style-disabled
-				:hljs="state.hljs"
-				abstract
-			>
-				<!-- s 布局 -->
-				<Layout />
-				<!-- s 悬浮按钮 -->
-				<HoverButton :show="!globalStore.openWindow" />
-				<!-- s 顶层元素的承载容器 -->
-				<div
-					ref="subWindowContainerDOM"
-					class="resource-extractor__modal-container"
-				></div>
-			</n-config-provider>
-		</el-config-provider>
+		<n-config-provider
+			v-if="state.isMouted"
+			namespace="re-n"
+			cls-prefix="re-n"
+			inline-theme-disabled
+			preflight-style-disabled
+			:style-mount-target="stylesContainer"
+			:hljs="state.hljs"
+			abstract
+			:theme="globalStore.theme == 'dark' ? naiveUIdarkTheme : null"
+		>
+			<n-dialog-provider to=".resource-extractor__notification">
+				<n-notification-provider to=".resource-extractor__notification">
+					<!-- s 布局 -->
+					<Layout />
+				</n-notification-provider>
+			</n-dialog-provider>
+			<!-- s 悬浮按钮 -->
+			<HoverButton :show="!globalStore.openWindow" />
+			<!-- s 顶层元素的承载容器 -->
+			<div
+				ref="subWindowContainerDOM"
+				class="resource-extractor__modal-container"
+			></div>
+		</n-config-provider>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, defineAsyncComponent } from "vue";
+import { onMounted, reactive, defineAsyncComponent, useTemplateRef } from "vue";
 import HoverButton from "@/views/hover-button.vue";
 
+import {
+	darkTheme as naiveUIdarkTheme,
+	NDialogProvider,
+	NNotificationProvider,
+} from "naive-ui";
+
 // 导入仓库
-import useGlobalStore from "@/stores/GlobalStore";
-import usePatternStore from "@/stores/PatternStore";
+import { useGlobalStore, usePatternStore } from "@/stores";
 
 // 导入高亮语法
 import hljs from "highlight.js/lib/core";
@@ -48,11 +62,14 @@ hljs.registerLanguage("javascript", javascript);
 const globalStore = useGlobalStore();
 const patternStore = usePatternStore();
 
+const stylesContainer = useTemplateRef("stylesContainer");
+
 // s 状态数据
 const state = reactive({
 	hljs,
 	// 当前站点host
 	host: location.host,
+	isMouted: false,
 });
 
 // 异步导入Layout组件
@@ -64,6 +81,8 @@ onMounted(() => {
 	// s 用户配置信息获取
 	patternStore.getUserPatternInfo(); // 获取本地方案信息
 	patternStore.setInitPattern(); // 获取初始方案
+	globalStore.updataTheme(globalStore.galleryState.theme);
+	state.isMouted = true;
 });
 </script>
 
@@ -77,7 +96,6 @@ dialog {
 	margin: 0;
 	padding: 0;
 	border: none;
-	background-color: rgba(0, 0, 0, 0.5); /* 可选：添加背景色 */
 }
 
 // 布局容器(鼠标可以穿透，只用于划定组件的活动范围，不遮挡其他内容)
@@ -156,6 +174,7 @@ dialog {
 <style lang="scss">
 // 导入修复样式
 @use "./styles/website/index.scss" as *;
+@use "./styles/global.scss" as *;
 
 button i {
 	all: unset;
