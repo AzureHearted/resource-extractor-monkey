@@ -8,7 +8,7 @@ import { menuConfig } from "@/views/layout/menuConfig";
 
 type Theme = "light" | "dark" | "auto";
 
-export default defineStore("Global", () => {
+export const useGlobalStore = defineStore("Global", () => {
 	/** 窗口打开状态 */
 	const openWindow = ref(false);
 	/** 导航是否折叠 */

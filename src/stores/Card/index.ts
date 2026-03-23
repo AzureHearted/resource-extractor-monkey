@@ -21,7 +21,8 @@ import JSZip from "jszip";
 import { saveAs } from "file-saver"; //* 用于原生浏览器"保存"来实现文件保存
 
 // 导入其他仓库
-import { useLoadingStore, usePatternStore } from "@/stores";
+import { useLoadingStore } from "@/stores/Loading";
+import { usePatternStore } from "@/stores/Pattern";
 import { useDebounceFn } from "@vueuse/core";
 import { cloneDeep } from "lodash";
 import { NButton, NFlex, type FormValidationStatus } from "naive-ui";
@@ -30,7 +31,7 @@ import type { DialogApiInjection } from "naive-ui/es/dialog/src/DialogProvider";
 import type { NotificationApiInjection } from "naive-ui/es/notification/src/NotificationProvider";
 import FilenameInputVue from "@/components/utils/filename-input.vue/filename-input.vue.vue";
 
-export default defineStore("CardStore", () => {
+export const useCardStore = defineStore("CardStore", () => {
 	const loadingStore = useLoadingStore();
 	const patternStore = usePatternStore();
 

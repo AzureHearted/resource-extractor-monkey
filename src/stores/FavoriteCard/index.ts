@@ -3,13 +3,13 @@ import { computed, onActivated, reactive, ref, watch } from "vue";
 import { FavoriteCard } from "@/models/Card/FavoriteCard";
 import { naturalCompare } from "@/utils/common";
 import localforage from "localforage";
-import { useCardStore } from "@/stores";
+import { useCardStore } from "@/stores/Card";
 import { useDebounceFn } from "@vueuse/core";
 import { useListIndexedDB } from "@/hooks/useIndexedDB";
 import type { Meta } from "@/models/Card/Meta";
 import type { Card } from "@/models/Card/Card";
 
-export default defineStore("FavoriteStore", () => {
+export const useFavoriteStore = defineStore("FavoriteStore", () => {
 	const cardStore = useCardStore();
 	// s 基础信息
 	const info = reactive({

@@ -8,7 +8,7 @@ import {
 	setUserPatternList,
 } from "./utils/handle-user-data";
 
-export default defineStore("PatternStore", () => {
+export const usePatternStore = defineStore("PatternStore", () => {
 	// s 方案列表
 	const list = ref<Pattern[]>([defaultPattern]);
 
