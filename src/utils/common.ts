@@ -235,7 +235,7 @@ export function strAutofill(
 	str: string,
 	fillContent: string | number,
 	fillLength: number,
-	direction: "prefix" | "suffix" = "prefix"
+	direction: "prefix" | "suffix" = "prefix",
 ): string {
 	if (direction === "prefix") {
 		// 前缀填充
@@ -345,7 +345,7 @@ export function GM_storage(
 	options: Partial<GM_storageOptions> & {
 		method: "set" | "get";
 		name: string;
-	}
+	},
 ) {
 	const defaultOptions: GM_storageOptions = {
 		method: "get",
@@ -363,18 +363,19 @@ export function GM_storage(
 
 // f 合法化路径字符串
 export function legalizationPathString(str: string) {
+	console.log(`准备处理：${str}`);
 	return safeDecodeURI(str)
-		.replace("*", "×")
-		.replace("/", "／")
-		.replace("⁄", "／")
-		.replace("\\", "＼")
-		.replace("|", "︱")
-		.replace(":", "：")
-		.replace("?", "？")
-		.replace('"', "＂")
-		.replace("<", "＜")
-		.replace(">", "＞")
-		.replace("$", "＄");
+		.replace(/\*/g, "×")
+		.replace(/\//g, "／")
+		.replace(/⁄/g, "／")
+		.replace(/\\/g, "＼")
+		.replace(/\|/g, "︱")
+		.replace(/\:/g, "：")
+		.replace(/\?/g, "？")
+		.replace(/"/g, "＂")
+		.replace(/\</g, "＜")
+		.replace(/\>/g, "＞")
+		.replace(/\$/g, "＄");
 }
 
 // f 判断两个URL字符串是否相等(可选择是否包含search查询部分)
@@ -384,7 +385,7 @@ export function isEqualUrl(
 	option?: {
 		/**是否排除查询字符串(默认值:false) */
 		excludeSearch?: boolean;
-	}
+	},
 ) {
 	const { excludeSearch: includeSearch } = {
 		...({ includeSearch: false } as { includeSearch: boolean }), // s 默认配置对象
@@ -469,7 +470,7 @@ export function getDOMBoxValue(
 		| "border-top-width"
 		| "border-right-width"
 		| "border-bottom-width"
-		| "border-left-width"
+		| "border-left-width",
 ) {
 	const computedStyle = window.getComputedStyle(element);
 	return parseInt(computedStyle.getPropertyValue(property as string), 10);
