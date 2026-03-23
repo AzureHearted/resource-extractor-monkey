@@ -1,5 +1,5 @@
 <template>
-	<div class="resource-extractor__main">
+	<div class="resource-extractor__main" :data-theme="globalStore.theme">
 		<n-layout has-sider>
 			<n-layout-sider
 				v-if="false"
@@ -52,7 +52,7 @@ import { isMobile as judgeIsMobile } from "@/utils/common";
 import NavMenu from "./layout-nav-menu.vue";
 
 import { storeToRefs } from "pinia";
-import useGlobalStore from "@/stores/GlobalStore";
+import { useGlobalStore } from "@/stores";
 const globalStore = useGlobalStore();
 const { tab: activeKey, navCollapse: collapsed } = storeToRefs(globalStore);
 
@@ -85,16 +85,8 @@ const nowPage = computed(() => {
 	height: 100%;
 	overflow: hidden;
 	display: flex;
-}
 
-:deep(.re-n-layout) {
-	background: unset;
-
-	.re-n-layout-sider {
-		background: rgba(255, 255, 255, 0.3);
-		backdrop-filter: blur(10px);
-	}
-	.re-n-card {
+	:deep(.re-n-layout) {
 		background: unset;
 	}
 }

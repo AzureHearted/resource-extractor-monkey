@@ -1,6 +1,6 @@
 <template>
-	<div class="resource-extractor__app-bar">
-		<!-- s 移动端的菜单按钮 -->
+	<div class="re__app-bar" :data-theme="theme">
+		<!-- s 菜单按钮 -->
 		<n-button
 			circle
 			:bordered="false"
@@ -8,7 +8,7 @@
 			@mouseenter="!isMobile && (navCollapse = false)"
 		>
 			<template #icon>
-				<icon-ep-menu />
+				<component :is="menuIcon" />
 			</template>
 		</n-button>
 		<!-- ! 侧边导航菜单抽屉 -->
@@ -32,8 +32,8 @@
 			</n-drawer-content>
 		</n-drawer>
 		<!-- s 标题 -->
-		<div class="resource-extractor__app-bar__title">
-			<div class="resource-extractor__app-bar__title__left">
+		<div class="re__app-bar__title">
+			<div class="re__app-bar__title__left">
 				<n-gradient-text type="primary">
 					Resource Extractor &nbsp;
 				</n-gradient-text>
@@ -41,7 +41,7 @@
 					{{ VERSION + (isDevMode ? " (dev)" : "") }}
 				</n-tag>
 			</div>
-			<div class="resource-extractor__app-bar__title__right">
+			<div class="re__app-bar__title__right">
 				<!-- s 布局切换按钮 -->
 				<n-radio-group
 					v-if="currentTab === 'Gallery' || currentTab === 'Favorite'"
@@ -81,46 +81,60 @@
 
 <script setup lang="ts">
 import { GM_info } from "$";
-import { ref, onMounted, onActivated } from "vue";
+import { ref, onMounted, onActivated, computed, h } from "vue";
 import { storeToRefs } from "pinia";
-import useGlobalStore from "@/stores/GlobalStore"; //导入全局仓库
+import { Icon } from "@iconify/vue";
 import NavMenu from "./layout-nav-menu.vue";
 
 import { isMobile as judgeIsMobile } from "@/utils/common";
+import { menuConfig } from "./menuConfig";
+
+import { useGlobalStore } from "@/stores"; //导入全局仓库
+
 const globalStore = useGlobalStore();
-const { navCollapse, galleryState, tab: currentTab } = storeToRefs(globalStore);
-// ? 导入版本号
+const {
+	navCollapse,
+	galleryState,
+	tab: currentTab,
+	theme,
+} = storeToRefs(globalStore);
+
+// 版本号
 const VERSION = GM_info.script.version;
 
+// 是否为开发模式
 const isDevMode = import.meta.env.DEV;
 
 const isMobile = ref(false);
+
 onMounted(() => {
 	isMobile.value = judgeIsMobile();
 });
 onActivated(() => {
 	isMobile.value = judgeIsMobile();
 });
+
+const menuIcon = computed(() => {
+	const icon =
+		menuConfig.find((m) => m.key === globalStore.tab)?.icon ?? "ep-menu";
+	return h(Icon, { icon });
+});
 </script>
 
-<style lang="scss" scoped>
-@use "@/styles/shadow.scss" as shadow;
-
-.resource-extractor__app-bar {
+<style scoped lang="scss">
+.re__app-bar {
 	display: flex;
 	height: 34px;
 	line-height: 34px;
 
-	background: white;
+	background: getTheme(light, background);
 	align-items: center;
-	box-shadow:
-		shadow.$elevation,
-		inset 0 0 10px rgba(128, 128, 128, 0.6);
+	box-shadow: getTheme(light, box-shadow);
 
 	&__title {
 		flex: 1;
 		height: 100%;
-		margin-left: 16px;
+		margin-left: 4px;
 		font-size: 20px;
 		text-align: left;
 		display: flex;
@@ -128,22 +142,34 @@ onActivated(() => {
 		overflow: hidden;
 		text-overflow: ellipsis;
 
-		.resource-extractor__app-bar__title__left {
+		&__left {
 			white-space: nowrap;
 			overflow: hidden;
 			text-overflow: ellipsis;
 		}
 
-		.resource-extractor__app-bar__title__right {
+		&__right {
 			display: flex;
 			align-items: center;
 			margin-left: auto;
 			padding: 4px 4px;
+
+			& > * {
+				margin-right: 6px;
+			}
+			& > *:last-child {
+				margin-right: 0px;
+			}
 
 			:deep(.re-n-radio-button) {
 				padding: 0 8px;
 			}
 		}
 	}
+}
+
+.re__app-bar[data-theme="dark"] {
+	background: getTheme(dark, background);
+	box-shadow: getTheme(dark, box-shadow);
 }
 </style>

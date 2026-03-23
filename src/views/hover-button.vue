@@ -10,7 +10,7 @@
 	>
 		<template #default>
 			<n-badge
-				:value="filterCardList.all.length"
+				:value="cardStoreData.cardList.length"
 				:max="999"
 				type="info"
 				style="user-select: none"
@@ -50,13 +50,22 @@
 				/>
 			</div>
 			<!-- s 收藏 -->
-			<div
-				style="overflow: hidden; border-radius: 50%"
-				v-ripple
-				@click="toggleWindow('Favorite')"
+
+			<n-badge
+				:value="favoriteCardList.length"
+				:processing="loading"
+				:max="999"
+				type="info"
+				style="user-select: none; width: 100%; height: 100%"
 			>
-				<icon-mdi-favorite style="width: 100%; height: 100%; scale: 0.75" />
-			</div>
+				<div
+					style="overflow: hidden; border-radius: 50%"
+					v-ripple
+					@click="toggleWindow('Favorite')"
+				>
+					<icon-mdi-favorite style="width: 100%; height: 100%; scale: 0.75" />
+				</div>
+			</n-badge>
 			<!-- s 方案管理 -->
 			<div
 				style="overflow: hidden; border-radius: 50%"
@@ -69,7 +78,7 @@
 			</div>
 			<!-- s 图库 -->
 			<n-badge
-				:value="filterCardList.all.length"
+				:value="cardStoreData.cardList.length"
 				:processing="loading"
 				:max="999"
 				type="info"
@@ -95,22 +104,30 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
+import { ref, onMounted, onActivated } from "vue";
 
 import BaseHoverButton from "@/components/base/base-hover-button/base-hover-button.vue";
 
 import { isMobile as judgeIsMobile } from "@/utils/common";
 import { storeToRefs } from "pinia";
-import useGlobalStore from "@/stores/GlobalStore"; //导入全局仓库
-import useCardStore from "@/stores/CardStore";
-import useLoadingStore from "@/stores/LoadingStore";
+import {
+	useCardStore,
+	useGlobalStore,
+	useLoadingStore,
+	useFavoriteStore,
+} from "@/stores";
 
 import { vRipple } from "@/hooks/useBaseRipple";
 
 const globalStore = useGlobalStore();
 const { openWindow, tab } = storeToRefs(globalStore);
+
 const cardStore = useCardStore();
-const { filterCardList } = storeToRefs(cardStore);
+const { data: cardStoreData } = storeToRefs(cardStore);
+
+const favoriteStore = useFavoriteStore();
+const { cardList: favoriteCardList } = storeToRefs(favoriteStore);
+
 const loadingStore = useLoadingStore();
 const { loading } = storeToRefs(loadingStore);
 
@@ -128,32 +145,23 @@ withDefaults(
 	},
 );
 
-// s 移动端标识符
 const isMobile = ref(false);
+
 onMounted(() => {
 	isMobile.value = judgeIsMobile();
 });
 
-// s 状态信息
-const state = reactive({
-	scrolling: false,
-	scrollingToDown: false,
-	scrollingToUp: false,
-	mounted: false,
-});
-
-onMounted(() => {
-	state.mounted = true;
+onActivated(() => {
+	isMobile.value = judgeIsMobile();
 });
 
 // f 切换窗口显示
-function toggleWindow(name?: string) {
+function toggleWindow(name?: typeof tab.value) {
 	active.value = false;
 	if (name) {
 		tab.value = name;
 		openWindow.value = true;
 	} else {
-		// tab.value = "Gallery";
 		openWindow.value = !openWindow.value;
 	}
 }

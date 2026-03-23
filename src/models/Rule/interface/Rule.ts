@@ -1,3 +1,4 @@
+import type { Meta } from "@/models/Card/Meta";
 import type { Status } from "@/models/Pattern/interface/Pattern";
 
 // 匹配规则
@@ -27,7 +28,8 @@ export interface RawRule {
 
 // 基础匹配接口
 export interface BaseMatch {
-	selector: string; // 选择器(多个时用竖线“|”分隔)
+	/** 选择器(多个时用竖线“|”分隔) */
+	selector: string;
 	infoType:
 		| "value"
 		| "attribute"
@@ -35,8 +37,12 @@ export interface BaseMatch {
 		| "innerText"
 		| "innerHTML"
 		| "outerHTML";
-	name: string; // 属性名(多个时用竖线“|”分隔)
-	fix: BaseFix[]; // 修正
+	/** 属性名(多个时用竖线“|”分隔) */
+	name: string;
+	/** 修正 */
+	fix: BaseFix[];
+	/** 断言资源类型 (为null或undefined时会自动进行判断) */
+	assertionType: "auto" | Meta["type"];
 }
 
 // s 匹配区域
@@ -55,7 +61,7 @@ export interface Preview extends BaseMatch {
 }
 
 // s 匹配描述内容
-export interface Description extends BaseMatch {
+export interface Description extends Omit<BaseMatch, "assertionType"> {
 	enable: boolean;
 	origin: "custom" | "region" | "source" | "preview"; // 获取来源
 }
@@ -77,7 +83,10 @@ interface BaseMatchRegReplace extends BaseRegex {
 	type: "regex-replace";
 }
 // s 获取页面并提取内容
-interface BaseMatchFetchPageAndExtractContent extends Omit<BaseMatch, "fix"> {
+interface BaseMatchFetchPageAndExtractContent extends Omit<
+	BaseMatch,
+	"fix" | "assertionType"
+> {
 	type: "fetch-page-and-extract-content";
 }
 

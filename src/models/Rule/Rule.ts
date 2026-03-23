@@ -24,6 +24,7 @@ export class Rule implements IRule {
 		infoType: "property",
 		name: "",
 		fix: [],
+		assertionType: "auto",
 	};
 	public preview: Preview = {
 		enable: false,
@@ -32,6 +33,7 @@ export class Rule implements IRule {
 		infoType: "property",
 		name: "",
 		fix: [],
+		assertionType: "auto",
 	};
 	public description: Description = {
 		enable: false,

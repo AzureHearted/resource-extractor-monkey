@@ -90,7 +90,7 @@ export function useBaseContextMenu(options?: BaseContextMenuOptions) {
 	 */
 	async function showContextMenu<T>(
 		event: PointerEvent,
-		options: Array<MenuOption<T>>
+		options: Array<MenuOption<T>>,
 	) {
 		try {
 			// 调用组件实例内部的 showMenu 方法

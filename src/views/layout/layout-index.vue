@@ -1,6 +1,7 @@
 <template>
 	<dialog
 		class="resource-extractor__layout"
+		:data-theme="globalStore.theme"
 		:data-open="globalStore.openWindow"
 		ref="containerDOM"
 		@keydown.esc="() => (globalStore.openWindow = false)"
@@ -13,7 +14,7 @@
 <script setup lang="ts">
 import { watch, onMounted, useTemplateRef } from "vue";
 
-import useGlobalStore from "@/stores/GlobalStore"; //导入全局仓库
+import { useGlobalStore } from "@/stores"; //导入全局仓库
 const globalStore = useGlobalStore();
 
 // 导入组件
@@ -66,8 +67,8 @@ watch(
 
 	overflow: hidden;
 
-	background: rgba(150, 150, 150, 0.3);
-	backdrop-filter: blur(10px);
+	background: rgba(getTheme(light, background), 0.1) !important;
+	backdrop-filter: getStyle(backdrop-filter) !important;
 
 	transition:
 		top 0.5s ease-in-out,
@@ -87,6 +88,10 @@ watch(
 		:deep(*) {
 			pointer-events: none !important;
 		}
+	}
+
+	&[data-theme="dark"] {
+		background: rgba(getTheme(dark, background), 0.1) !important;
 	}
 }
 

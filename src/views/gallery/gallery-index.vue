@@ -1,5 +1,5 @@
 <template>
-	<div ref="containerDOM" class="gallery__container">
+	<n-flex ref="containerDOM" class="gallery__container" vertical :size="0">
 		<!-- 顶部工具栏 -->
 		<GalleryToolbar />
 		<!-- 瀑布流 -->
@@ -27,7 +27,7 @@
 						</n-flex>
 					</template>
 					<keep-alive>
-						<GalleryBaseWaterfall
+						<GalleryBaseCardList
 							:card-list="filterCardList.image"
 							:search-keywords="filters.keyword"
 							:layout="galleryState.galleyLayout"
@@ -51,7 +51,7 @@
 						</n-flex>
 					</template>
 					<keep-alive>
-						<GalleryBaseWaterfall
+						<GalleryBaseCardList
 							:card-list="filterCardList.video"
 							:search-keywords="filters.keyword"
 							layout="waterfall"
@@ -74,7 +74,7 @@
 							</n-badge>
 						</n-flex>
 					</template>
-					<GalleryBaseWaterfall
+					<GalleryBaseCardList
 						:card-list="filterCardList.zip"
 						:search-keywords="filters.keyword"
 						:layout="galleryState.galleyLayout"
@@ -96,7 +96,7 @@
 							</n-badge>
 						</n-flex>
 					</template>
-					<GalleryBaseWaterfall
+					<GalleryBaseCardList
 						:card-list="filterCardList.html"
 						:search-keywords="filters.keyword"
 						:layout="galleryState.galleyLayout"
@@ -118,7 +118,7 @@
 							</n-badge>
 						</n-flex>
 					</template>
-					<GalleryBaseWaterfall
+					<GalleryBaseCardList
 						:card-list="filterCardList.unknown"
 						:search-keywords="filters.keyword"
 						:layout="galleryState.galleyLayout"
@@ -126,41 +126,36 @@
 				</BaseTabPane>
 			</BaseTabs>
 		</n-flex>
-	</div>
+	</n-flex>
 </template>
 
 <script setup lang="ts">
 import GalleryToolbar from "./gallery-toolbar.vue";
-import GalleryBaseWaterfall from "./gallery-base-card-list.vue";
+import GalleryBaseCardList from "./gallery-base-card-list.vue";
 import BaseTabs from "@/components/base/base-tabs/base-tabs.vue";
 import BaseTabPane from "@/components/base/base-tabs/base-tab-pane.vue";
 
 import { storeToRefs } from "pinia";
+import { useGlobalStore, useCardStore } from "@/stores";
 
-import useGlobalStore from "@/stores/GlobalStore";
 const globalStore = useGlobalStore();
 const { galleryState } = storeToRefs(globalStore);
 
-import useCardStore from "@/stores/CardStore";
 const cardStore = useCardStore();
 const { filterCardList, nowType, filters } = storeToRefs(cardStore);
 </script>
 
 <style lang="scss" scoped>
-// 画廊容器样式
 .gallery__container {
 	box-sizing: border-box;
 	width: 100%;
 	height: 100%;
-	display: flex;
-	flex-flow: column;
 	overflow: hidden;
 }
 
-// 瀑布流容器样式
 .gallery__content-wrap {
-	padding: 4px;
 	flex: 1; // 必须设置用来撑满容器
+	padding: 4px;
 	overflow: hidden; // 必须要设置溢出隐藏
 }
 

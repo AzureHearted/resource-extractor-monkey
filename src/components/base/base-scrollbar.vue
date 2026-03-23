@@ -207,7 +207,7 @@ const props = withDefaults(
 		hoverThumbPadding: 0,
 		offset: () => [1, 1],
 		teleportTo: false,
-	}
+	},
 );
 
 // s 滚动条滚动位置
@@ -244,7 +244,7 @@ watch(
 		} else {
 			scrollTo({ y, x });
 		}
-	}
+	},
 );
 
 // s 组件容器
@@ -314,7 +314,7 @@ useResizeObserver(viewportDOM, (entries) => {
 		viewportScrollX.value,
 		viewportScrollY.value,
 		scrollPercent.value.x,
-		scrollPercent.value.y
+		scrollPercent.value.y,
 	);
 	// ? 更新model-value
 	modelValueScrollY.value =
@@ -358,7 +358,7 @@ const { stop: stopMutationObserver } = useMutationObserver(
 		childList: true,
 		subtree: true,
 		attributes: true,
-	}
+	},
 );
 // 卸载组件时取消监听
 onUnmounted(() => stopMutationObserver());
@@ -504,7 +504,7 @@ const {
 			viewportScrollX.value,
 			viewportScrollY.value,
 			scrollPercent.value.x,
-			scrollPercent.value.y
+			scrollPercent.value.y,
 		);
 		// ? 更新model-value
 		modelValueScrollY.value =
@@ -521,10 +521,10 @@ const {
 // j 滚动进度百分比
 const scrollPercent = computed(() => {
 	const vTrackLen = Math.floor(
-		verticalTrackInfo.height.value || viewportInfo.height
+		verticalTrackInfo.height.value || viewportInfo.height,
 	);
 	const hTrackLen = Math.floor(
-		horizontalTrackInfo.width.value || viewportInfo.width
+		horizontalTrackInfo.width.value || viewportInfo.width,
 	);
 	const yThumbLen = vTrackLen * state.vertical.lengthPercent;
 	const xThumbLen = hTrackLen * state.horizontal.lengthPercent;
@@ -571,7 +571,7 @@ const { y: verticalThumbTop } = useDraggable(verticalThumbDOM, {
 			viewportScrollX.value,
 			viewportScrollY.value,
 			scrollPercent.value.x,
-			scrollPercent.value.y
+			scrollPercent.value.y,
 		);
 		// ? 更新model-value
 		modelValueScrollY.value =
@@ -653,7 +653,7 @@ const { x: horizontalThumbLeft } = useDraggable(horizontalThumbDOM, {
 			viewportScrollX.value,
 			viewportScrollY.value,
 			scrollPercent.value.x,
-			scrollPercent.value.y
+			scrollPercent.value.y,
 		);
 		// ? 更新model-value
 		modelValueScrollY.value =
@@ -798,7 +798,7 @@ const bakctopShow = computed<Boolean>(() => {
 // f 执行回到顶部
 function backToTop() {
 	requestAnimationFrame(() =>
-		scrollTo({ y: 0, behavior: props.backToTopBehavior })
+		scrollTo({ y: 0, behavior: props.backToTopBehavior }),
 	);
 }
 
@@ -835,7 +835,7 @@ function scrollToPercent(options: {
 	let scrollX: number | undefined, scrollY: number | undefined;
 	if (x !== undefined) {
 		const hTrackLen = Math.floor(
-			horizontalTrackInfo.width.value || clientWidth
+			horizontalTrackInfo.width.value || clientWidth,
 		);
 		const remainTrackLen = hTrackLen * (1 - state.horizontal.lengthPercent);
 		const left = remainTrackLen * x;
@@ -843,7 +843,7 @@ function scrollToPercent(options: {
 	}
 	if (y !== undefined) {
 		const vTrackLen = Math.floor(
-			verticalTrackInfo.height.value || clientHeight
+			verticalTrackInfo.height.value || clientHeight,
 		);
 		const remainTrackLen = vTrackLen * (1 - state.vertical.lengthPercent);
 		const top = remainTrackLen * y;
@@ -948,8 +948,14 @@ $track-hover-padding: v-bind("props.hoverThumbPadding");
 			opacity: 1;
 			z-index: 1;
 
-			transition: background 0.5s ease, opacity 0.5s ease, left 0.5s ease,
-				right 0.5s ease, top 0.5s ease, bottom 0.5s ease, inset 0.5s ease;
+			transition:
+				background 0.5s ease,
+				opacity 0.5s ease,
+				left 0.5s ease,
+				right 0.5s ease,
+				top 0.5s ease,
+				bottom 0.5s ease,
+				inset 0.5s ease;
 		}
 
 		// ? 滚动条边界指示器
@@ -958,7 +964,9 @@ $track-hover-padding: v-bind("props.hoverThumbPadding");
 			content: "";
 			inset: calc($track-padding * 1px);
 			border-radius: calc($track-size * 1px - $track-padding * 1px);
-			transition: inset 0.5s ease, background 0.5s ease;
+			transition:
+				inset 0.5s ease,
+				background 0.5s ease;
 			z-index: 2;
 		}
 
@@ -1062,7 +1070,9 @@ $track-hover-padding: v-bind("props.hoverThumbPadding");
 			background-color: #409eff;
 
 			scale: 0;
-			transition: scale 0.3s ease 1.5s, min-height 0.3s ease 1s,
+			transition:
+				scale 0.3s ease 1.5s,
+				min-height 0.3s ease 1s,
 				min-width 0.3s ease 1s;
 		}
 	}
@@ -1072,7 +1082,10 @@ $track-hover-padding: v-bind("props.hoverThumbPadding");
 		min-width: 16px;
 		min-height: 50px;
 		scale: 1;
-		transition: scale 0.3s ease, min-height 0.3s ease 0.3s, min-width 0.3s ease;
+		transition:
+			scale 0.3s ease,
+			min-height 0.3s ease 0.3s,
+			min-width 0.3s ease;
 	}
 }
 
@@ -1119,7 +1132,9 @@ $track-hover-padding: v-bind("props.hoverThumbPadding");
 			background-color: #409eff;
 
 			scale: 0;
-			transition: scale 0.3s ease 1.5s, min-height 0.3s ease 1s,
+			transition:
+				scale 0.3s ease 1.5s,
+				min-height 0.3s ease 1s,
 				min-width 0.3s ease 1s;
 		}
 	}
@@ -1129,7 +1144,10 @@ $track-hover-padding: v-bind("props.hoverThumbPadding");
 		min-height: 16px;
 		min-width: 50px;
 		scale: 1;
-		transition: scale 0.3s ease, min-height 0.3s ease, min-width 0.3s ease 0.3s;
+		transition:
+			scale 0.3s ease,
+			min-height 0.3s ease,
+			min-width 0.3s ease 0.3s;
 	}
 }
 
@@ -1159,6 +1177,11 @@ $track-hover-padding: v-bind("props.hoverThumbPadding");
 
 // s 返回顶部按钮样式
 .base-scrollbar__back-top {
+	--color: #409eff;
+	--bg-color: #eee;
+	--hover-bg-color: #d0e3ff;
+	--box-shadow: 0px 0px 6px #d0e3ff;
+
 	position: absolute;
 	width: 40px;
 	height: 40px;
@@ -1167,24 +1190,23 @@ $track-hover-padding: v-bind("props.hoverThumbPadding");
 	bottom: 40px;
 
 	border-radius: 50%;
-	color: #409eff;
+	color: --color;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	font-size: 20px;
-	box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.12);
+	box-shadow: var(--box-shadow);
 	cursor: pointer;
 	z-index: 5;
-	background-color: #ffffff;
+	background-color: var(--bg-color);
 
 	transition: 0.5s ease;
 
 	&:hover {
-		background-color: #d0e3ff;
+		background-color: var(--hover-bg-color);
 	}
 
 	.back-top__icon {
-		--color: inherit;
 		height: 1em;
 		width: 1em;
 		line-height: 1em;
@@ -1195,6 +1217,14 @@ $track-hover-padding: v-bind("props.hoverThumbPadding");
 		fill: currentColor;
 		color: var(--color);
 		font-size: inherit;
+	}
+
+	@media (prefers-color-scheme: dark) {
+		/** 暗黑模式样式 */
+		--color: #eee;
+		--bg-color: #409eff;
+		--hover-bg-color: #53a8ff;
+		--box-shadow: 0px 0px 6px #53a8ff;
 	}
 }
 
