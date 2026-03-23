@@ -16,9 +16,9 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
 import Tree from "./pattern-tree.vue";
-import Form from "./pattern-edit-form.vue";
+import Form from "./pattern-form.vue";
 import BaseScrollbar from "@/components/base/base-scrollbar.vue";
-import usePatternStore from "@/stores/PatternStore";
+import { usePatternStore } from "@/stores";
 import { onActivated } from "vue";
 
 const patternStore = usePatternStore();
@@ -38,7 +38,7 @@ onActivated(() => {
 	position: relative;
 	display: flex;
 	flex-flow: row nowrap;
-	gap: 8px;
+	gap: 4px;
 	height: 100%;
 	padding: 4px;
 	overflow-y: hidden;
@@ -48,12 +48,9 @@ onActivated(() => {
 		position: relative;
 		box-sizing: border-box;
 		min-width: 230px;
-		max-width: 235px;
-		// padding: 4px;
+		width: 300px;
 		height: 100%;
 
-		// background-color: wheat;
-		// border-radius: 4px;
 		overflow: hidden;
 
 		z-index: 1;
@@ -61,21 +58,10 @@ onActivated(() => {
 
 	.pattern-form {
 		flex: auto;
-		// background-color: orange;
 		min-width: 425px;
 		max-width: 800px;
 
 		height: 100%;
-		overflow: auto;
-		// padding: 4px;
-	}
-}
-
-:deep(input) {
-	background: white;
-	box-shadow: unset;
-	&[type="text"] {
-		color: #606266 !important;
 	}
 }
 </style>
