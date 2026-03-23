@@ -44,7 +44,6 @@ declare module 'vue' {
     IconEpClose: typeof import('~icons/ep/close')['default']
     IconEpDocumentCopy: typeof import('~icons/ep/document-copy')['default']
     IconEpEdit: typeof import('~icons/ep/edit')['default']
-    IconEpMenu: typeof import('~icons/ep/menu')['default']
     'IconMaterialSymbols:resetSettingsRounded': typeof import('~icons/material-symbols/reset-settings-rounded')['default']
     IconMaterialSymbolsAnimatedImagesRounded: typeof import('~icons/material-symbols/animated-images-rounded')['default']
     IconMaterialSymbolsArrowDropDownRounded: typeof import('~icons/material-symbols/arrow-drop-down-rounded')['default']
@@ -97,7 +96,6 @@ declare module 'vue' {
     NFormItem: typeof import('naive-ui')['NFormItem']
     NGradientText: typeof import('naive-ui')['NGradientText']
     NIcon: typeof import('naive-ui')['NIcon']
-    NIconWrapper: typeof import('naive-ui')['NIconWrapper']
     NInput: typeof import('naive-ui')['NInput']
     NInputGroup: typeof import('naive-ui')['NInputGroup']
     NInputGroupLabel: typeof import('naive-ui')['NInputGroupLabel']
@@ -118,11 +116,8 @@ declare module 'vue' {
     NText: typeof import('naive-ui')['NText']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    VarButton: typeof import('@varlet/ui')['_ButtonComponent']
-    VarButtonGroup: typeof import('@varlet/ui')['_ButtonGroupComponent']
     VarCell: typeof import('@varlet/ui')['_CellComponent']
     VarChip: typeof import('@varlet/ui')['_ChipComponent']
-    VarIcon: typeof import('@varlet/ui')['_IconComponent']
     VarMenu: typeof import('@varlet/ui')['_MenuComponent']
   }
   export interface ComponentCustomProperties {
