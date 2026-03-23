@@ -1,6 +1,24 @@
+// 悬浮层的高度修复
 .v-binder-follower-container {
 	z-index: 2147483647 !important;
 }
-.re-n-tag .re-n-tag__border {
-	z-index: -1;
+
+pre,
+pre:hover {
+	background: unset;
+	background-color: unset;
+	font-family: unset;
+	font-weight: unset;
+	line-height: unset;
+	font-size: unset;
+	display: unset;
+	margin: unset;
+	overflow: unset;
+	padding: unset;
+	box-shadow: unset;
+	border: unset;
+	overflow-x: unset;
+	width: unset;
+	height: unset;
+	overflow: unset;
 }

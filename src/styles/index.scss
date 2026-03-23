@@ -1,4 +1,3 @@
-@use "./base.scss";
-@use "./scrollbar.scss";
-@use "./style-fix.scss";
-@use "./custom.scss";
+@use "./fancybox/fix" as *;
+@use "./varlet-ui/fix" as *;
+@use "./naive-ui/fix" as *;

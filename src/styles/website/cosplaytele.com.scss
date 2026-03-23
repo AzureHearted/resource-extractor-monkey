@@ -52,3 +52,15 @@
 		--clip-path: none !important;
 	}
 }
+
+.button,
+button,
+input[type="button"],
+input[type="reset"],
+input[type="submit"] {
+	letter-spacing: unset;
+	line-height: unset;
+	max-width: unset;
+	min-height: unset;
+	min-width: unset;
+}
