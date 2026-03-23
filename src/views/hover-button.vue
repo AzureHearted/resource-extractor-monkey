@@ -104,7 +104,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onActivated } from "vue";
 
 import BaseHoverButton from "@/components/base/base-hover-button/base-hover-button.vue";
 
@@ -145,15 +145,18 @@ withDefaults(
 	},
 );
 
-// s 移动端标识符
 const isMobile = ref(false);
 
 onMounted(() => {
 	isMobile.value = judgeIsMobile();
 });
 
+onActivated(() => {
+	isMobile.value = judgeIsMobile();
+});
+
 // f 切换窗口显示
-function toggleWindow(name?: string) {
+function toggleWindow(name?: typeof tab.value) {
 	active.value = false;
 	if (name) {
 		tab.value = name;

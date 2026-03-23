@@ -4,7 +4,7 @@
 		back-to-top-behavior="smooth"
 		overflow-x="hidden"
 	>
-		<div class="style-sheet-manager__container">
+		<div class="style-sheet-manager__container" :data-theme="globalStore.theme">
 			<!-- 获取当前页面样式表 -->
 			<n-card embedded class="style-sheet-manager__toolbar">
 				<n-flex :size="8" align="center">
@@ -105,6 +105,9 @@ import { ref, computed, onMounted, onActivated } from "vue";
 import type { CSSProperties } from "vue";
 
 import Scrollbar from "@/components/base/base-scrollbar.vue";
+import { useGlobalStore } from "@/stores";
+
+const globalStore = useGlobalStore();
 
 // 样式表对象接口
 interface StyleSheet extends CSSStyleSheet {
@@ -226,18 +229,25 @@ const railStyle = ({
 	flex-flow: column;
 	gap: 8px;
 	padding: 4px;
-}
-.style-sheet-manager__container > .style-sheet-manager__toolbar.re-n-card {
-	box-sizing: border-box;
-	position: sticky;
-	top: 4px;
-	z-index: 2;
-	width: fit-content;
-	max-width: 100%;
-	background: white;
 
-	:deep(.re-n-card__content) {
+	.style-sheet-manager__toolbar.re-n-card {
+		box-sizing: border-box;
+		position: sticky;
+		top: 4px;
+		z-index: 2;
+		width: fit-content;
+		max-width: 100%;
+		background: rgba(getTheme(light, background), 0.5);
+	}
+
+	:deep(.re-n-card-content) {
 		padding: 4px;
+	}
+}
+
+.style-sheet-manager__container[data-theme="dark"] {
+	.style-sheet-manager__toolbar.re-n-card {
+		background: rgba(getTheme(dark, background), 0.5);
 	}
 }
 
