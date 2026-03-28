@@ -44,7 +44,12 @@
 			</template>
 			<template #header-extra>
 				<n-flex :size="4">
-					<n-button type="primary" size="small" @click="pasteRule">
+					<n-button
+						type="primary"
+						size="small"
+						@click="pasteRule"
+						:disabled="disabled"
+					>
 						粘贴规则
 					</n-button>
 					<n-button-group v-if="pattern.isChange()" size="small">
@@ -54,11 +59,7 @@
 				</n-flex>
 			</template>
 			<!-- 方案表单 -->
-			<n-form
-				label-placement="left"
-				:model="pattern"
-				:disabled="pattern.id.includes('#')"
-			>
+			<n-form label-placement="left" :model="pattern" :disabled="disabled">
 				<n-form-item
 					label="方案名称"
 					path="mainInfo.name"
@@ -78,7 +79,7 @@
 							clearable
 						>
 						</n-input>
-						<n-button :focusable="false">
+						<n-button :focusable="false" :disabled="disabled">
 							<template #icon>
 								<BaseImg
 									style="height: 16px; aspect-ratio: 1"
@@ -111,13 +112,11 @@
 						<n-button
 							type="primary"
 							@click="openUrl(pattern.mainInfo.matchHost[index])"
+							:disabled="disabled"
 						>
 							打开
 						</n-button>
-						<n-button
-							@click="addMatchHost(index)"
-							:disabled="pattern.id.includes('#')"
-						>
+						<n-button @click="addMatchHost(index)" :disabled="disabled">
 							新增
 						</n-button>
 						<n-button
@@ -180,14 +179,14 @@
 							clearable
 							style="width: clamp(100px, 250px, 100% - 60px)"
 							placeholder="填入规则名称"
-							:disabled="pattern.id.includes('#')"
+							:disabled="disabled"
 						>
 							<template #prefix>
 								<icon-material-symbols-data-object-rounded />
 							</template>
 						</n-input>
 						<n-switch
-							v-if="!pattern.id.includes('#')"
+							v-if="!disabled"
 							v-model:value="rule.enable"
 							:round="false"
 							style="margin-right: 8px; font-size: 14px"
@@ -290,6 +289,11 @@ const pattern = computed(() => {
 
 const rule = computed(() => {
 	return editingRule.value || new Rule();
+});
+
+// j 是否禁用
+const disabled = computed(() => {
+	return pattern.value.id.includes("#");
 });
 
 // f 拷贝方案(或规则)至剪贴板
