@@ -1,5 +1,7 @@
 // 导入全局样式
 import "./styles/index.scss";
+// 导入 base-ui 样式
+import "base-ui/style.css";
 import { lowerHighZIndex } from "./styles/fix";
 
 // import "default-passive-events";

@@ -33,7 +33,9 @@ export default defineConfig({
 		svgLoader(),
 		// s 自动导入
 		autoImport({
-			resolvers: [VarletImportResolver({ autoImport: true })],
+			resolvers: [
+				VarletImportResolver({ autoImport: true, directives: false }),
+			],
 			imports: [
 				util.unimportPreset,
 				{
