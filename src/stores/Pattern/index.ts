@@ -25,9 +25,15 @@ export const usePatternStore = defineStore("PatternStore", () => {
 		setUserPatternList(list.value);
 	}
 
-	// 当前使用的方案信息
-	const used = reactive({
+	// s 当前方案信息
+	const current = reactive({
 		id: "#",
+	});
+
+	// s 当前编辑中的方案信息
+	const editing = reactive({
+		pid: "#", // 方案id
+		rid: "", // 规则id (默认为空)
 	});
 
 	// f 获取初始方案id
@@ -37,14 +43,14 @@ export const usePatternStore = defineStore("PatternStore", () => {
 		const [targetPattern] = matchs;
 		console.log("初始方案", targetPattern);
 		if (targetPattern) {
-			used.id = targetPattern.id;
+			current.id = targetPattern.id;
 			editing.pid = targetPattern.id;
 			if (targetPattern.rules.length) {
 				editing.rid = targetPattern.rules[0].id;
 			}
 		} else {
 			// s 没有匹配到则使用默认规则
-			used.id = "#";
+			current.id = "#";
 		}
 	}
 
@@ -104,17 +110,6 @@ export const usePatternStore = defineStore("PatternStore", () => {
 		}
 		return matchs;
 	}
-
-	// s 当前方案信息
-	const current = reactive({
-		id: "#",
-	});
-
-	// s 当前编辑中的方案信息
-	const editing = reactive({
-		pid: "#", // 方案id
-		rid: "", // 规则id (默认为空)
-	});
 
 	// 当前编辑的方案
 	const editingPattern: ComputedRef<Pattern | undefined> = computed(() => {
@@ -252,7 +247,7 @@ export const usePatternStore = defineStore("PatternStore", () => {
 		if (index >= 0) {
 			const pattern = list.value.splice(index, 1)[0];
 			// 如果被删除的方案是正在使用的方案则重新设置初始方案
-			if (used.id === pattern.id) {
+			if (current.id === pattern.id) {
 				setInitPattern();
 			}
 			saveUserPatternInfo();
@@ -261,7 +256,6 @@ export const usePatternStore = defineStore("PatternStore", () => {
 
 	return {
 		list,
-		used,
 		current,
 		editing,
 		editingPattern,

@@ -1,0 +1,3 @@
+overrides:
+  baes-ui: link:C:/Users/Lxs/AppData/Local/pnpm/global/5/node_modules/baes-ui
+  base-ui: link:C:/Users/Lxs/AppData/Local/pnpm/global/5/node_modules/base-ui
