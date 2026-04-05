@@ -8,7 +8,7 @@
 		<!-- s 方案选择器 -->
 		<n-select
 			class="pattern-selector"
-			v-model:value="patternStore.used.id"
+			v-model:value="patternStore.current.id"
 			placeholder="请选择一个方案"
 			:to="false"
 			:render-label="renderPatternSelectOptionsLabel"
@@ -259,7 +259,7 @@ import type { VNodeChild } from "vue";
 import { NTag, NBadge } from "naive-ui";
 import type { SelectOption, SelectRenderTag, SliderProps } from "naive-ui";
 import { Pattern } from "@/models/Pattern/Pattern";
-import BaseImg from "@/components/base/base-img.vue";
+import { BaseImg } from "base-ui";
 
 import { useDialog, useNotification } from "@/plugin/naive-ui";
 
@@ -285,7 +285,7 @@ const globalStore = useGlobalStore();
 
 onMounted(() => {
 	if (globalStore.galleryState.pageLoadedGetResource) {
-		reload();
+		if (!patternStore.current.id.includes("#")) reload();
 	}
 });
 
@@ -488,8 +488,10 @@ let stopGetCardsFlag = ref(false);
 
 // f 获取卡片
 async function getCards() {
+	const pattern = patternStore.getCurrentPattern();
+	if (pattern == null) return;
 	stopGetCardsFlag.value = false;
-	await cardStore.getPageCard({
+	await cardStore.getPageCard(pattern, {
 		stopFlag: stopGetCardsFlag,
 		notification,
 	});
