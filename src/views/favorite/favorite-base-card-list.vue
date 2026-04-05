@@ -1,27 +1,21 @@
 <template>
-	<BaseScrollbar
-		:disable="!state.useCustomScrollbar"
-		show-back-top-button
-		overflow-x="hidden"
-		auto-hidden
-		ref="scrollBarRef"
-		back-to-top-behavior="smooth"
-	>
+	<div ref="scrollBarRef" style="height: 100%">
 		<!-- f 普通网格布局 -->
-		<div v-if="layout === 'grid'" style="padding: 10px">
+		<div v-if="layout === 'grid'" style="height: 100%">
 			<BaseVirtualGrid
+				style="padding: 10px"
 				ref="gridRef"
 				:items="cardList"
 				:gap="4"
 				:columns="!state.isMobile ? galleryState.column : undefined"
 				:breakpoints="state.isMobile ? state.breakpoints : undefined"
 				:allow-item-transition="galleryState.allowTransition"
-				:scroll-container="scrollBarRef?.viewportDOM"
 			>
-				<template #="{ item }">
+				<template #="{ item, isSkeleton }">
 					<GalleryCard
 						:key="(item as FavoriteCard).id"
 						v-model:data="item as FavoriteCard"
+						:is-skeleton="isSkeleton"
 						:highlight-key="searchKeywords"
 						:is-mobile="state.isMobile"
 						:show-to-locate-button="false"
@@ -55,19 +49,20 @@
 			</BaseVirtualGrid>
 		</div>
 		<!-- f 瀑布流布局 -->
-		<div v-if="layout === 'waterfall'" style="padding: 10px">
+		<div v-if="layout === 'waterfall'" style="height: 100%">
 			<BaseVirtualMasonry
+				style="padding: 10px"
 				ref="masonryRef"
 				:items="virtualMasonryItem"
 				:gap="4"
 				:columns="!state.isMobile ? galleryState.column : undefined"
 				:breakpoints="state.isMobile ? state.breakpoints : undefined"
 				:allow-item-transition="galleryState.allowTransition"
-				:scroll-container="scrollBarRef?.viewportDOM"
 			>
-				<template #="{ item }">
+				<template #="{ item, isSkeleton }">
 					<GalleryCard
 						v-model:data="item.data as FavoriteCard"
+						:is-skeleton="isSkeleton"
 						:highlight-key="searchKeywords"
 						:is-mobile="state.isMobile"
 						:show-to-locate-button="false"
@@ -104,7 +99,7 @@
 				</template>
 			</BaseVirtualMasonry>
 		</div>
-	</BaseScrollbar>
+	</div>
 </template>
 
 <script setup lang="ts">
@@ -117,13 +112,17 @@ import {
 	onUnmounted,
 	onDeactivated,
 } from "vue";
-import BaseScrollbar from "@/components/base/base-scrollbar.vue";
-import BaseVirtualGrid from "@/components/base/base-virtual-grid/base-virtual-grid.vue";
-import BaseVirtualMasonry from "@/components/base/base-virtual-masonry/base-virtual-masonry.vue";
-import type { Item as VirtualMasonryItem } from "@/components/base/base-virtual-masonry/type";
+import {
+	useContextMenu,
+	BaseVirtualMasonry,
+	BaseVirtualGrid,
+	vRipple,
+	type BaseImgReadyInfo,
+	type BaseVideoReadyInfo,
+	type BaseVirtualMasonryItem,
+} from "base-ui";
 import GalleryCard from "@/components/utils/gallery-card.vue";
 import { FavoriteCard } from "@/models/Card/FavoriteCard";
-import type { ImgReadyInfo } from "@/components/base/base-img.vue";
 import { isEqualUrl, isMobile as judgeIsMobile } from "@/utils/common";
 import { useClipboard } from "@vueuse/core";
 import { Fancybox, configFancybox } from "@/plugin/fancyapps-ui";
@@ -131,7 +130,6 @@ import type { CarouselSlide } from "@fancyapps/ui";
 
 import { storeToRefs } from "pinia";
 import { useGlobalStore, useCardStore, useFavoriteStore } from "@/stores";
-import { useBaseContextMenu } from "@/components/base/base-context-menu";
 import { GM_openInTab } from "$";
 import type { Meta } from "@/models/Card/Meta";
 import { useDialog, useNotification } from "@/plugin/naive-ui";
@@ -170,7 +168,7 @@ const state = reactive({
 	// 列数
 	// columns: 5,
 	// 是否使用自定义滚动条
-	useCustomScrollbar: true,
+	useCustomScrollbar: false,
 	// 移动端标识符
 	isMobile: false,
 	// 断点
@@ -196,8 +194,8 @@ onActivated(() => {
 });
 
 // j 转为适用于虚拟瀑布流的数据列表
-const virtualMasonryItem = computed<Array<VirtualMasonryItem>>(() => {
-	return props.cardList.map<VirtualMasonryItem>((c) => {
+const virtualMasonryItem = computed<Array<BaseVirtualMasonryItem>>(() => {
+	return props.cardList.map<BaseVirtualMasonryItem>((c) => {
 		const { id, source, preview } = c;
 		const { url: sourceSrc } = source;
 		const { meta: previewMeta } = preview;
@@ -249,7 +247,10 @@ const handleToggleFavorite = (card: FavoriteCard) => {
 };
 
 // f 卡片加载成功完成事件( 1.更新cardStore的尺寸范围信息;2.判断卡片是否被收藏 )
-const handleLoaded = async (id: string, info: ImgReadyInfo) => {
+const handleLoaded = async (
+	id: string,
+	info: BaseImgReadyInfo | BaseVideoReadyInfo,
+) => {
 	// s 仓库找到对应的数据
 	const card = await findCard(id);
 	if (!card) return; //* 如果卡片不存在也不在向下执行
@@ -277,12 +278,12 @@ const handleTagsSave = async (card: FavoriteCard) => {
 };
 
 onMounted(() => {
-	scrollBarRef.value?.viewportDOM?.addEventListener("wheel", onMouseWheel, {
+	scrollBarRef.value?.addEventListener("wheel", onMouseWheel, {
 		passive: false,
 	});
 
 	onUnmounted(() => {
-		scrollBarRef.value?.viewportDOM?.removeEventListener("wheel", onMouseWheel);
+		scrollBarRef.value?.removeEventListener("wheel", onMouseWheel);
 	});
 });
 
@@ -460,7 +461,7 @@ async function openFancybox(startId: string) {
 				},
 			},
 		},
-		parentEl: scrollBarRef.value?.$el,
+		parentEl: scrollBarRef.value ?? undefined,
 		startIndex: index,
 		hideScrollbar: false,
 	});
@@ -470,8 +471,8 @@ onUnmounted(() => Fancybox.close());
 onDeactivated(() => Fancybox.close());
 
 // 使用函数式组件右键菜单
-const { showContextMenu } = useBaseContextMenu({
-	root: () => scrollBarRef.value?.$el,
+const { showContextMenu } = useContextMenu({
+	root: () => scrollBarRef.value,
 	fontSize: 14,
 });
 
@@ -557,38 +558,71 @@ async function onCardContextMenu(event: PointerEvent, id: string) {
 </script>
 
 <style lang="scss" scoped>
-/* 修改虚拟Grid布局内的卡片样式 */
-:deep(.base-virtual-grid__wrap) {
-	.base-img__container > .base-img__wrap {
-		aspect-ratio: 1;
-		img {
-			object-fit: cover;
-			object-position: top;
-			height: 100%;
-		}
-	}
-}
-
-/* 修改虚拟瀑布内的卡片样式 */
+/* 修改卡片样式 */
+:deep(.base-virtual-grid__wrap),
 :deep(.base-virtual-masonry__wrap) {
-	.base-card__container {
+	.base-card {
 		height: 100%;
+		overflow: hidden;
+
 		.base-card__content {
 			flex-grow: 1;
 		}
-		.base-img__container {
+
+		.base-img {
 			height: 100%;
-			.base-img__wrap {
+
+			& > .base-img__wrapper {
+				height: 100%;
+
+				img {
+					width: 100%;
+					height: 100%;
+					object-fit: cover;
+				}
+			}
+
+			&__error > .base-img__wrapper {
 				height: 100%;
 				img {
-					object-fit: cover;
-					object-position: top;
+					height: unset;
+				}
+				.base-img__error-img {
 					height: 100%;
+					> svg {
+						width: 60%;
+						height: auto;
+					}
 				}
 			}
 		}
-		.base-video__container {
+
+		.base-video {
 			height: 100%;
+
+			& > .base-video__wrapper {
+				height: 100%;
+
+				video {
+					width: 100%;
+					height: 100%;
+					object-fit: cover;
+				}
+			}
+
+			&__error > .base-video__wrapper {
+				height: 100%;
+				video {
+					height: 0;
+				}
+				.base-video__error-img {
+					height: 100%;
+					> svg {
+						width: 60%;
+						height: auto;
+					}
+				}
+			}
 		}
 	}
 }
