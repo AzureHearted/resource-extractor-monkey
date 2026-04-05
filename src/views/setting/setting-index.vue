@@ -16,8 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import Tabs from "@/components/base/base-tabs/base-tabs.vue";
-import TabPane from "@/components/base/base-tabs/base-tab-pane.vue";
+import { BaseTabs as Tabs, BaseTabPane as TabPane } from "base-ui";
 import GlobalSetting from "@/views/setting/global-setting.vue";
 import StyleSheetManage from "@/views/setting/style-sheet-manager.vue";
 </script>
