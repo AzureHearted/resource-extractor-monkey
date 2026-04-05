@@ -1,15 +1,13 @@
 <template>
 	<BaseCard
 		class="re-gallery-card"
-		:data-id="data.id"
-		background-color="transparent"
-		style="border: unset"
 		:is-skeleton="isSkeleton"
+		style="border: unset"
+		:data-id="data.id"
 		:data-show="isMobile"
 		:data-source-type="data.source.meta.type"
 		:data-preview-type="data.preview.meta.type"
 		:data-checked="data.isSelected"
-		layout="absolute"
 		:data-theme="globalStore.theme"
 	>
 		<!-- s 卡片顶部 -->
@@ -307,8 +305,8 @@
 <script setup lang="ts">
 import { computed, h, ref } from "vue";
 import type { ComputedRef } from "vue";
-import BaseCard from "@/components/base/base-card.vue";
 import {
+	BaseCard,
 	BaseImg,
 	BaseVideo,
 	BaseHighlightText,
@@ -326,7 +324,7 @@ import HtmlTypeImg from "@svg/html.svg";
 // 导入仓库
 import { useGlobalStore } from "@/stores";
 import { storeToRefs } from "pinia";
-import FilenameInputVue from "./filename-input.vue/filename-input.vue.vue";
+import FilenameInputVue from "./filename-input/filename-input.vue";
 import { NButton, NFlex, type FormValidationStatus } from "naive-ui";
 
 const dialog = useDialog();
