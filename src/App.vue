@@ -23,12 +23,16 @@
 		>
 			<n-dialog-provider to=".resource-extractor__notification">
 				<n-notification-provider to=".resource-extractor__notification">
-					<!-- s 布局 -->
-					<Layout />
+					<BaseProvider
+						:theme="globalStore.theme === 'dark' ? 'dark' : 'light'"
+					>
+						<!-- s 布局 -->
+						<Layout />
+					</BaseProvider>
 				</n-notification-provider>
 			</n-dialog-provider>
 			<!-- s 悬浮按钮 -->
-			<HoverButton :show="!globalStore.openWindow" />
+			<FloatButton :show="!globalStore.openWindow" />
 			<!-- s 顶层元素的承载容器 -->
 			<div
 				ref="subWindowContainerDOM"
@@ -40,7 +44,8 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, defineAsyncComponent, useTemplateRef } from "vue";
-import HoverButton from "@/views/hover-button.vue";
+import { BaseProvider } from "base-ui";
+import FloatButton from "@/views/float-button.vue";
 
 import {
 	darkTheme as naiveUIdarkTheme,

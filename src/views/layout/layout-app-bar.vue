@@ -42,6 +42,11 @@
 				</n-tag>
 			</div>
 			<div class="re__app-bar__title__right">
+				<n-radio-group v-model:value="galleryState.theme" size="small">
+					<n-radio-button value="auto"> 自动 </n-radio-button>
+					<n-radio-button value="light"> 亮色 </n-radio-button>
+					<n-radio-button value="dark"> 暗黑 </n-radio-button>
+				</n-radio-group>
 				<!-- s 布局切换按钮 -->
 				<n-radio-group
 					v-if="currentTab === 'Gallery' || currentTab === 'Favorite'"
