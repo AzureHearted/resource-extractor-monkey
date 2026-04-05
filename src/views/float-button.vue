@@ -1,6 +1,6 @@
 <template>
 	<!-- s 悬浮按钮 -->
-	<BaseHoverButton
+	<BaseFloatButton
 		:init-position="{ bottom: 100, right: 40 }"
 		:safe-boundary="{ left: 16, top: 16, right: 16, bottom: 16 }"
 		:style="{
@@ -100,13 +100,13 @@
 				</div>
 			</n-badge>
 		</template>
-	</BaseHoverButton>
+	</BaseFloatButton>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onActivated } from "vue";
 
-import BaseHoverButton from "@/components/base/base-hover-button/base-hover-button.vue";
+import { BaseFloatButton, vRipple } from "base-ui";
 
 import { isMobile as judgeIsMobile } from "@/utils/common";
 import { storeToRefs } from "pinia";
@@ -116,8 +116,6 @@ import {
 	useLoadingStore,
 	useFavoriteStore,
 } from "@/stores";
-
-import { vRipple } from "@/hooks/useBaseRipple";
 
 const globalStore = useGlobalStore();
 const { openWindow, tab } = storeToRefs(globalStore);
