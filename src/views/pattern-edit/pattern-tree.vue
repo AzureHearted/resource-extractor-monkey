@@ -52,10 +52,11 @@
 			>
 				<template #default="{ nodeData }">
 					<div style="display: flex; align-items: center; gap: 4px">
-						<div style="width: 16px; aspect-ratio: 1; overflow: hidden">
+						<div style="width: 16px; overflow: hidden">
 							<BaseImg
 								v-if="(nodeData as Node).type === 'pattern'"
 								:src="(nodeData as Node).icon"
+								style="width: 100%; height: 100%"
 							>
 								<template #error-img>
 									<icon-oui-app-index-pattern />
@@ -101,14 +102,18 @@ import {
 } from "vue";
 import { useDialog, useNotification } from "naive-ui";
 import { Pattern } from "@/models/Pattern/Pattern";
-import BaseScrollbar from "@/components/base/base-scrollbar.vue";
-import BaseVirtualTree from "@/components/base/base-virtual-tree/base-virtual-tree.vue";
-import BaseImg from "@/components/base/base-img.vue";
+import {
+	BaseImg,
+	BaseHighlightText,
+	BaseScrollbar,
+	BaseVirtualTree,
+	useContextMenu,
+	type BaseTreeNodeItem,
+} from "base-ui";
 
 import { useGlobalStore, usePatternStore } from "@/stores";
 import { storeToRefs } from "pinia";
 import type { Rule } from "@/models/Rule/Rule";
-import { useBaseContextMenu } from "@/components/base/base-context-menu";
 
 const globalStore = useGlobalStore();
 const patternStore = usePatternStore();
@@ -181,7 +186,7 @@ watch(
 );
 
 // i 节点数据定义
-interface Node extends BaseVirtualTreeNodeItem {
+interface Node extends BaseTreeNodeItem {
 	type: "pattern" | "rule";
 	icon?: string;
 	rawData?: Pattern | Rule;
@@ -486,7 +491,7 @@ const onBeforeMoveNode: InstanceType<
 };
 
 // 使用自定义右键菜单
-const { showContextMenu } = useBaseContextMenu({
+const { showContextMenu } = useContextMenu({
 	root: () => containerRef.value,
 	fontSize: 14,
 });
