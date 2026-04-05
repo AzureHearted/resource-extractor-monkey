@@ -132,8 +132,7 @@
 <script setup lang="ts">
 import GalleryToolbar from "./gallery-toolbar.vue";
 import GalleryBaseCardList from "./gallery-base-card-list.vue";
-import BaseTabs from "@/components/base/base-tabs/base-tabs.vue";
-import BaseTabPane from "@/components/base/base-tabs/base-tab-pane.vue";
+import { BaseTabs, BaseTabPane } from "base-ui";
 
 import { storeToRefs } from "pinia";
 import { useGlobalStore, useCardStore } from "@/stores";

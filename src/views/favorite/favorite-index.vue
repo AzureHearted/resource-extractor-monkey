@@ -132,8 +132,7 @@
 <script setup lang="ts">
 import FavoriteToolbar from "./favorite-toolbar.vue";
 import FavoriteBaseCardList from "./favorite-base-card-list.vue";
-import BaseTabs from "@/components/base/base-tabs/base-tabs.vue";
-import BaseTabPane from "@/components/base/base-tabs/base-tab-pane.vue";
+import { BaseTabs, BaseTabPane } from "base-ui";
 
 import { storeToRefs } from "pinia";
 import { useGlobalStore, useFavoriteStore } from "@/stores";
