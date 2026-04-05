@@ -4,6 +4,7 @@
 		:data-id="data.id"
 		background-color="transparent"
 		style="border: unset"
+		:is-skeleton="isSkeleton"
 		:data-show="isMobile"
 		:data-source-type="data.source.meta.type"
 		:data-preview-type="data.preview.meta.type"
@@ -186,6 +187,11 @@
 				</template>
 			</div>
 		</template>
+		<template #skeleton>
+			<div class="re-gallery-card__content" :data-id="data.id">
+				<!-- skeleton -->
+			</div>
+		</template>
 		<!-- s 卡片底部 -->
 		<template #footer>
 			<n-flex class="re-gallery-card__footer" align="center" :size="2">
@@ -302,11 +308,15 @@
 import { computed, h, ref } from "vue";
 import type { ComputedRef } from "vue";
 import BaseCard from "@/components/base/base-card.vue";
-import BaseImg from "@/components/base/base-img.vue";
-import BaseVideo from "@/components/base/base-video.vue";
+import {
+	BaseImg,
+	BaseVideo,
+	BaseHighlightText,
+	type BaseImgReadyInfo,
+	type BaseVideoReadyInfo,
+} from "base-ui";
 import BaseLineOverFlowList from "@/components/base/base-line-overflow-list.vue";
 import { Card } from "@/models/Card/Card";
-import type { ImgReadyInfo } from "@/components/base/base-img.vue";
 import { GM_openInTab } from "$";
 import { useDialog } from "@/plugin/naive-ui";
 // 导入公用TS库
@@ -316,7 +326,6 @@ import HtmlTypeImg from "@svg/html.svg";
 // 导入仓库
 import { useGlobalStore } from "@/stores";
 import { storeToRefs } from "pinia";
-import BaseHighlightText from "../base/base-highlight-text.vue";
 import FilenameInputVue from "./filename-input.vue/filename-input.vue.vue";
 import { NButton, NFlex, type FormValidationStatus } from "naive-ui";
 
@@ -330,6 +339,7 @@ const data = defineModel<Card>("data", { required: true });
 
 withDefaults(
 	defineProps<{
+		isSkeleton?: boolean;
 		viewport?: IntersectionObserverInit["root"];
 		/** 图片视口检测是否只检测一次  @default true */
 		observerOnce?: boolean;
@@ -351,6 +361,7 @@ withDefaults(
 		downloading?: boolean;
 	}>(),
 	{
+		isSkeleton: false,
 		observerOnce: true,
 		showCheckBox: true,
 		showDeleteButton: true,
@@ -366,7 +377,11 @@ const emits = defineEmits<{
 	(e: "change:selected", val: boolean): Promise<void>; // 选中状态变化事件
 	(e: "change:title", id: string, val: string): Promise<void>; // 标题变化事件
 	(e: "toggle-favorite", val: boolean): Promise<void>; // 卡片收藏事件
-	(e: "loaded", id: string, info: ImgReadyInfo): Promise<void>; // 卡片加载成功事件
+	(
+		e: "loaded",
+		id: string,
+		info: BaseImgReadyInfo | BaseVideoReadyInfo,
+	): Promise<void>; // 卡片加载成功事件
 	(e: "error", id: string): Promise<void>; // 卡片加载失败事件
 	(e: "download", id: string): Promise<void>; // 下载事件
 	(e: "delete", id: string): Promise<void>; // 删除事件
