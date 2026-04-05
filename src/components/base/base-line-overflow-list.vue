@@ -75,7 +75,7 @@
 <script lang="ts" setup>
 import { useSlots } from "vue";
 import type { HTMLAttributes } from "vue";
-import BaseScrollbar from "@/components/base/base-scrollbar.vue";
+import { BaseScrollbar } from "base-ui";
 import BaseDragDialog from "@/components/base/base-drag-dialog.vue";
 
 withDefaults(
@@ -92,7 +92,7 @@ withDefaults(
 	{
 		list: () => [],
 		title: "更多",
-	}
+	},
 );
 
 const slots = useSlots();
