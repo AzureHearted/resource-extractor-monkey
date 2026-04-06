@@ -7,10 +7,10 @@ type matchType =
 	| "innerHTML"
 	| "outerHTML";
 // 获取Dom信息
-export default async function getDOMInfo(
+export async function getDOMInfo(
 	dom: HTMLElement,
 	type: matchType,
-	name: string
+	name: string,
 ) {
 	let result = "";
 	// console.log("getDOMInfo日志：", type, name, dom);

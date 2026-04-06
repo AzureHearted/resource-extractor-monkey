@@ -9,17 +9,17 @@ type optionsType = {
 };
 
 // 函数重载
-export default function getDOM(
+export function getDOM(
 	selector: keyof HTMLElementTagNameMap,
-	options?: Partial<optionsType>
+	options?: Partial<optionsType>,
 ): HTMLElement[];
-export default function getDOM(
+export function getDOM(
 	selector: string,
-	options?: Partial<optionsType>
+	options?: Partial<optionsType>,
 ): HTMLElement[];
-export default function getDOM(
+export function getDOM(
 	selector: keyof HTMLElementTagNameMap | string,
-	options?: Partial<optionsType>
+	options?: Partial<optionsType>,
 ) {
 	// 默认选项
 	const defaultOptions: optionsType = {
