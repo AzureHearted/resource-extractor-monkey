@@ -397,7 +397,7 @@ async function downloadSelected() {
 		await favoriteStore.downloadCards(cards, {
 			dialog,
 			notification,
-			initZipName: `RE收藏集 ${new Date().toJSON()}`,
+			initZipName: `RE收藏集 ${new Date().toJSON().replace(/T/g, "_T").replace(/:/g, "_")}`,
 		});
 	} else if (cards.length === 1) {
 		await favoriteStore.downloadCard(cards[0], { dialog });
@@ -413,7 +413,7 @@ async function downloadAll() {
 		await favoriteStore.downloadCards(cards, {
 			dialog,
 			notification,
-			initZipName: `RE收藏集 ${new Date().toJSON()}`,
+			initZipName: `RE收藏集 ${new Date().toJSON().replace(/T/g, "_T").replace(/:/g, "_")}`,
 		});
 	} else if (cards.length === 1) {
 		await favoriteStore.downloadCard(cards[0], { dialog });

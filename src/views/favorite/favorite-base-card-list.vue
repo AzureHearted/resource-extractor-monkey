@@ -260,7 +260,7 @@ async function handleDownloadCards(cards: FavoriteCard[]) {
 	await downloadCards(cards, {
 		dialog,
 		notification,
-		initZipName: `RE收藏集 ${new Date().toJSON()}`,
+		initZipName: `RE收藏集 ${new Date().toJSON().replace(/T/g, "_T").replace(/:/g, "_")}`,
 	});
 	// 最后同步跟新数据库数据
 	updateCard(cards);
