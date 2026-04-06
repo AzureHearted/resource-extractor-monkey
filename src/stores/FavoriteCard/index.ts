@@ -1,15 +1,15 @@
-import { defineStore } from "pinia";
-import { computed, onActivated, reactive, ref, watch } from "vue";
-import { FavoriteCard } from "@/models/Card";
-import type { Meta, Card } from "@/models/Card";
-import { naturalCompare } from "@/utils/common";
-import localforage from "localforage";
-import { useLoadingStore } from "@/stores";
-import { useDebounceFn } from "@vueuse/core";
 import { useListIndexedDB } from "@/hooks/useIndexedDB";
-import { downloadCard, downloadCards } from "../shared/utils/download-cards";
+import type { Card, Meta } from "@/models/Card";
+import { FavoriteCard } from "@/models/Card";
+import { naturalCompare } from "@/utils";
+import { useDebounceFn } from "@vueuse/core";
+import localforage from "localforage";
 import type { DialogApiInjection } from "naive-ui/es/dialog/src/DialogProvider";
 import type { NotificationApiInjection } from "naive-ui/es/notification/src/NotificationProvider";
+import { defineStore } from "pinia";
+import { computed, onActivated, reactive, ref, watch } from "vue";
+import { useLoadingStore } from "../Loading";
+import { downloadCard, downloadCards } from "../shared/utils/download-cards";
 
 export const useFavoriteStore = defineStore("FavoriteStore", () => {
 	const loadingStore = useLoadingStore();

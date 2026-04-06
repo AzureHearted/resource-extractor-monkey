@@ -272,7 +272,7 @@ import { useDialog, useNotification } from "@/plugin/naive-ui";
 import { Pattern } from "@/models/Pattern";
 import type { Card } from "@/models/Card";
 import { BaseImg } from "base-ui";
-import { byteAutoUnit, isMobile as judgeIsMobile } from "@/utils/common";
+import { byteAutoUnit, isMobile as judgeIsMobile } from "@/utils";
 import {
 	useGlobalStore,
 	useCardStore,

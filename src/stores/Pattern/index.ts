@@ -1,8 +1,8 @@
-import { ref, reactive, computed } from "vue";
-import type { ComputedRef } from "vue";
-import { defineStore } from "pinia";
 import { Pattern, defaultPattern } from "@/models/Pattern";
 import { Rule } from "@/models/Rule";
+import { defineStore } from "pinia";
+import type { ComputedRef } from "vue";
+import { computed, reactive, ref } from "vue";
 import {
 	getUserPatternList,
 	setUserPatternList,

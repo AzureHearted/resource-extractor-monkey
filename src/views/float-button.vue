@@ -52,7 +52,7 @@
 			<!-- s 收藏 -->
 
 			<n-badge
-				:value="favoriteCardList.length"
+				:value="favoriteStore.data.cardList.length"
 				:processing="loading"
 				:max="999"
 				type="info"
@@ -108,7 +108,7 @@ import { ref, onMounted, onActivated } from "vue";
 
 import { BaseFloatButton, vRipple } from "base-ui";
 
-import { isMobile as judgeIsMobile } from "@/utils/common";
+import { isMobile as judgeIsMobile } from "@/utils";
 import { storeToRefs } from "pinia";
 import {
 	useCardStore,
@@ -124,7 +124,7 @@ const cardStore = useCardStore();
 const { data: cardStoreData } = storeToRefs(cardStore);
 
 const favoriteStore = useFavoriteStore();
-const { cardList: favoriteCardList } = storeToRefs(favoriteStore);
+// const { cardList: favoriteCardList } = storeToRefs(favoriteStore);
 
 const loadingStore = useLoadingStore();
 const { loading } = storeToRefs(loadingStore);

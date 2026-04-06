@@ -89,7 +89,7 @@ import {
 import GalleryCard from "@/components/utils/gallery-card.vue";
 import { Card } from "@/models/Card";
 import type { Meta } from "@/models/Card";
-import { isEqualUrl, isMobile as judgeIsMobile } from "@/utils/common";
+import { isEqualUrl, isMobile as judgeIsMobile } from "@/utils";
 import { useClipboard } from "@vueuse/core";
 import { Fancybox, configFancybox } from "@/plugin/fancyapps-ui";
 import type { CarouselSlide } from "@fancyapps/ui";

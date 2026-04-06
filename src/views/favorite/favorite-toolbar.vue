@@ -185,7 +185,7 @@ import { NBadge, NEllipsis, NTag } from "naive-ui";
 import type { SelectOption, SelectRenderTag, SliderProps } from "naive-ui";
 import { useDialog, useNotification } from "@/plugin/naive-ui";
 import type { Card } from "@/models/Card";
-import { byteAutoUnit, isMobile as judgeIsMobile } from "@/utils/common";
+import { byteAutoUnit, isMobile as judgeIsMobile } from "@/utils";
 import { useFavoriteStore, useGlobalStore, useLoadingStore } from "@/stores";
 
 const dialog = useDialog();

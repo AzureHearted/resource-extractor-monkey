@@ -1,4 +1,4 @@
-import { getExtByUrl, isBase64Img, isUrl } from "@/utils/common";
+import { getExtByUrl, isBase64Img, isUrl } from "@/utils";
 import { Meta } from "@/models/Card";
 import { getDOMNaturalSize } from "./get-dom-natural-size";
 

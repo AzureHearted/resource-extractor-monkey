@@ -91,7 +91,7 @@ import { storeToRefs } from "pinia";
 import { Icon } from "@iconify/vue";
 import NavMenu from "./layout-nav-menu.vue";
 
-import { isMobile as judgeIsMobile } from "@/utils/common";
+import { isMobile as judgeIsMobile } from "@/utils";
 import { menuConfig } from "./menuConfig";
 
 import { useGlobalStore } from "@/stores"; //导入全局仓库

@@ -1,15 +1,15 @@
-import { getDOM, getDOMInfo } from "@/utils/dom";
-import type { BaseMatch, Rule, BaseFix } from "@/models/Rule/interface/Rule";
-import { Card, Meta } from "@/models/Card";
-
-// 导入请求工具
 import {
+	getDOM,
+	getDOMInfo,
+	getHTMLDocumentFromUrl,
 	getExtByUrl,
 	getNameByUrl,
 	isUrl,
 	safeDecodeURI,
-} from "@/utils/common";
-import { getHTMLDocumentFromUrl } from "@/utils/http";
+} from "@/utils";
+import type { BaseMatch, Rule, BaseFix } from "@/models/Rule/interface/Rule";
+import { Card, Meta } from "@/models/Card";
+
 import { useParallelTask } from "@/hooks/useParallelTask";
 import type { Task } from "@/hooks/useParallelTask";
 import { getMeta, inferUrlType } from "./get-meta";

@@ -5,8 +5,9 @@ import {
 	getNameByUrl,
 	legalizationPathString,
 	safeDecodeURI,
-} from "@/utils/common";
-import { getBlobByUrlAuto, getSingleFileBlobByUrl } from "@/utils/http";
+	getBlobByUrlAuto,
+	getSingleFileBlobByUrl,
+} from "@/utils";
 import saveAs from "file-saver";
 import JSZip from "jszip";
 import { type FormValidationStatus, NFlex, NButton } from "naive-ui";

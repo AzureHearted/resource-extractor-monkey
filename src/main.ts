@@ -9,7 +9,7 @@ import { createApp } from "vue";
 import { createPinia } from "pinia";
 
 // 油猴监听器
-import { registerBackgroundListener } from "./utils/http/background";
+import { registerBackgroundListener } from "./background";
 
 import App from "./App.vue";
 

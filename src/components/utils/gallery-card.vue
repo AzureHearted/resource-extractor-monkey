@@ -315,7 +315,7 @@ import { GM_openInTab } from "$";
 import { useDialog } from "@/plugin/naive-ui";
 import { NCheckbox } from "naive-ui";
 // 导入公用TS库
-import { byteAutoUnit, legalizationPathString } from "@/utils/common";
+import { byteAutoUnit, legalizationPathString } from "@/utils";
 // 导入svg
 import HtmlTypeImg from "@svg/html.svg";
 // 导入仓库
