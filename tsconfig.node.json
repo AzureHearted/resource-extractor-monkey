@@ -6,7 +6,8 @@
 		"cypress.config.*",
 		"nightwatch.conf.*",
 		"playwright.config.*",
-		"monkey.config.*"
+		"monkey.config.*",
+		"package.json"
 	],
 	"compilerOptions": {
 		"composite": true,

@@ -85,7 +85,6 @@
 </template>
 
 <script setup lang="ts">
-import { GM_info } from "$";
 import { ref, onMounted, onActivated, computed, h } from "vue";
 import { storeToRefs } from "pinia";
 import { Icon } from "@iconify/vue";
@@ -105,7 +104,7 @@ const {
 } = storeToRefs(globalStore);
 
 // 版本号
-const VERSION = GM_info.script.version;
+const VERSION = __APP_VERSION__;
 
 // 是否为开发模式
 const isDevMode = import.meta.env.DEV;

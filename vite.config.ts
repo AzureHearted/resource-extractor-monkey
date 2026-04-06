@@ -14,6 +14,9 @@ import monkeyConfig from "./monkey.config"; // 自定义monkey配置
 
 // https://vitejs.dev/config/
 export default defineConfig({
+	define: {
+		__APP_VERSION__: JSON.stringify(monkeyConfig.userscript?.version),
+	},
 	plugins: [
 		vue(),
 		// VueDevTools(),
