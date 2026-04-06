@@ -1,4 +1,4 @@
-import type { BaseRegex, RawRule, Rule } from "@/models/Rule/interface/Rule";
+import type { BaseRegex, RawRule, Rule } from "../../Rule/interface/Rule";
 
 // 匹配方案
 export interface Pattern {

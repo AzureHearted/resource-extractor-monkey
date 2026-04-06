@@ -310,7 +310,7 @@ import {
 	type BaseVideoReadyInfo,
 } from "base-ui";
 import BaseLineOverFlowList from "@/components/base/base-line-overflow-list.vue";
-import { Card } from "@/models/Card";
+import { Card } from "@/models";
 import { GM_openInTab } from "$";
 import { useDialog } from "@/plugin/naive-ui";
 import { NCheckbox } from "naive-ui";
