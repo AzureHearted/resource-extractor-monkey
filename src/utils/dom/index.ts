@@ -1,4 +1,2 @@
-import getDOM from "./get-dom";
-import getDOMInfo from "./get-dom-info";
-
-export { getDOM, getDOMInfo };
+export * from "./get-dom";
+export * from "./get-dom-info";

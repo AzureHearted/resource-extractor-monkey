@@ -1,17 +1,17 @@
-import { getDOM, getDOMInfo } from "@/utils/dom";
-import type { BaseMatch, Rule, BaseFix } from "@/models/Rule/interface/Rule";
-import { Card } from "@/models/Card/Card";
-import { Meta } from "@/models/Card/Meta";
-// 导入请求工具
+import { Card, Meta } from "@/models";
+import type { BaseFix, BaseMatch, Rule } from "@/models/Rule/interface/Rule";
 import {
+	getDOM,
+	getDOMInfo,
 	getExtByUrl,
+	getHTMLDocumentFromUrl,
 	getNameByUrl,
 	isUrl,
 	safeDecodeURI,
-} from "@/utils/common";
-import { getHTMLDocumentFromUrl } from "@/utils/http";
-import { useParallelTask } from "@/hooks/useParallelTask";
+} from "@/utils";
+
 import type { Task } from "@/hooks/useParallelTask";
+import { useParallelTask } from "@/hooks/useParallelTask";
 import { getMeta, inferUrlType } from "./get-meta";
 
 // 配置接口

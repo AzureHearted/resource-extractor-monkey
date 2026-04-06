@@ -1,5 +1,5 @@
-import { getExtByUrl, isBase64Img, isUrl } from "@/utils/common";
-import { Meta } from "@/models/Card/Meta";
+import { Meta } from "@/models";
+import { getExtByUrl, isBase64Img, isUrl } from "@/utils";
 import { getDOMNaturalSize } from "./get-dom-natural-size";
 
 // i 元信息陪自己对象

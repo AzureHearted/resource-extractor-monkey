@@ -1,14 +1,14 @@
 import { cloneDeep, isEqual } from "@/plugin/lodash";
 import type { Status } from "../Pattern/interface/Pattern";
 import type {
-	Description,
-	Preview,
-	Region,
-	Rule as IRule,
-	Source,
-	Filter,
 	BaseFix,
+	Description,
+	Filter,
+	Rule as IRule,
+	Preview,
 	RawRule,
+	Region,
+	Source,
 } from "../Rule/interface/Rule";
 
 export class Rule implements IRule {

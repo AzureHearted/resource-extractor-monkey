@@ -29,7 +29,7 @@ import { ref } from "vue";
 import TestLineOverflowList from "./test-line-overflow-list.vue";
 import BaseDock from "@/components/base/base-dock.vue";
 // import html2pdf from "html2pdf.js";
-// import { legalizationPathString } from "@/utils/common";
+// import { legalizationPathString } from "@/utils";
 // import { useGlobalStore } from "@/stores";
 
 const show = ref(false);

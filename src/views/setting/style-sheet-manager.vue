@@ -1,5 +1,5 @@
 <template>
-	<Scrollbar
+	<BaseScrollbar
 		show-back-top-button
 		back-to-top-behavior="smooth"
 		overflow-x="hidden"
@@ -97,14 +97,14 @@
 				</transition-group>
 			</n-collapse>
 		</div>
-	</Scrollbar>
+	</BaseScrollbar>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onActivated } from "vue";
 import type { CSSProperties } from "vue";
 
-import Scrollbar from "@/components/base/base-scrollbar.vue";
+import { BaseScrollbar } from "base-ui";
 import { useGlobalStore } from "@/stores";
 
 const globalStore = useGlobalStore();

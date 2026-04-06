@@ -1,5 +1,5 @@
-import type { Meta } from "@/models/Card/Meta";
-import type { Status } from "@/models/Pattern/interface/Pattern";
+import type { Meta } from "../../Card/Meta";
+import type { Status } from "../../Pattern/interface/Pattern";
 
 // 匹配规则
 export interface Rule {

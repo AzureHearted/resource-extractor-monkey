@@ -141,7 +141,7 @@
 import { ref, watch, reactive, nextTick, onMounted, useSlots } from "vue";
 import { useWindowSize, useElementBounding, useDraggable } from "@vueuse/core";
 import type { HtmlHTMLAttributes, CSSProperties } from "vue";
-import BaseScrollbar from "./base-scrollbar.vue";
+import { BaseScrollbar } from "base-ui";
 
 const show = defineModel("show", { type: Boolean, default: false });
 const slots = useSlots();

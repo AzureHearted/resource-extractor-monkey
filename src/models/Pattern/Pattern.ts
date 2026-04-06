@@ -1,12 +1,12 @@
 import { cloneDeep, isEqual } from "@/plugin/lodash";
+import { getFavicon } from "@/utils";
+import { Rule } from "../Rule";
+import type { Rule as IRule } from "../Rule/interface/Rule";
 import type {
 	Pattern as IPattern,
-	Status,
 	RawPattern,
+	Status,
 } from "./interface/Pattern";
-import type { Rule as IRule } from "../Rule/interface/Rule";
-import { Rule } from "../Rule/Rule";
-import { getFavicon } from "@/utils/common";
 
 // 匹配方案
 export class Pattern implements IPattern {

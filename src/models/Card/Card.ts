@@ -1,6 +1,5 @@
 import { cloneDeep } from "lodash";
 import type { Card as ICard } from "./interface/Card";
-import type { State as IState } from "./interface/State";
 import { Meta } from "./Meta";
 
 // 不带状态的卡片类型
@@ -47,24 +46,9 @@ export class RawCard implements ICard {
 	}
 }
 
-export class Card extends RawCard implements IState {
-	public isSelected: IState["isSelected"] = false;
-	public isFavorite: IState["isFavorite"] = false;
-	public isLoaded: IState["isLoaded"] = false;
-	public downloading: IState["downloading"] = false;
-
-	constructor(raw: Partial<ICard & IState>) {
+export class Card extends RawCard {
+	constructor(raw: Partial<ICard>) {
 		super(raw);
-		this.initState(raw);
-	}
-
-	// 初始化状态
-	public initState(raw?: Partial<IState>) {
-		const { isSelected, isFavorite, isLoaded, downloading } = raw ?? {};
-		this.isSelected = isSelected ?? this.isSelected;
-		this.isFavorite = isFavorite ?? this.isFavorite;
-		this.isLoaded = isLoaded ?? this.isLoaded;
-		this.downloading = downloading ?? this.downloading;
 	}
 
 	// 转为纯数据对象 (包含DOM引用)

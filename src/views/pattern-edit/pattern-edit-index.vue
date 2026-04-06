@@ -17,7 +17,7 @@
 import { onMounted } from "vue";
 import Tree from "./pattern-tree.vue";
 import Form from "./pattern-form.vue";
-import BaseScrollbar from "@/components/base/base-scrollbar.vue";
+import { BaseScrollbar } from "base-ui";
 import { usePatternStore } from "@/stores";
 import { onActivated } from "vue";
 

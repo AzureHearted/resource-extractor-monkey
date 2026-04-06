@@ -1,52 +1,39 @@
 <template>
-	<BaseDragDialog
-		v-model:show="show"
-		:teleport-to="teleportTo"
-		:title="title"
-		allow-resize
-		allow-full-screen
-		close-reset-state
-		:click-outside-close="false"
-		:dialog-style="{
-			backdropFilter: 'blur(5px)',
-			background: `getTheme(${globalStore.theme},background)`,
-		}"
-		@before-close="handleClose"
-	>
+	<BaseWindow v-model:show="show" @close="handleClose" :title="title">
 		<template #default>
-			<div style="padding: 2px">
-				<!-- {{ tags }} -->
-				<n-dynamic-tags
-					v-model:value="tagList"
-					type="info"
-					@update:value="handleChange"
-				/>
-			</div>
+			<BaseFlex direction="column">
+				<div style="padding: 2px; flex: 1">
+					<!-- {{ tags }} -->
+					<n-dynamic-tags
+						v-model:value="tagList"
+						type="info"
+						@update:value="handleChange"
+					/>
+				</div>
+				<BaseFlex style="flex: 0" :gap="4">
+					<n-button
+						tag="div"
+						style="margin-left: auto"
+						type="success"
+						size="small"
+						@click="handleSave"
+					>
+						保存
+					</n-button>
+					<n-button tag="div" size="small" @click="handleCancel">
+						取消
+					</n-button>
+				</BaseFlex>
+			</BaseFlex>
 		</template>
-		<template #footer>
-			<n-flex :size="4">
-				<n-button
-					tag="div"
-					style="margin-left: auto"
-					type="success"
-					size="small"
-					@click="handleSave"
-				>
-					保存
-				</n-button>
-				<n-button tag="div" size="small" @click="handleCancel"> 取消 </n-button>
-			</n-flex>
-		</template>
-	</BaseDragDialog>
+	</BaseWindow>
 </template>
 
 <script setup lang="ts">
-import BaseDragDialog from "@/components/base/base-drag-dialog.vue";
-import { useGlobalStore } from "@/stores";
+import { BaseFlex, BaseWindow } from "base-ui";
 import { ref, nextTick } from "vue";
-const show = defineModel("show", { type: Boolean, default: false });
 
-const globalStore = useGlobalStore();
+const show = defineModel("show", { type: Boolean, default: false });
 
 const props = withDefaults(
 	defineProps<{

@@ -8,7 +8,7 @@
 		<!-- s 方案选择器 -->
 		<n-select
 			class="pattern-selector"
-			v-model:value="patternStore.used.id"
+			v-model:value="patternStore.current.id"
 			placeholder="请选择一个方案"
 			:to="false"
 			:render-label="renderPatternSelectOptionsLabel"
@@ -76,10 +76,10 @@
 		<!-- s 排序方式 -->
 		<n-select
 			class="sort-method-selector"
-			v-model:value="sort.method"
+			v-model:value="sortInfo.method"
 			placeholder="请选择一个排序方式"
 			:to="false"
-			:options="sort.groups"
+			:options="sortInfo.groups"
 		/>
 		<!-- s 扩展名过滤器 -->
 		<n-select
@@ -124,17 +124,17 @@
 		>
 			<!-- 选择器按钮组 -->
 			<n-button-group>
-				<n-button type="primary" @click="checkAll"> 全选 </n-button>
-				<n-button type="info" @click="inverseAll"> 反选 </n-button>
-				<n-button @click="cancel"> 取消 </n-button>
+				<n-button type="primary" @click="selectAll"> 全选 </n-button>
+				<n-button type="info" @click="inverseSelectAll"> 反选 </n-button>
+				<n-button @click="cancelSelect"> 取消 </n-button>
 			</n-button-group>
 		</n-badge>
 		<!-- s 下载控制 -->
 		<n-badge
 			:offset="[0, 2]"
 			:max="999"
-			:show="!!checkedCardList.length"
-			:value="`${checkedCardList.length}${checkedTotalSizeTip}`"
+			:show="!!selectionCards.length"
+			:value="`${selectionCards.length}${checkedTotalSizeTip}`"
 			style="align-items: center"
 		>
 			<var-menu
@@ -144,7 +144,8 @@
 			>
 				<n-button-group type="primary">
 					<n-button
-						:disabled="!checkedCardList.length"
+						:disabled="!selectionCards.length"
+						:loading="cardStore.state.downloading"
 						@click.stop="downloadSelected"
 					>
 						下载
@@ -173,7 +174,7 @@
 					<var-cell
 						title="删除选中项"
 						@click="deleteSelected"
-						v-if="!!checkedCardList.length"
+						v-if="!!selectionCards.length"
 						ripple
 					>
 						<template #icon>
@@ -183,7 +184,7 @@
 					<var-cell
 						title="收藏选中项"
 						@click="favoriteSelected"
-						v-if="!!checkedCardList.length"
+						v-if="!!selectionCards.length"
 						ripple
 					>
 						<template #icon>
@@ -254,45 +255,48 @@
 </template>
 
 <script setup lang="ts">
-import { h, ref, reactive, onMounted, computed, watch, onActivated } from "vue";
-import type { VNodeChild } from "vue";
-import { NTag, NBadge } from "naive-ui";
-import type { SelectOption, SelectRenderTag, SliderProps } from "naive-ui";
-import { Pattern } from "@/models/Pattern/Pattern";
-import BaseImg from "@/components/base/base-img.vue";
-
+import type { Card } from "@/models";
+import { Pattern } from "@/models";
 import { useDialog, useNotification } from "@/plugin/naive-ui";
-
-const dialog = useDialog();
-const notification = useNotification();
-
-// 导入公用ts库
-import { byteAutoUnit, isMobile as judgeIsMobile } from "@/utils/common";
-
-// 导入仓库
 import {
-	useGlobalStore,
 	useCardStore,
 	useFavoriteStore,
+	useGlobalStore,
 	useLoadingStore,
 	usePatternStore,
 } from "@/stores";
-import { storeToRefs } from "pinia";
-import type { Card } from "@/models/Card/Card";
+import { byteAutoUnit, isMobile as judgeIsMobile } from "@/utils";
 import { useDebounceFn } from "@vueuse/core";
+import { BaseImg } from "base-ui";
+import type { SelectOption, SelectRenderTag, SliderProps } from "naive-ui";
+import { NBadge, NTag } from "naive-ui";
+import { storeToRefs } from "pinia";
+import {
+	computed,
+	h,
+	onActivated,
+	onMounted,
+	reactive,
+	ref,
+	watch,
+	type VNodeChild,
+} from "vue";
+
+const dialog = useDialog();
+const notification = useNotification();
 
 const globalStore = useGlobalStore();
 
 onMounted(() => {
 	if (globalStore.galleryState.pageLoadedGetResource) {
-		reload();
+		if (!patternStore.current.id.includes("#")) reload();
 	}
 });
 
 const cardStore = useCardStore();
 const {
 	data,
-	sort,
+	sortInfo,
 	sizeRange,
 	filterCardList,
 	selectionCardList,
@@ -359,7 +363,7 @@ const currentCardList = computed<Card[]>(() => {
 });
 
 // 被勾选的卡片
-const checkedCardList = computed<Card[]>(() => {
+const selectionCards = computed<Card[]>(() => {
 	return selectionCardList.value[nowType.value] ?? [];
 });
 
@@ -367,7 +371,7 @@ const checkedCardList = computed<Card[]>(() => {
 const checkedTotalSizeTip = computed(() => {
 	let existUnDownload = false; // 标记是否存在为下载的卡片
 	// 先计算尺寸大小
-	const totalByte = checkedCardList.value.reduce((total, curr) => {
+	const totalByte = selectionCards.value.reduce((total, curr) => {
 		if (curr.source.blob) {
 			return total + curr.source.blob.size;
 		} else {
@@ -488,8 +492,10 @@ let stopGetCardsFlag = ref(false);
 
 // f 获取卡片
 async function getCards() {
+	const pattern = patternStore.getCurrentPattern();
+	if (pattern == null) return;
 	stopGetCardsFlag.value = false;
-	await cardStore.getPageCard({
+	await cardStore.getPageCard(pattern, {
 		stopFlag: stopGetCardsFlag,
 		notification,
 	});
@@ -540,20 +546,30 @@ const handleKeywordFilter = (value?: string) => {
 };
 
 // f 全选
-function checkAll() {
-	filterCardList.value[nowType.value].forEach((c) => (c.isSelected = true));
+function selectAll() {
+	const set = new Set(cardStore.data.selectedCardIdSet);
+	filterCardList.value[nowType.value].forEach((c) => set.add(c.id));
+	cardStore.data.selectedCardIdSet = set;
 }
 
 // f 反选
-function inverseAll() {
-	filterCardList.value[nowType.value].forEach(
-		(c) => (c.isSelected = !c.isSelected),
-	);
+function inverseSelectAll() {
+	const set = new Set(cardStore.data.selectedCardIdSet);
+	filterCardList.value[nowType.value].forEach((c) => {
+		if (set.has(c.id)) {
+			set.delete(c.id);
+		} else {
+			set.add(c.id);
+		}
+	});
+	cardStore.data.selectedCardIdSet = set;
 }
 
 // f 取消
-function cancel() {
-	filterCardList.value[nowType.value].forEach((c) => (c.isSelected = false));
+function cancelSelect() {
+	const set = new Set(cardStore.data.selectedCardIdSet);
+	filterCardList.value[nowType.value].forEach((c) => set.delete(c.id));
+	cardStore.data.selectedCardIdSet = set;
 }
 
 // f 重置过滤器
@@ -564,24 +580,27 @@ function resetFilters() {
 }
 
 // f 下载选中项
-function downloadSelected() {
-	const cards =
-		filterCardList.value[nowType.value].filter((x) => x.isSelected) || [];
+async function downloadSelected() {
+	const cards = selectionCardList.value[nowType.value] || [];
 	if (cards.length > 1) {
-		cardStore.downloadCards(cards, { dialog, notification });
+		await cardStore.downloadCards(cards, { dialog, notification });
 	} else if (cards.length === 1) {
-		cardStore.downloadCard(cards[0], { dialog });
+		await cardStore.downloadCard(cards[0], { dialog });
 	}
+	// 处理结束后同步收藏仓库中也有的卡片状态
+	favoriteStore.update(cards);
 }
 
 // f 下载全部
-function downloadAll() {
+async function downloadAll() {
 	const cards = filterCardList.value[nowType.value] || [];
 	if (cards.length > 1) {
-		cardStore.downloadCards(cards, { dialog, notification });
+		await cardStore.downloadCards(cards, { dialog, notification });
 	} else if (cards.length === 1) {
-		cardStore.downloadCard(cards[0], { dialog });
+		await cardStore.downloadCard(cards[0], { dialog });
 	}
+	// 处理结束后同步收藏仓库中也有的卡片状态
+	favoriteStore.update(cards);
 }
 
 // f 删除选中项
@@ -593,9 +612,9 @@ function deleteSelected() {
 // f 收藏选中项
 function favoriteSelected() {
 	favoriteStore.favorite(selectionCardList.value[nowType.value]); // 添加卡片到Favorite仓库
-	selectionCardList.value[nowType.value].forEach(
-		(card) => (card.isFavorite = true),
-	); // 更新卡片收藏状态
+	const set = new Set(cardStore.data.favoriteCardIdSet);
+	selectionCardList.value[nowType.value].forEach((card) => set.add(card.id)); // 更新卡片收藏状态
+	cardStore.data.favoriteCardIdSet = set;
 }
 </script>
 
@@ -660,6 +679,7 @@ function favoriteSelected() {
 .toolbar-loading {
 	width: 100%;
 	display: block;
+	text-wrap: nowrap;
 
 	margin: 0;
 	height: 0;

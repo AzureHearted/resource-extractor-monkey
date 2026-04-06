@@ -1,5 +1,7 @@
 // 导入全局样式
 import "./styles/index.scss";
+// 导入 base-ui 样式
+import "base-ui/style.css";
 import { lowerHighZIndex } from "./styles/fix";
 
 // import "default-passive-events";
@@ -7,7 +9,7 @@ import { createApp } from "vue";
 import { createPinia } from "pinia";
 
 // 油猴监听器
-import { registerBackgroundListener } from "./utils/http/background";
+import { registerBackgroundListener } from "./background";
 
 import App from "./App.vue";
 

@@ -47,7 +47,7 @@ import Favorite from "@/views/favorite/favorite-index.vue";
 import AutoPage from "@/views/autopage/autopage-index.vue";
 import Test from "@/views/test/test-index.vue";
 
-import { isMobile as judgeIsMobile } from "@/utils/common";
+import { isMobile as judgeIsMobile } from "@/utils";
 
 import NavMenu from "./layout-nav-menu.vue";
 

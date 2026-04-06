@@ -39,16 +39,8 @@
 			</div>
 		</div>
 		<!-- s 更多展示面板 -->
-		<base-drag-dialog
-			v-model:show="showMore"
-			:teleport-to="modelTo"
-			:header-style="{
-				height: 'fit-content',
-			}"
-			allow-full-screen
-			allow-resize
-		>
-			<template #header-left>
+		<BaseWindow v-model:show="showMore">
+			<template #title-bar-left>
 				<slot name="modal-title"></slot>
 			</template>
 			<base-scrollbar :offset="[-4, -4]">
@@ -65,18 +57,13 @@
 					</template>
 				</slot>
 			</base-scrollbar>
-			<template v-if="slots['footer']" #footer>
-				<slot name="modal-footer"> </slot>
-			</template>
-		</base-drag-dialog>
+		</BaseWindow>
 	</div>
 </template>
 
 <script lang="ts" setup>
-import { useSlots } from "vue";
 import type { HTMLAttributes } from "vue";
-import BaseScrollbar from "@/components/base/base-scrollbar.vue";
-import BaseDragDialog from "@/components/base/base-drag-dialog.vue";
+import { BaseScrollbar, BaseWindow } from "base-ui";
 
 withDefaults(
 	defineProps<{
@@ -92,10 +79,8 @@ withDefaults(
 	{
 		list: () => [],
 		title: "更多",
-	}
+	},
 );
-
-const slots = useSlots();
 
 // s 是否展示更多
 const showMore = defineModel("showMore", { type: Boolean, default: false });

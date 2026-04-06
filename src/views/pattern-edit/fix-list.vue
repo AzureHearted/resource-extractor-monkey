@@ -173,15 +173,15 @@
 </template>
 
 <script setup lang="ts">
-import { Rule } from "@/models/Rule/Rule";
+import { Rule } from "@/models";
 import type { BaseFix } from "@/models/Rule/interface/Rule";
+import { computed } from "vue";
 import {
 	fixTypeOptions,
 	matchTypeOptions,
 	regexFlagOptions,
 	regexFlagRenderOption,
 } from "./publicData";
-import { computed } from "vue";
 
 const props = withDefaults(
 	defineProps<{

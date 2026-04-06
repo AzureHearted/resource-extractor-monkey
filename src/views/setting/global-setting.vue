@@ -1,5 +1,5 @@
 <template>
-	<Scrollbar
+	<BaseScrollbar
 		show-back-top-button
 		back-to-top-behavior="smooth"
 		show-arrived-indicator
@@ -77,11 +77,11 @@
 				</n-form-item>
 			</n-form>
 		</n-card>
-	</Scrollbar>
+	</BaseScrollbar>
 </template>
 
 <script setup lang="ts">
-import Scrollbar from "@/components/base/base-scrollbar.vue";
+import { BaseScrollbar } from "base-ui";
 import { useGlobalStore } from "@/stores";
 import { storeToRefs } from "pinia";
 const globalStore = useGlobalStore();
