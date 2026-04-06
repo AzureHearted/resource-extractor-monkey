@@ -1,11 +1,11 @@
 <template>
-	<div ref="scrollBarRef" style="height: 100%">
+	<div ref="scrollBarRef" style="height: 100%" @click="clearSelection">
 		<!-- f 普通网格布局 -->
 		<div v-if="layout === 'grid'" style="height: 100%">
 			<BaseVirtualGrid
 				style="padding: 10px"
 				ref="gridRef"
-				:items="cardList"
+				:items="virtualGridItem"
 				:gap="4"
 				:columns="!state.isMobile ? galleryState.column : undefined"
 				:breakpoints="state.isMobile ? state.breakpoints : undefined"
@@ -13,18 +13,21 @@
 			>
 				<template #="{ item, isSkeleton }">
 					<GalleryCard
-						:key="(item as Card).id"
-						v-model:data="item as Card"
+						v-model:data="item.data"
+						:is-selected="cardStore.data.selectedCardIdSet.has(item.id)"
+						:is-favorite="cardStore.data.favoriteCardIdSet.has(item.id)"
+						:downloading="cardStore.data.downloadingCardIdSet.has(item.id)"
 						:is-skeleton="isSkeleton"
 						:highlight-key="searchKeywords"
 						:is-mobile="state.isMobile"
 						@delete="removeCard([$event])"
 						@loaded="handleLoaded"
-						@error="handleError"
 						@download="handleDownloadCard"
-						@toggle-favorite="handleToFavorite((item as Card).id, $event)"
-						@dblclick="onCardDbClick((item as Card).id)"
-						@contextmenu="onCardContextMenu($event, (item as Card).id)"
+						@toggle-favorite="handleToFavorite(item.id, $event)"
+						@toggle-select="handleSelectChange(item.id, $event)"
+						@click.stop="handleSelect(item.id, $event)"
+						@dblclick.stop="onCardDbClick(item.id)"
+						@contextmenu="onCardContextMenu($event, item.id)"
 					/>
 				</template>
 			</BaseVirtualGrid>
@@ -42,16 +45,21 @@
 			>
 				<template #="{ item, isSkeleton }">
 					<GalleryCard
-						v-model:data="item.data as Card"
+						v-model:data="item.data"
+						:is-selected="cardStore.data.selectedCardIdSet.has(item.id)"
+						:is-favorite="cardStore.data.favoriteCardIdSet.has(item.id)"
+						:downloading="cardStore.data.downloadingCardIdSet.has(item.id)"
 						:is-skeleton="isSkeleton"
 						:highlight-key="searchKeywords"
 						:is-mobile="state.isMobile"
 						@delete="removeCard([$event])"
 						@loaded="handleLoaded"
 						@download="handleDownloadCard"
-						@toggle-favorite="handleToFavorite((item.data as Card).id, $event)"
-						@dblclick="onCardDbClick((item.data as Card).id)"
-						@contextmenu="onCardContextMenu($event, (item.data as Card).id)"
+						@toggle-favorite="handleToFavorite(item.id, $event)"
+						@toggle-select="handleSelectChange(item.id, $event)"
+						@click.stop="handleSelect(item.id, $event)"
+						@dblclick.stop="onCardDbClick(item.id)"
+						@contextmenu="onCardContextMenu($event, item.id)"
 					/>
 				</template>
 			</BaseVirtualMasonry>
@@ -76,9 +84,11 @@ import {
 	type BaseImgReadyInfo,
 	type BaseVideoReadyInfo,
 	type BaseVirtualMasonryItem,
+	type BaseVirtualGridItem,
 } from "base-ui";
 import GalleryCard from "@/components/utils/gallery-card.vue";
-import { Card } from "@/models/Card/Card";
+import { Card } from "@/models/Card";
+import type { Meta } from "@/models/Card";
 import { isEqualUrl, isMobile as judgeIsMobile } from "@/utils/common";
 import { useClipboard } from "@vueuse/core";
 import { Fancybox, configFancybox } from "@/plugin/fancyapps-ui";
@@ -88,7 +98,6 @@ import type { CarouselSlide } from "@fancyapps/ui";
 import { storeToRefs } from "pinia";
 import { useGlobalStore, useCardStore, useFavoriteStore } from "@/stores";
 import { GM_openInTab } from "$";
-import type { Meta } from "@/models/Card/Meta";
 import { useDialog, useNotification } from "@/plugin/naive-ui";
 
 const dialog = useDialog();
@@ -98,6 +107,7 @@ const globalStore = useGlobalStore();
 const { galleryState } = storeToRefs(globalStore);
 // s 卡片仓库
 const cardStore = useCardStore();
+const { filterCardList, nowType } = storeToRefs(cardStore);
 const { findCard, removeCard, downloadCard, downloadCards } = cardStore;
 // s 收藏仓库
 const favoriteStore = useFavoriteStore();
@@ -155,6 +165,20 @@ onActivated(() => {
 	state.useCustomScrollbar = !state.isMobile;
 });
 
+// j 转为适用于虚拟Grid的数据列表
+const virtualGridItem = computed<Array<BaseVirtualGridItem>>(() => {
+	return props.cardList.map<BaseVirtualGridItem>((c) => {
+		const { id, source } = c;
+		const { url: sourceSrc } = source;
+
+		return {
+			id,
+			src: sourceSrc,
+			data: c,
+		};
+	});
+});
+
 // j 转为适用于虚拟瀑布流的数据列表
 const virtualMasonryItem = computed<Array<BaseVirtualMasonryItem>>(() => {
 	return props.cardList.map<BaseVirtualMasonryItem>((c) => {
@@ -189,11 +213,16 @@ const handleLoaded = async (
 ) => {
 	// s 仓库找到对应的数据
 	const card = findCard(id);
-	if (!card) return; // * 如果卡片不存在也不在向下执行
-	if (card.isLoaded) return; // * 如果已经成功加载过了就不在执行
-	card.isLoaded = true; // s 置为加载成功
+	if (!card) return;
+	if (cardStore.data.loadedCardIdSet.has(id)) return;
+	// 记录已加载的卡片id
+	cardStore.data.loadedCardIdSet.add(id);
 	// ? 判断卡片是否被收藏
-	card.isFavorite = await isFavorite(card);
+	if (await isFavorite(card)) {
+		cardStore.data.favoriteCardIdSet.add(id);
+	} else {
+		cardStore.data.favoriteCardIdSet.delete(id);
+	}
 	// s 刷新仓库对应卡片的preview.meta信息
 	if (info.meta.valid) {
 		card.preview.meta = { ...card.preview.meta, ...info.meta };
@@ -201,13 +230,6 @@ const handleLoaded = async (
 			card.source.meta = card.preview.meta;
 		}
 	}
-};
-
-const handleError = async (id: string) => {
-	// s 仓库找到对应的数据
-	const card = findCard(id);
-	if (!card) return; // * 如果卡片不存，则不在向下执行
-	card.isLoaded = true;
 };
 
 // f 处理下载事件
@@ -224,15 +246,26 @@ async function handleDownloadCards(cards: Card[]) {
 }
 
 // f 处理收藏切换
-const handleToFavorite = async (id: string, val: boolean) => {
+const handleToFavorite = async (id: string, isFav: boolean) => {
 	const card = findCard(id);
 	if (!card) return;
-	if (val) {
-		card.isFavorite = true;
+	if (isFav) {
+		cardStore.data.favoriteCardIdSet.add(id);
 		toFavoriteCard([card]);
 	} else {
-		card.isFavorite = false;
+		cardStore.data.favoriteCardIdSet.delete(id);
 		unFavoriteCard([card]);
+	}
+};
+
+// f 处理选中状态切换
+const handleSelectChange = async (id: string, isSelected: boolean) => {
+	const card = findCard(id);
+	if (!card) return;
+	if (isSelected) {
+		cardStore.data.selectedCardIdSet.add(id);
+	} else {
+		cardStore.data.selectedCardIdSet.delete(id);
 	}
 };
 
@@ -241,10 +274,17 @@ onActivated(() => {
 	requestAnimationFrame(async () => {
 		// 先属性收藏仓库
 		await refreshFavoriteStore();
+		const set = new Set(cardStore.data.favoriteCardIdSet);
 		// 更新收藏状态
-		props.cardList.forEach(async (card) => {
-			card.isFavorite = await isFavorite(card);
-		});
+		for (let i = 0; i < props.cardList.length; i++) {
+			const card = props.cardList[i];
+			if (await isFavorite(card)) {
+				set.add(card.id);
+			} else {
+				set.delete(card.id);
+			}
+		}
+		cardStore.data.favoriteCardIdSet = set;
 	});
 });
 
@@ -445,13 +485,15 @@ async function onCardContextMenu(event: PointerEvent, id: string) {
 	const card = props.cardList.find((x) => x.id === id);
 	if (!card) return;
 
+	const isFavorite = cardStore.data.favoriteCardIdSet.has(card.id);
+
 	const selectionCard = [...cardStore.selectionCardList[cardStore.nowType]];
 	if (!selectionCard.includes(card)) selectionCard.push(card);
 
 	const result = await showContextMenu(event, [
 		{ label: "预览", command: "preview" },
 		{
-			label: card.isFavorite ? "取消收藏" : "收藏",
+			label: isFavorite ? "取消收藏" : "收藏",
 			command: "favorite",
 		},
 		{ label: "打开源", command: "openSource" },
@@ -481,7 +523,7 @@ async function onCardContextMenu(event: PointerEvent, id: string) {
 				openFancybox(id);
 				break;
 			case "favorite":
-				handleToFavorite(card.id, !card.isFavorite);
+				handleToFavorite(card.id, !isFavorite);
 				break;
 			case "locateInPage":
 				const dom = card.source.dom;
@@ -546,6 +588,46 @@ async function onCardContextMenu(event: PointerEvent, id: string) {
 		}
 	}
 }
+
+// f 清空所有选中项的选中状态
+function clearSelection() {
+	cardStore.data.selectedCardIdSet.clear();
+}
+
+// f 处理选中
+function handleSelect(id: string, e: PointerEvent) {
+	if (!e.ctrlKey) {
+		cardStore.data.selectedCardIdSet.clear();
+	}
+	cardStore.data.selectedCardIdSet.add(id);
+}
+
+// f 全选
+function selectAll() {
+	const set = new Set(cardStore.data.selectedCardIdSet);
+	filterCardList.value[nowType.value].forEach((c) => set.add(c.id));
+	cardStore.data.selectedCardIdSet = set;
+}
+
+// 注册和卸载全局事件
+onActivated(bindingEvent);
+onDeactivated(unbindingEvent);
+
+function bindingEvent() {
+	window.addEventListener("keydown", onKeyDown);
+}
+
+function unbindingEvent() {
+	window.removeEventListener("keydown", onKeyDown);
+}
+
+function onKeyDown(e: KeyboardEvent) {
+	if (e.ctrlKey && e.key === "a") {
+		e.preventDefault();
+		// 全选
+		selectAll();
+	}
+}
 </script>
 
 <style lang="scss" scoped>
@@ -563,7 +645,7 @@ async function onCardContextMenu(event: PointerEvent, id: string) {
 		.base-img {
 			height: 100%;
 
-			& > &__wrapper {
+			& > .base-img__wrapper {
 				height: 100%;
 
 				img {
@@ -591,7 +673,7 @@ async function onCardContextMenu(event: PointerEvent, id: string) {
 		.base-video {
 			height: 100%;
 
-			& > &__wrapper {
+			& > .base-video__wrapper {
 				height: 100%;
 
 				video {
