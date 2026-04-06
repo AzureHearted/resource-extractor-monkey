@@ -52,17 +52,17 @@
 		>
 			<!-- 选择器按钮组 -->
 			<n-button-group class="control-button-group">
-				<n-button type="primary" @click="checkAll"> 全选 </n-button>
-				<n-button type="info" @click="inverseAll"> 反选 </n-button>
-				<n-button @click="cancel"> 取消 </n-button>
+				<n-button type="primary" @click="selectAll"> 全选 </n-button>
+				<n-button type="info" @click="inverseSelectAll"> 反选 </n-button>
+				<n-button @click="cancelSelect"> 取消 </n-button>
 			</n-button-group>
 		</n-badge>
 		<!-- s 下载控制 -->
 		<n-badge
 			:offset="[0, 2]"
 			:max="999"
-			:show="!!checkedCardList.length"
-			:value="`${checkedCardList.length}${checkedTotalSizeTip}`"
+			:show="!!selectionCards.length"
+			:value="`${selectionCards.length}${checkedTotalSizeTip}`"
 			style="align-items: center"
 		>
 			<var-menu
@@ -72,7 +72,7 @@
 			>
 				<n-button-group type="primary">
 					<n-button
-						:disabled="!checkedCardList.length"
+						:disabled="!selectionCards.length"
 						@click.stop="downloadSelected"
 					>
 						下载
@@ -101,7 +101,7 @@
 					<var-cell
 						title="删除选中项"
 						@click="unFavoriteSelected"
-						v-if="!!checkedCardList.length"
+						v-if="!!selectionCards.length"
 						ripple
 					>
 						<template #icon>
@@ -169,19 +169,6 @@
 </template>
 
 <script setup lang="ts">
-import type { Card } from "@/models/Card/Card";
-import { useFavoriteStore, useGlobalStore, useLoadingStore } from "@/stores";
-import { byteAutoUnit, isMobile as judgeIsMobile } from "@/utils/common";
-import { useDebounceFn } from "@vueuse/core";
-import {
-	NBadge,
-	NEllipsis,
-	NTag,
-	type SelectOption,
-	type SelectRenderTag,
-	type SliderProps,
-} from "naive-ui";
-import { storeToRefs } from "pinia";
 import {
 	ref,
 	onMounted,
@@ -189,11 +176,17 @@ import {
 	computed,
 	reactive,
 	h,
-	type VNodeChild,
 	nextTick,
+	type VNodeChild,
 } from "vue";
-
+import { useDebounceFn } from "@vueuse/core";
+import { storeToRefs } from "pinia";
+import { NBadge, NEllipsis, NTag } from "naive-ui";
+import type { SelectOption, SelectRenderTag, SliderProps } from "naive-ui";
 import { useDialog, useNotification } from "@/plugin/naive-ui";
+import type { Card } from "@/models/Card";
+import { byteAutoUnit, isMobile as judgeIsMobile } from "@/utils/common";
+import { useFavoriteStore, useGlobalStore, useLoadingStore } from "@/stores";
 
 const dialog = useDialog();
 const notification = useNotification();
@@ -285,20 +278,30 @@ const handleKeywordFilter = (value?: string) => {
 };
 
 // f 全选
-function checkAll() {
-	filterCardList.value[nowType.value].forEach((c) => (c.isSelected = true));
+function selectAll() {
+	const set = new Set(favoriteStore.data.selectedCardIdSet);
+	filterCardList.value[nowType.value].forEach((c) => set.add(c.id));
+	favoriteStore.data.selectedCardIdSet = set;
 }
 
 // f 反选
-function inverseAll() {
-	filterCardList.value[nowType.value].forEach(
-		(c) => (c.isSelected = !c.isSelected),
-	);
+function inverseSelectAll() {
+	const set = new Set(favoriteStore.data.selectedCardIdSet);
+	filterCardList.value[nowType.value].forEach((c) => {
+		if (set.has(c.id)) {
+			set.delete(c.id);
+		} else {
+			set.add(c.id);
+		}
+	});
+	favoriteStore.data.selectedCardIdSet = set;
 }
 
 // f 取消
-function cancel() {
-	filterCardList.value[nowType.value].forEach((c) => (c.isSelected = false));
+function cancelSelect() {
+	const set = new Set(favoriteStore.data.selectedCardIdSet);
+	filterCardList.value[nowType.value].forEach((c) => set.delete(c.id));
+	favoriteStore.data.selectedCardIdSet = set;
 }
 
 // f 选择器多选Tag渲染函数
@@ -363,7 +366,7 @@ const currentCardList = computed<Card[]>(() => {
 });
 
 // 被勾选的卡片
-const checkedCardList = computed<Card[]>(() => {
+const selectionCards = computed<Card[]>(() => {
 	return selectionCardList.value[nowType.value] ?? [];
 });
 
@@ -371,7 +374,7 @@ const checkedCardList = computed<Card[]>(() => {
 const checkedTotalSizeTip = computed(() => {
 	let existUnDownload = false; // 标记是否存在为下载的卡片
 	// 先计算尺寸大小
-	const totalByte = checkedCardList.value.reduce((total, curr) => {
+	const totalByte = selectionCards.value.reduce((total, curr) => {
 		if (curr.source.blob) {
 			return total + curr.source.blob.size;
 		} else {
@@ -389,8 +392,7 @@ const checkedTotalSizeTip = computed(() => {
 
 // f 下载选中项
 async function downloadSelected() {
-	const cards =
-		filterCardList.value[nowType.value].filter((x) => x.isSelected) || [];
+	const cards = selectionCardList.value[nowType.value] || [];
 	if (cards.length > 1) {
 		await favoriteStore.downloadCards(cards, {
 			dialog,
