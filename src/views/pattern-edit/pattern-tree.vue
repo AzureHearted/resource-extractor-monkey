@@ -92,28 +92,27 @@
 </template>
 
 <script setup lang="ts">
+import type { Rule } from "@/models";
+import { Pattern } from "@/models";
+import { useGlobalStore, usePatternStore } from "@/stores";
 import {
-	computed,
-	useTemplateRef,
-	nextTick,
-	watch,
-	onMounted,
-	reactive,
-} from "vue";
-import { useDialog, useNotification } from "naive-ui";
-import { Pattern } from "@/models/Pattern";
-import {
-	BaseImg,
 	BaseHighlightText,
+	BaseImg,
 	BaseScrollbar,
 	BaseVirtualTree,
 	useContextMenu,
 	type BaseTreeNodeItem,
 } from "base-ui";
-
-import { useGlobalStore, usePatternStore } from "@/stores";
+import { useDialog, useNotification } from "naive-ui";
 import { storeToRefs } from "pinia";
-import type { Rule } from "@/models/Rule";
+import {
+	computed,
+	nextTick,
+	onMounted,
+	reactive,
+	useTemplateRef,
+	watch,
+} from "vue";
 
 const globalStore = useGlobalStore();
 const patternStore = usePatternStore();

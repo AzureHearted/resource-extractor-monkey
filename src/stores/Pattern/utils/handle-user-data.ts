@@ -1,6 +1,6 @@
-import { Pattern } from "@/models/Pattern";
-import type { RawPattern } from "@/models/Pattern/interface/Pattern";
 import { GM_getValue, GM_setValue } from "$";
+import { Pattern } from "@/models";
+import type { RawPattern } from "@/models/Pattern/interface/Pattern";
 
 // 设置用户方案数据
 export function setUserPatternList(list: Pattern[] = []) {

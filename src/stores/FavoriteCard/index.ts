@@ -1,6 +1,6 @@
 import { useListIndexedDB } from "@/hooks/useIndexedDB";
-import type { Card, Meta } from "@/models/Card";
-import { FavoriteCard } from "@/models/Card";
+import type { Card, Meta } from "@/models";
+import { FavoriteCard } from "@/models";
 import { naturalCompare } from "@/utils";
 import { useDebounceFn } from "@vueuse/core";
 import localforage from "localforage";

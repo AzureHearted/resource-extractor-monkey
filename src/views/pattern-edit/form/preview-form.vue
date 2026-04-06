@@ -109,13 +109,11 @@
 </template>
 
 <script setup lang="ts">
+import { Rule } from "@/models";
 import { NSelect } from "naive-ui";
-
-import { Rule } from "@/models/Rule";
-import { matchTypeOptions, metaTypeOptions } from "../publicData";
-
-import FixList from "../fix-list.vue";
 import { computed } from "vue";
+import FixList from "../fix-list.vue";
+import { matchTypeOptions, metaTypeOptions } from "../publicData";
 
 const props = withDefaults(
 	defineProps<{

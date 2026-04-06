@@ -68,37 +68,37 @@
 </template>
 
 <script setup lang="ts">
+import GalleryCard from "@/components/utils/gallery-card.vue";
+import type { Meta } from "@/models";
+import { Card } from "@/models";
+import { Fancybox, configFancybox } from "@/plugin/fancyapps-ui";
+import { isEqualUrl, isMobile as judgeIsMobile } from "@/utils";
+import type { CarouselSlide } from "@fancyapps/ui";
+import { useClipboard } from "@vueuse/core";
 import {
-	computed,
-	onMounted,
-	onActivated,
-	useTemplateRef,
-	reactive,
-	onUnmounted,
-	onDeactivated,
-} from "vue";
-import {
-	useContextMenu,
-	BaseVirtualMasonry,
 	BaseVirtualGrid,
+	BaseVirtualMasonry,
+	useContextMenu,
 	type BaseImgReadyInfo,
 	type BaseVideoReadyInfo,
-	type BaseVirtualMasonryItem,
 	type BaseVirtualGridItem,
+	type BaseVirtualMasonryItem,
 } from "base-ui";
-import GalleryCard from "@/components/utils/gallery-card.vue";
-import { Card } from "@/models/Card";
-import type { Meta } from "@/models/Card";
-import { isEqualUrl, isMobile as judgeIsMobile } from "@/utils";
-import { useClipboard } from "@vueuse/core";
-import { Fancybox, configFancybox } from "@/plugin/fancyapps-ui";
-import type { CarouselSlide } from "@fancyapps/ui";
+import {
+	computed,
+	onActivated,
+	onDeactivated,
+	onMounted,
+	onUnmounted,
+	reactive,
+	useTemplateRef,
+} from "vue";
 
 // ? 导入仓库
-import { storeToRefs } from "pinia";
-import { useGlobalStore, useCardStore, useFavoriteStore } from "@/stores";
 import { GM_openInTab } from "$";
 import { useDialog, useNotification } from "@/plugin/naive-ui";
+import { useCardStore, useFavoriteStore, useGlobalStore } from "@/stores";
+import { storeToRefs } from "pinia";
 
 const dialog = useDialog();
 const notification = useNotification();

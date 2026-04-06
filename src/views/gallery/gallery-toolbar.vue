@@ -255,32 +255,32 @@
 </template>
 
 <script setup lang="ts">
-import {
-	h,
-	ref,
-	reactive,
-	onMounted,
-	computed,
-	watch,
-	onActivated,
-	type VNodeChild,
-} from "vue";
-import { useDebounceFn } from "@vueuse/core";
-import { NTag, NBadge } from "naive-ui";
-import type { SelectOption, SelectRenderTag, SliderProps } from "naive-ui";
+import type { Card } from "@/models";
+import { Pattern } from "@/models";
 import { useDialog, useNotification } from "@/plugin/naive-ui";
-import { Pattern } from "@/models/Pattern";
-import type { Card } from "@/models/Card";
-import { BaseImg } from "base-ui";
-import { byteAutoUnit, isMobile as judgeIsMobile } from "@/utils";
 import {
-	useGlobalStore,
 	useCardStore,
 	useFavoriteStore,
+	useGlobalStore,
 	useLoadingStore,
 	usePatternStore,
 } from "@/stores";
+import { byteAutoUnit, isMobile as judgeIsMobile } from "@/utils";
+import { useDebounceFn } from "@vueuse/core";
+import { BaseImg } from "base-ui";
+import type { SelectOption, SelectRenderTag, SliderProps } from "naive-ui";
+import { NBadge, NTag } from "naive-ui";
 import { storeToRefs } from "pinia";
+import {
+	computed,
+	h,
+	onActivated,
+	onMounted,
+	reactive,
+	ref,
+	watch,
+	type VNodeChild,
+} from "vue";
 
 const dialog = useDialog();
 const notification = useNotification();

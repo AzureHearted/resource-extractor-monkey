@@ -62,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { Rule } from "@/models/Rule";
+import { Rule } from "@/models";
 import { matchTypeOptions, metaTypeOptions } from "../publicData";
 
 import FixList from "../fix-list.vue";

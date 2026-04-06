@@ -258,22 +258,20 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
-import { saveAs } from "file-saver";
-import { useClipboard } from "@vueuse/core";
-import { defaultPattern, Pattern } from "@/models/Pattern";
-import { Rule } from "@/models/Rule";
-import { BaseImg, BaseTabs, BaseTabPane } from "base-ui";
-
-import { storeToRefs } from "pinia";
-import { usePatternStore, useGlobalStore } from "@/stores";
 import { GM_openInTab } from "$";
-import { regexFlagOptions, regexFlagRenderOption } from "./publicData";
+import { defaultPattern, Pattern, Rule } from "@/models";
+import { useNotification } from "@/plugin/naive-ui";
+import { useGlobalStore, usePatternStore } from "@/stores";
+import { useClipboard } from "@vueuse/core";
+import { BaseImg, BaseTabPane, BaseTabs } from "base-ui";
+import { saveAs } from "file-saver";
+import { storeToRefs } from "pinia";
+import { computed } from "vue";
+import DescriptionForm from "./form/description-form.vue";
+import PreviewForm from "./form/preview-form.vue";
 import RegionForm from "./form/region-form.vue";
 import SourceForm from "./form/source-form.vue";
-import PreviewForm from "./form/preview-form.vue";
-import DescriptionForm from "./form/description-form.vue";
-import { useNotification } from "@/plugin/naive-ui";
+import { regexFlagOptions, regexFlagRenderOption } from "./publicData";
 
 const notification = useNotification();
 

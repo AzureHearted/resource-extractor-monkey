@@ -31,7 +31,7 @@
 </template>
 
 <script setup lang="ts">
-import { Rule } from "@/models/Rule";
+import { Rule } from "@/models";
 
 withDefaults(
 	defineProps<{

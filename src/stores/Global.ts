@@ -1,10 +1,9 @@
-import { computed, onMounted, reactive, ref, watch } from "vue";
-import { defineStore } from "pinia";
 import { GM_getValue, GM_setValue } from "$";
-import { useDark, usePreferredDark } from "@vueuse/core";
-
-import { StyleProvider, Themes } from "@varlet/ui";
 import { menuConfig } from "@/views/layout/menuConfig";
+import { StyleProvider, Themes } from "@varlet/ui";
+import { useDark, usePreferredDark } from "@vueuse/core";
+import { defineStore } from "pinia";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 
 type Theme = "light" | "dark" | "auto";
 

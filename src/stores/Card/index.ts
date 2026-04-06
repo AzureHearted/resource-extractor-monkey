@@ -1,5 +1,5 @@
-import { Card, Meta } from "@/models/Card";
-import type { Pattern } from "@/models/Pattern";
+import type { Pattern } from "@/models";
+import { Card, Meta } from "@/models";
 import { naturalCompare } from "@/utils";
 import { useDebounceFn } from "@vueuse/core";
 import { cloneDeep } from "lodash";

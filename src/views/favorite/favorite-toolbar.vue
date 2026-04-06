@@ -169,24 +169,24 @@
 </template>
 
 <script setup lang="ts">
+import type { Card } from "@/models";
+import { useDialog, useNotification } from "@/plugin/naive-ui";
+import { useFavoriteStore, useGlobalStore, useLoadingStore } from "@/stores";
+import { byteAutoUnit, isMobile as judgeIsMobile } from "@/utils";
+import { useDebounceFn } from "@vueuse/core";
+import type { SelectOption, SelectRenderTag, SliderProps } from "naive-ui";
+import { NBadge, NEllipsis, NTag } from "naive-ui";
+import { storeToRefs } from "pinia";
 import {
-	ref,
-	onMounted,
-	onActivated,
 	computed,
-	reactive,
 	h,
 	nextTick,
+	onActivated,
+	onMounted,
+	reactive,
+	ref,
 	type VNodeChild,
 } from "vue";
-import { useDebounceFn } from "@vueuse/core";
-import { storeToRefs } from "pinia";
-import { NBadge, NEllipsis, NTag } from "naive-ui";
-import type { SelectOption, SelectRenderTag, SliderProps } from "naive-ui";
-import { useDialog, useNotification } from "@/plugin/naive-ui";
-import type { Card } from "@/models/Card";
-import { byteAutoUnit, isMobile as judgeIsMobile } from "@/utils";
-import { useFavoriteStore, useGlobalStore, useLoadingStore } from "@/stores";
 
 const dialog = useDialog();
 const notification = useNotification();

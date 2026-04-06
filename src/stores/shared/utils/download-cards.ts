@@ -1,20 +1,20 @@
+import FilenameInputVue from "@/components/utils/filename-input/filename-input.vue";
 import { useParallelTask, type Task } from "@/hooks/useParallelTask";
-import type { Card } from "@/models/Card";
+import type { Card } from "@/models";
 import {
+	getBlobByUrlAuto,
 	getExtByBlob,
 	getNameByUrl,
+	getSingleFileBlobByUrl,
 	legalizationPathString,
 	safeDecodeURI,
-	getBlobByUrlAuto,
-	getSingleFileBlobByUrl,
 } from "@/utils";
 import saveAs from "file-saver";
 import JSZip from "jszip";
-import { type FormValidationStatus, NFlex, NButton } from "naive-ui";
+import { NButton, NFlex, type FormValidationStatus } from "naive-ui";
 import type { DialogApiInjection } from "naive-ui/es/dialog/src/DialogProvider";
 import type { NotificationApiInjection } from "naive-ui/es/notification/src/NotificationProvider";
 import { computed, h, ref } from "vue";
-import FilenameInputVue from "@/components/utils/filename-input/filename-input.vue";
 
 interface Options {
 	OnCardDownloadSuccess?: (

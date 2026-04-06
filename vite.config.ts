@@ -1,28 +1,16 @@
-import { fileURLToPath, URL } from "node:url";
-import { defineConfig } from "vite";
+import { VarletImportResolver } from "@varlet/import-resolver"; // varlet组件库的自动引入配置
 import vue from "@vitejs/plugin-vue";
-
-// 导入monkey插件
-import monkey, { util } from "vite-plugin-monkey";
-// 导入自定义monkey配置
-import monkeyConfig from "./monkey.config";
-
-// 自动按需引入配置
-import components from "unplugin-vue-components/vite";
+import { fileURLToPath, URL } from "node:url";
+import { visualizer } from "rollup-plugin-visualizer"; // 打包分析插件
 import autoImport from "unplugin-auto-import/vite";
-// varlet组件库的自动引入配置
-import { VarletImportResolver } from "@varlet/import-resolver";
 import IconsResolver from "unplugin-icons/resolver";
 import Icons from "unplugin-icons/vite";
-
-// s 用于在vue项目中使用svg文件
-import svgLoader from "vite-svg-loader";
-
-// s 打包分析插件
-import { visualizer } from "rollup-plugin-visualizer";
-
-// s NaiveUi配置
-import { NaiveUiResolver } from "unplugin-vue-components/resolvers";
+import { NaiveUiResolver } from "unplugin-vue-components/resolvers"; // NaiveUi配置
+import components from "unplugin-vue-components/vite"; // 自动按需引入配置
+import { defineConfig } from "vite";
+import monkey, { util } from "vite-plugin-monkey"; // monkey插件
+import svgLoader from "vite-svg-loader"; // 用于在vue项目中使用svg文件
+import monkeyConfig from "./monkey.config"; // 自定义monkey配置
 
 // https://vitejs.dev/config/
 export default defineConfig({
