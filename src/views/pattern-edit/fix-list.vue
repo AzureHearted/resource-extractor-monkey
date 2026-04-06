@@ -173,7 +173,7 @@
 </template>
 
 <script setup lang="ts">
-import { Rule } from "@/models/Rule/Rule";
+import { Rule } from "@/models/Rule";
 import type { BaseFix } from "@/models/Rule/interface/Rule";
 import {
 	fixTypeOptions,

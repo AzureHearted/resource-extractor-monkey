@@ -1,4 +1,4 @@
-import { Pattern } from "@/models/Pattern/Pattern";
+import { Pattern } from "@/models/Pattern";
 import type { RawPattern } from "@/models/Pattern/interface/Pattern";
 import { GM_getValue, GM_setValue } from "$";
 

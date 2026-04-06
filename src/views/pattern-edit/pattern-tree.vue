@@ -101,7 +101,7 @@ import {
 	reactive,
 } from "vue";
 import { useDialog, useNotification } from "naive-ui";
-import { Pattern } from "@/models/Pattern/Pattern";
+import { Pattern } from "@/models/Pattern";
 import {
 	BaseImg,
 	BaseHighlightText,
@@ -113,7 +113,7 @@ import {
 
 import { useGlobalStore, usePatternStore } from "@/stores";
 import { storeToRefs } from "pinia";
-import type { Rule } from "@/models/Rule/Rule";
+import type { Rule } from "@/models/Rule";
 
 const globalStore = useGlobalStore();
 const patternStore = usePatternStore();

@@ -115,7 +115,7 @@
 <script setup lang="ts">
 import { NSelect } from "naive-ui";
 
-import { Rule } from "@/models/Rule/Rule";
+import { Rule } from "@/models/Rule";
 import { matchTypeOptions } from "../publicData";
 
 import FixList from "../fix-list.vue";

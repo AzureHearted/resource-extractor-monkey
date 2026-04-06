@@ -261,8 +261,8 @@
 import { computed } from "vue";
 import { saveAs } from "file-saver";
 import { useClipboard } from "@vueuse/core";
-import { defaultPattern, Pattern } from "@/models/Pattern/Pattern";
-import { Rule } from "@/models/Rule/Rule";
+import { defaultPattern, Pattern } from "@/models/Pattern";
+import { Rule } from "@/models/Rule";
 import { BaseImg, BaseTabs, BaseTabPane } from "base-ui";
 
 import { storeToRefs } from "pinia";

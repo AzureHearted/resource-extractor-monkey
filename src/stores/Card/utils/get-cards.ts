@@ -1,7 +1,7 @@
 import { getDOM, getDOMInfo } from "@/utils/dom";
 import type { BaseMatch, Rule, BaseFix } from "@/models/Rule/interface/Rule";
-import { Card } from "@/models/Card/Card";
-import { Meta } from "@/models/Card/Meta";
+import { Card, Meta } from "@/models/Card";
+
 // 导入请求工具
 import {
 	getExtByUrl,
