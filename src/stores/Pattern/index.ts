@@ -99,7 +99,6 @@ export const usePatternStore = defineStore("PatternStore", () => {
 				} else {
 					// 过滤器表达式为空直接将当前方案定为目标方案
 					matchs.push(pattern);
-					break;
 				}
 			}
 			// console.log(targetPattern);
@@ -240,17 +239,24 @@ export const usePatternStore = defineStore("PatternStore", () => {
 	}
 
 	// 删除方案
-	function deletePattern(id: string) {
+	function deletePattern(id: string): Pattern | null {
 		// 获取按方案下标
 		const index = list.value.findIndex((pattern) => pattern.id === id);
-		if (index >= 0) {
-			const pattern = list.value.splice(index, 1)[0];
-			// 如果被删除的方案是正在使用的方案则重新设置初始方案
-			if (current.id === pattern.id) {
-				setInitPattern();
+		if (index < 0) return null;
+		// 如果被删除的方案是正在使用的方案则重新设置初始方案
+		if (current.id === id) {
+			const [newPattern] = getMatchPatterns().filter((x) => x.id !== id);
+			if (newPattern != null) {
+				current.id = newPattern.id;
+			} else {
+				current.id = "#";
 			}
-			saveUserPatternInfo();
 		}
+		// 删除方案
+		const [pattern] = list.value.splice(index, 1);
+		// 更新用户配置信息
+		saveUserPatternInfo();
+		return pattern;
 	}
 
 	return {

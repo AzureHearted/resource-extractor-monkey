@@ -117,6 +117,7 @@ import {
 const globalStore = useGlobalStore();
 const patternStore = usePatternStore();
 const { list: patterns } = storeToRefs(patternStore);
+const { deletePattern } = patternStore;
 
 const dialog = useDialog();
 const notification = useNotification();
@@ -290,8 +291,8 @@ function deleteNode(node: Node) {
 				negativeText: "取消",
 				onPositiveClick() {
 					console.log("删除方案", index);
-					// 从列表中删除方案
-					patterns.value.splice(index, 1);
+					// 删除方案
+					deletePattern(node.id);
 
 					// ! 数据库同步删除方案
 					saveAll();
