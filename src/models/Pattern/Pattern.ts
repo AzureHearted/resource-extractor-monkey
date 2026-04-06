@@ -5,7 +5,7 @@ import type {
 	RawPattern,
 } from "./interface/Pattern";
 import type { Rule as IRule } from "../Rule/interface/Rule";
-import { Rule } from "../Rule/Rule";
+import { Rule } from "../Rule";
 import { getFavicon } from "@/utils/common";
 
 // 匹配方案

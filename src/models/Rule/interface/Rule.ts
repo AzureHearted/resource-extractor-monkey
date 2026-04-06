@@ -1,4 +1,4 @@
-import type { Meta } from "@/models/Card/Meta";
+import type { Meta } from "@/models/Card";
 import type { Status } from "@/models/Pattern/interface/Pattern";
 
 // 匹配规则

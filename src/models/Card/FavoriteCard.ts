@@ -1,6 +1,5 @@
 import { cloneDeep } from "@/plugin/lodash";
 import { RawCard } from "./Card";
-import type { State as IState } from "./interface/State";
 import type { FavoriteCard as IFavoriteCard } from "./interface/FavoriteCard";
 
 // 不带状态的收藏资源类型
@@ -14,26 +13,10 @@ export class FavoriteRawCard extends RawCard implements IFavoriteCard {
 }
 
 // 收藏资源类型
-export class FavoriteCard extends FavoriteRawCard implements IState {
-	public isSelected: IState["isSelected"] = false;
-	public isFavorite: IState["isFavorite"] = false;
-	public isLoaded: IState["isLoaded"] = false;
-	public downloading: IState["downloading"] = false;
-
-	constructor(raw: Partial<IFavoriteCard & IState>) {
+export class FavoriteCard extends FavoriteRawCard {
+	constructor(raw: Partial<IFavoriteCard>) {
 		super(raw);
 		this.timestamp = raw.timestamp ?? Date.now();
-		this.isFavorite = true;
-		this.initState(raw);
-	}
-
-	// 初始化状态
-	public initState(raw?: Partial<IState>) {
-		const { isSelected, isFavorite, isLoaded, downloading } = raw ?? {};
-		this.isSelected = isSelected ?? this.isSelected;
-		this.isFavorite = isFavorite ?? this.isFavorite;
-		this.isLoaded = isLoaded ?? this.isLoaded;
-		this.downloading = downloading ?? this.downloading;
 	}
 
 	// 转为纯数据对象
