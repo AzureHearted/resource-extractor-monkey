@@ -499,6 +499,7 @@ async function unFavoriteSelected() {
 .toolbar-loading {
 	width: 100%;
 	display: block;
+	text-wrap: nowrap;
 
 	margin: 0;
 	height: 0;
