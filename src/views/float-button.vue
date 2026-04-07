@@ -59,7 +59,12 @@
 				style="user-select: none; width: 100%; height: 100%"
 			>
 				<div
-					style="overflow: hidden; border-radius: 50%"
+					style="
+						overflow: hidden;
+						width: 100%;
+						height: 100%;
+						border-radius: 50%;
+					"
 					v-ripple
 					@click="toggleWindow('Favorite')"
 				>
