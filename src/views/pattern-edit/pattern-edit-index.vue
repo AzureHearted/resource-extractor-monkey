@@ -12,12 +12,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue";
-import Tree from "./pattern-tree.vue";
-import Form from "./pattern-form.vue";
-import { BaseFlex } from "base-ui";
 import { usePatternStore } from "@/stores";
-import { onActivated } from "vue";
+import { BaseFlex } from "base-ui";
+import { onActivated, onMounted } from "vue";
+import Form from "./pattern-form.vue";
+import Tree from "./pattern-tree.vue";
 
 const patternStore = usePatternStore();
 const { getUserPatternInfo } = patternStore;

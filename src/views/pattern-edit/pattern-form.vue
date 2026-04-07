@@ -52,7 +52,7 @@
 				</div>
 			</template>
 			<template #header-extra>
-				<n-flex :size="4">
+				<BaseFlex :gap="4">
 					<n-button
 						type="primary"
 						size="small"
@@ -65,7 +65,7 @@
 						<n-button type="primary" @click="savePattern"> 保存 </n-button>
 						<n-button @click="resetPattern"> 重置 </n-button>
 					</n-button-group>
-				</n-flex>
+				</BaseFlex>
 			</template>
 			<!-- 方案表单 -->
 			<n-form label-placement="left" :model="pattern" :disabled="disabled">
@@ -382,9 +382,15 @@ function pasteRule() {
 		.then((dataStr) => {
 			// console.log("剪贴板文本：", dataStr);
 			// 先尝试解析成一个对象
-			let obj: any;
+			let obj: Object;
 			try {
 				obj = JSON.parse(dataStr);
+				if (
+					!obj.hasOwnProperty("source") &&
+					!obj.hasOwnProperty("preview") &&
+					!obj.hasOwnProperty("description")
+				)
+					throw new Error();
 			} catch (e) {
 				notification.error({
 					title: "失败",
