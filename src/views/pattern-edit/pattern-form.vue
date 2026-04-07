@@ -1,6 +1,15 @@
 <template>
-	<div class="pattern-edit__form" :data-theme="globalStore.theme">
-		<n-card v-if="pattern" class="pattern-edit__form__card" size="small">
+	<BaseFlex
+		class="pattern-edit__form"
+		direction="column"
+		:data-theme="globalStore.theme"
+	>
+		<n-card
+			v-if="pattern"
+			class="pattern-edit__form__card"
+			style="flex-shrink: 0"
+			size="small"
+		>
 			<template #header>
 				<div style="display: flex; align-items: center; gap: 8px; height: 36px">
 					<n-gradient-text size="16" type="primary" style="align-self: center">
@@ -169,7 +178,7 @@
 			</n-form>
 		</n-card>
 		<!-- 规则表单 -->
-		<n-card class="pattern-edit__form__card">
+		<n-card class="pattern-edit__form__card" content-style="overflow:hidden;">
 			<template #header>
 				<div style="display: flex; align-items: center; gap: 4px; height: 36px">
 					<n-input-group style="align-items: center; gap: 8px">
@@ -226,7 +235,7 @@
 				</n-button-group>
 			</template>
 			<template #default>
-				<BaseTabs>
+				<BaseTabs style="overflow: hidden; height: 100%">
 					<BaseTabPane
 						:label="`约束区域${rule?.isChange('region') ? '*' : ''}`"
 						name="region"
@@ -254,7 +263,7 @@
 				</BaseTabs>
 			</template>
 		</n-card>
-	</div>
+	</BaseFlex>
 </template>
 
 <script setup lang="ts">
@@ -263,7 +272,7 @@ import { defaultPattern, Pattern, Rule } from "@/models";
 import { useNotification } from "@/plugin/naive-ui";
 import { useGlobalStore, usePatternStore } from "@/stores";
 import { useClipboard } from "@vueuse/core";
-import { BaseImg, BaseTabPane, BaseTabs } from "base-ui";
+import { BaseFlex, BaseImg, BaseTabPane, BaseTabs } from "base-ui";
 import { saveAs } from "file-saver";
 import { storeToRefs } from "pinia";
 import { computed } from "vue";
@@ -439,8 +448,10 @@ function removeMatchHost(index: number) {
 
 <style lang="scss" scoped>
 .pattern-edit__form {
+	height: 100%;
 	& > &__card {
 		margin-bottom: 4px;
+		overflow: hidden;
 	}
 	& > &__card:last-child {
 		margin-bottom: 0px;

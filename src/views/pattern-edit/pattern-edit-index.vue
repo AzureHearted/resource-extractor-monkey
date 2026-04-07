@@ -6,9 +6,7 @@
 		</aside>
 		<!-- 规则表单 -->
 		<main class="re-pattern-form">
-			<BaseScrollbar>
-				<Form />
-			</BaseScrollbar>
+			<Form />
 		</main>
 	</BaseFlex>
 </template>
@@ -17,7 +15,7 @@
 import { onMounted } from "vue";
 import Tree from "./pattern-tree.vue";
 import Form from "./pattern-form.vue";
-import { BaseFlex, BaseScrollbar } from "base-ui";
+import { BaseFlex } from "base-ui";
 import { usePatternStore } from "@/stores";
 import { onActivated } from "vue";
 
