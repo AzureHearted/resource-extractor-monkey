@@ -19,7 +19,7 @@
 			:style-mount-target="stylesContainer"
 			:hljs="state.hljs"
 			abstract
-			:theme="globalStore.theme == 'dark' ? naiveUIdarkTheme : null"
+			:theme="globalStore.theme === 'dark' ? naiveUIdarkTheme : null"
 		>
 			<n-dialog-provider to=".resource-extractor__notification">
 				<n-notification-provider to=".resource-extractor__notification">
@@ -92,6 +92,10 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+* {
+	box-sizing: border-box;
+}
+
 dialog {
 	position: fixed;
 	top: 0;
@@ -109,11 +113,7 @@ dialog {
 	overscroll-behavior: contain;
 	box-sizing: border-box;
 	position: fixed;
-	// position: absolute;
-	// overflow: hidden;
 	inset: 0;
-	// width: 100vw !important;
-	// height: 100vh !important;
 	max-width: unset !important;
 	max-height: unset !important;
 	text-align: left;
@@ -121,7 +121,6 @@ dialog {
 	margin: unset !important;
 	border: unset !important;
 	background: transparent;
-	// backdrop-filter: blur(4px);
 	// 设置 z-index 为最大值
 	z-index: 2147483646;
 	// 仅让容器本身不响应鼠标事件

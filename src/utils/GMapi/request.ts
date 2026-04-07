@@ -1,19 +1,23 @@
 /// <reference types="vite-plugin-monkey/client" />
 import { GM_xmlhttpRequest } from "$";
 
-// 封装油猴GM_xmlhttpRequest的API
-interface IGMRequestOptions {
+type GM_xmlhttpRequestParameters = Parameters<typeof GM_xmlhttpRequest>["0"];
+
+// t 封装油猴 GM_xmlhttpRequest 的 API
+interface GMRequestOptions {
+	url: GM_xmlhttpRequestParameters["url"];
 	method?: "GET" | "POST" | "HEAD";
-	url: string;
 	referer?: string;
-	responseType?: keyof GmResponseTypeMap;
-	data?: string;
-	timeout?: number;
-	headers?: Record<string, string>;
+	responseType?: GM_xmlhttpRequestParameters["responseType"];
+	data?: GM_xmlhttpRequestParameters["data"];
+	timeout?: GM_xmlhttpRequestParameters["timeout"];
+	headers?: GM_xmlhttpRequestParameters["headers"];
+	anonymous?: GM_xmlhttpRequestParameters["anonymous"];
+	onprogress?: GM_xmlhttpRequestParameters["onprogress"];
 }
 
-// 返回结果映射
-interface GmResponseTypeMap {
+// t 返回结果映射
+interface GMResponseTypeMap {
 	text: string;
 	json: any;
 	arraybuffer: ArrayBuffer;
@@ -22,40 +26,37 @@ interface GmResponseTypeMap {
 	stream: ReadableStream<Uint8Array>;
 }
 
-// f GM_xmlhttpRequest的二次封装
-// 功能实现
-// 函数重载，允许调用GMRequest时强制指定responseType
-export function GMRequest<ResponseType extends keyof GmResponseTypeMap>(
-	options: IGMRequestOptions & { responseType: ResponseType },
-): Promise<GmResponseTypeMap[ResponseType]>;
+// t 返回对象封装
+interface GMRequestReTurnType<T extends keyof GMResponseTypeMap> {
+	data?: GMResponseTypeMap[T];
+	finalUrl: string;
+	status: number;
+}
 
+// GM_xmlhttpRequest的二次封装
+// 函数重载，允许调用GMRequest时强制指定responseType
+export function GMRequest<ResponseType extends keyof GMResponseTypeMap>(
+	options: GMRequestOptions & { responseType: ResponseType },
+): Promise<GMRequestReTurnType<ResponseType>>;
 // 默认情况下responseType为"json"
 export function GMRequest(
-	options: Omit<IGMRequestOptions, "responseType"> & {
+	options: Omit<GMRequestOptions, "responseType"> & {
 		responseType?: undefined;
 	},
-): Promise<any>;
-
+): Promise<GMRequestReTurnType<"json">>;
 // 函数实现
-export function GMRequest(options: IGMRequestOptions): Promise<any> {
-	// 默认选项
-	const defaultOptions: Required<
-		Pick<IGMRequestOptions, "method" | "timeout">
-	> = {
-		method: "GET",
-		timeout: 10000,
-	};
-
+export function GMRequest(options: GMRequestOptions) {
 	const {
 		url,
-		method,
+		method = "GET",
 		referer,
 		responseType = "json",
 		data,
-		timeout,
+		timeout = 10000,
 		headers = {},
+		anonymous,
+		onprogress,
 	} = {
-		...defaultOptions,
 		...options,
 	};
 
@@ -70,37 +71,44 @@ export function GMRequest(options: IGMRequestOptions): Promise<any> {
 	}
 
 	// 返回一个Promise（支持 reject，避免吞错）
-	return new Promise((resolve, reject) => {
-		GM_xmlhttpRequest({
-			method,
-			url,
-			responseType,
-			headers,
-			data,
-			timeout,
-
-			onload: (res) => {
-				// 成功（注意：304 也算成功）
-				if ((res.status >= 200 && res.status < 300) || res.status === 304) {
-					resolve(res.response);
-				} else {
-					reject(new Error(`GMRequest失败: status=${res.status}, url=${url}`));
-				}
-			},
-
-			onerror: (e) => {
-				reject(new Error(`GMRequest网络错误: ${url} , 错误信息：${e.error}`));
-			},
-
-			ontimeout: () => {
-				reject(new Error(`GMRequest超时: ${url}`));
-			},
-
-			onabort: () => {
-				reject(new Error(`GMRequest被中断: ${url}`));
-			},
-		});
-	});
+	return new Promise<GMRequestReTurnType<typeof responseType>>(
+		(resolve, reject) => {
+			GM_xmlhttpRequest({
+				method,
+				url,
+				responseType,
+				headers,
+				data,
+				timeout,
+				anonymous,
+				onload: (res) => {
+					res.status;
+					// 成功（注意：304 也算成功）
+					if ((res.status >= 200 && res.status < 300) || res.status === 304) {
+						resolve({
+							data: res.response,
+							finalUrl: res.finalUrl,
+							status: res.status,
+						});
+					} else {
+						reject(
+							new Error(`GMRequest失败: status=${res.status}, url=${url}`),
+						);
+					}
+				},
+				onerror: (e) => {
+					reject(new Error(`GMRequest网络错误: ${url} , 错误信息：${e.error}`));
+				},
+				ontimeout: () => {
+					reject(new Error(`GMRequest超时: ${url}`));
+				},
+				onabort: () => {
+					reject(new Error(`GMRequest被中断: ${url}`));
+				},
+				onprogress,
+			});
+		},
+	);
 }
 
 // f 获取链接对应的内容类型

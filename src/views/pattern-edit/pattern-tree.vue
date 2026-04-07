@@ -34,6 +34,7 @@
 			ref="scrollbarRef"
 			class="pattern-tree__tree"
 			:track-size="8"
+			@contextmenu.stop="onBlankContextMenu"
 		>
 			<BaseVirtualTree
 				ref="treeRef"
@@ -92,9 +93,9 @@
 </template>
 
 <script setup lang="ts">
-import type { Rule } from "@/models";
-import { Pattern } from "@/models";
+import { Pattern, Rule } from "@/models";
 import { useGlobalStore, usePatternStore } from "@/stores";
+import { useClipboard } from "@vueuse/core";
 import {
 	BaseHighlightText,
 	BaseImg,
@@ -117,6 +118,7 @@ import {
 const globalStore = useGlobalStore();
 const patternStore = usePatternStore();
 const { list: patterns } = storeToRefs(patternStore);
+const { deletePattern } = patternStore;
 
 const dialog = useDialog();
 const notification = useNotification();
@@ -290,8 +292,8 @@ function deleteNode(node: Node) {
 				negativeText: "取消",
 				onPositiveClick() {
 					console.log("删除方案", index);
-					// 从列表中删除方案
-					patterns.value.splice(index, 1);
+					// 删除方案
+					deletePattern(node.id);
 
 					// ! 数据库同步删除方案
 					saveAll();
@@ -491,15 +493,21 @@ const onBeforeMoveNode: InstanceType<
 
 // 使用自定义右键菜单
 const { showContextMenu } = useContextMenu({
-	root: () => containerRef.value,
+	root() {
+		return containerRef.value;
+	},
+	theme() {
+		return globalStore.theme;
+	},
 	fontSize: 14,
 });
 
 // f 右键菜单回调
 const onNodeContextMenu: InstanceType<
 	typeof BaseVirtualTree
->["$props"]["onNode-contextmenu"] = async (e, rawNode) => {
+>["onNode-contextmenu"] = async (e, rawNode) => {
 	e.preventDefault();
+	e.stopImmediatePropagation();
 
 	const node = rawNode as Node;
 
@@ -507,7 +515,16 @@ const onNodeContextMenu: InstanceType<
 		{
 			label: `添加规则`,
 			command: "add-new-rule",
-			hidden: node.type !== "pattern",
+			hidden: node.type !== "pattern" || node.id.includes("#"),
+		},
+		{
+			label: `粘贴规则`,
+			command: "paste-rule",
+			hidden: node.type !== "pattern" || node.id.includes("#"),
+		},
+		{
+			label: `复制${node.type === "pattern" ? "方案" : "规则"} "${node.label}"`,
+			command: "copy",
 		},
 		{
 			label: `删除${node.type === "pattern" ? "方案" : "规则"} "${node.label}"`,
@@ -520,6 +537,7 @@ const onNodeContextMenu: InstanceType<
 					if (p == null) return true;
 					return p.rules.length <= 1;
 				})(),
+			hidden: node.id.includes("#"),
 		},
 	] as const);
 
@@ -527,11 +545,34 @@ const onNodeContextMenu: InstanceType<
 		case "add-new-rule":
 			addRule(node);
 			break;
+		case "paste-rule":
+			pasteRule(node.id);
+			break;
+		case "copy":
+			if (node.rawData) copyToClipboard(node.rawData);
+			break;
 		case "remove":
 			deleteNode(node);
 			break;
 	}
 };
+
+async function onBlankContextMenu(e: PointerEvent) {
+	e.preventDefault();
+
+	const result = await showContextMenu(e, [
+		{
+			label: "添加方案",
+			command: "add-new-pattern",
+		},
+	] as const);
+
+	switch (result) {
+		case "add-new-pattern":
+			addPattern();
+			break;
+	}
+}
 
 // f 左键单击节点时的回调
 const onNodeClick: InstanceType<
@@ -598,9 +639,10 @@ function pastePattern() {
 		.then((dataStr) => {
 			console.log("剪贴板文本：", dataStr);
 			// 先尝试解析成一个对象
-			let obj: any;
+			let obj: Object;
 			try {
 				obj = JSON.parse(dataStr);
+				if (!obj.hasOwnProperty("rules")) throw new Error();
 			} catch (e) {
 				notification.error({
 					title: "失败",
@@ -634,6 +676,101 @@ function pastePattern() {
 			notification.error({
 				title: "失败",
 				content: "剪贴板内容读取失败",
+				duration: 3000,
+			});
+		});
+}
+
+// f 粘贴规则
+function pasteRule(pid: string) {
+	const pattern = patternStore.findPattern(pid);
+	if (pattern == null) return;
+
+	navigator.clipboard
+		.readText()
+		.then((dataStr) => {
+			// console.log("剪贴板文本：", dataStr);
+			// 先尝试解析成一个对象
+			let obj: Object;
+			try {
+				obj = JSON.parse(dataStr);
+				if (
+					!obj.hasOwnProperty("source") &&
+					!obj.hasOwnProperty("preview") &&
+					!obj.hasOwnProperty("description")
+				)
+					throw new Error();
+			} catch (e) {
+				notification.error({
+					title: "失败",
+					content: "剪贴板内容解析失败",
+					duration: 3000,
+				});
+				return;
+			}
+			// 如果方案解析失败,则进一步尝试解析为规则
+			let rule: Rule | false = false;
+			try {
+				rule = new Rule(obj);
+				// 将解析出来的规则添加到当前编辑中的方案中
+				if (pattern.id.includes("#")) {
+					notification.error({
+						title: "失败",
+						content: "请在方案中进行此操作",
+						duration: 3000,
+					});
+					return;
+				}
+				pattern.rules.push(rule);
+				// 设置编辑规则为当前规则
+				patternStore.editing.rid = rule.id;
+				patternStore.editing.pid = pattern.id;
+				expandNode(pattern.id);
+				notification.success({
+					title: "成功",
+					content: "成功解析为规则",
+					duration: 3000,
+				});
+			} catch (e) {
+				// 如果解析失败则提示错误
+				notification.error({
+					title: "失败",
+					content: "剪贴板内容不符合规则的数据格式",
+					duration: 3000,
+				});
+			}
+		})
+		.catch(() => {
+			notification.error({
+				title: "失败",
+				content: "剪贴板内容读取失败",
+				duration: 3000,
+			});
+		});
+}
+
+// f 拷贝方案(或规则)至剪贴板
+function copyToClipboard(obj: Pattern | Rule) {
+	const { copy } = useClipboard();
+	const rowData = JSON.stringify(obj.toRaw({ includeId: false }), null, 2);
+	copy(rowData)
+		.then(() => {
+			notification.success({
+				title: "成功",
+				content:
+					obj instanceof Pattern
+						? `方案“${obj.mainInfo.name}”拷贝成功！`
+						: `规则“${obj.name}”拷贝成功！`,
+				duration: 3000,
+			});
+		})
+		.catch(() => {
+			notification.error({
+				title: "失败",
+				content:
+					obj instanceof Pattern
+						? `方案“${obj.mainInfo.name}”拷贝失败`
+						: `规则“${obj.name}”拷贝失败`,
 				duration: 3000,
 			});
 		});

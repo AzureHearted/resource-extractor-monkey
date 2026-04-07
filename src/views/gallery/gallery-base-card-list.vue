@@ -1,69 +1,67 @@
 <template>
 	<div ref="scrollBarRef" style="height: 100%" @click="clearSelection">
 		<!-- f 普通网格布局 -->
-		<div v-if="layout === 'grid'" style="height: 100%">
-			<BaseVirtualGrid
-				style="padding: 10px"
-				ref="gridRef"
-				:items="virtualGridItem"
-				:gap="4"
-				:columns="!state.isMobile ? galleryState.column : undefined"
-				:breakpoints="state.isMobile ? state.breakpoints : undefined"
-				:allow-item-transition="galleryState.allowTransition"
-			>
-				<template #="{ item, isSkeleton }">
-					<GalleryCard
-						v-model:data="item.data"
-						:is-selected="cardStore.data.selectedCardIdSet.has(item.id)"
-						:is-favorite="cardStore.data.favoriteCardIdSet.has(item.id)"
-						:downloading="cardStore.data.downloadingCardIdSet.has(item.id)"
-						:is-skeleton="isSkeleton"
-						:highlight-key="searchKeywords"
-						:is-mobile="state.isMobile"
-						@delete="removeCard([$event])"
-						@loaded="handleLoaded"
-						@download="handleDownloadCard"
-						@toggle-favorite="handleToFavorite(item.id, $event)"
-						@toggle-select="handleSelectChange(item.id, $event)"
-						@click.stop="handleSelect(item.id, $event)"
-						@dblclick.stop="onCardDbClick(item.id)"
-						@contextmenu="onCardContextMenu($event, item.id)"
-					/>
-				</template>
-			</BaseVirtualGrid>
-		</div>
+		<BaseVirtualGrid
+			v-if="layout === 'grid'"
+			style="padding: 10px"
+			ref="gridRef"
+			:items="virtualGridItem"
+			:gap="4"
+			:columns="!state.isMobile ? galleryState.column : undefined"
+			:breakpoints="state.isMobile ? state.breakpoints : undefined"
+			:allow-item-transition="galleryState.allowTransition"
+		>
+			<template #="{ item, isSkeleton }">
+				<GalleryCard
+					v-model:data="item.data"
+					:is-selected="cardStore.data.selectedCardIdSet.has(item.id)"
+					:is-favorite="cardStore.data.favoriteCardIdSet.has(item.id)"
+					:downloading="cardStore.data.downloadingCardIdSet.has(item.id)"
+					:is-skeleton="isSkeleton"
+					:highlight-key="searchKeywords"
+					:is-mobile="state.isMobile"
+					@delete="removeCard([$event])"
+					@loaded="handleLoaded"
+					@download="handleDownloadCard"
+					@toggle-favorite="handleToFavorite(item.id, $event)"
+					@toggle-select="handleSelectChange(item.id, $event)"
+					@click.stop="handleClick(item.id, $event)"
+					@dblclick.stop="onCardDbClick(item.id)"
+					@contextmenu="onCardContextMenu($event, item.id)"
+				/>
+			</template>
+		</BaseVirtualGrid>
 		<!-- f 瀑布流布局 -->
-		<div v-if="layout === 'waterfall'" style="height: 100%">
-			<BaseVirtualMasonry
-				style="padding: 10px"
-				ref="masonryRef"
-				:items="virtualMasonryItem"
-				:gap="4"
-				:columns="!state.isMobile ? galleryState.column : undefined"
-				:breakpoints="state.isMobile ? state.breakpoints : undefined"
-				:allow-item-transition="galleryState.allowTransition"
-			>
-				<template #="{ item, isSkeleton }">
-					<GalleryCard
-						v-model:data="item.data"
-						:is-selected="cardStore.data.selectedCardIdSet.has(item.id)"
-						:is-favorite="cardStore.data.favoriteCardIdSet.has(item.id)"
-						:downloading="cardStore.data.downloadingCardIdSet.has(item.id)"
-						:is-skeleton="isSkeleton"
-						:highlight-key="searchKeywords"
-						:is-mobile="state.isMobile"
-						@delete="removeCard([$event])"
-						@loaded="handleLoaded"
-						@download="handleDownloadCard"
-						@toggle-favorite="handleToFavorite(item.id, $event)"
-						@toggle-select="handleSelectChange(item.id, $event)"
-						@click.stop="handleSelect(item.id, $event)"
-						@dblclick.stop="onCardDbClick(item.id)"
-						@contextmenu="onCardContextMenu($event, item.id)"
-					/>
-				</template>
-			</BaseVirtualMasonry>
-		</div>
+		<BaseVirtualMasonry
+			v-if="layout === 'waterfall'"
+			style="padding: 10px"
+			ref="masonryRef"
+			:items="virtualMasonryItem"
+			:gap="4"
+			:columns="!state.isMobile ? galleryState.column : undefined"
+			:breakpoints="state.isMobile ? state.breakpoints : undefined"
+			:allow-item-transition="galleryState.allowTransition"
+		>
+			<template #="{ item, isSkeleton }">
+				<GalleryCard
+					v-model:data="item.data"
+					:is-selected="cardStore.data.selectedCardIdSet.has(item.id)"
+					:is-favorite="cardStore.data.favoriteCardIdSet.has(item.id)"
+					:downloading="cardStore.data.downloadingCardIdSet.has(item.id)"
+					:is-skeleton="isSkeleton"
+					:highlight-key="searchKeywords"
+					:is-mobile="state.isMobile"
+					@delete="removeCard([$event])"
+					@loaded="handleLoaded"
+					@download="handleDownloadCard"
+					@toggle-favorite="handleToFavorite(item.id, $event)"
+					@toggle-select="handleSelectChange(item.id, $event)"
+					@click.stop="handleClick(item.id, $event)"
+					@dblclick.stop="onCardDbClick(item.id)"
+					@contextmenu="onCardContextMenu($event, item.id)"
+				/>
+			</template>
+		</BaseVirtualMasonry>
 	</div>
 </template>
 
@@ -476,12 +474,19 @@ onDeactivated(() => Fancybox.close());
 
 // 使用函数式组件右键菜单
 const { showContextMenu } = useContextMenu({
-	root: () => scrollBarRef.value,
+	root() {
+		return scrollBarRef.value;
+	},
+	theme() {
+		return globalStore.theme;
+	},
 	fontSize: 14,
 });
 
 // f 卡片的右键菜单的回调
 async function onCardContextMenu(event: PointerEvent, id: string) {
+	cardStore.data.selectedCardIdSet.add(id);
+
 	const card = props.cardList.find((x) => x.id === id);
 	if (!card) return;
 
@@ -517,75 +522,73 @@ async function onCardContextMenu(event: PointerEvent, id: string) {
 		},
 	] as const);
 
-	if (result) {
-		switch (result) {
-			case "preview":
-				openFancybox(id);
-				break;
-			case "favorite":
-				handleToFavorite(card.id, !isFavorite);
-				break;
-			case "locateInPage":
-				const dom = card.source.dom;
-				if (!dom) return;
-				dom.scrollIntoView({
-					behavior: "smooth",
-					inline: "center",
-					block: "center",
-				});
-				globalStore.openWindow = false;
-				break;
-			case "openSource":
-				GM_openInTab(card.source.url, {
-					active: true,
-					insert: true,
-					setParent: true,
-				});
-				break;
-			case "openPreview":
-				GM_openInTab(card.preview.url, {
-					active: true,
-					insert: true,
-					setParent: true,
-				});
-				break;
-			case "copySource":
-			case "copyCard":
-				const { copy } = useClipboard();
-				copy(
-					result === "copySource"
-						? card.source.url
-						: JSON.stringify(card, null, 2),
-				)
-					.then(() => {
-						notification.success({
-							title: "复制成功",
-							content:
-								result === "copySource"
-									? card.source.url
-									: `卡片数据：${card.description.content}`,
-							duration: 3000,
-						});
-					})
-					.catch(() => {
-						notification.error({
-							title: "复制失败",
-							duration: 3000,
-						});
+	switch (result) {
+		case "preview":
+			openFancybox(id);
+			break;
+		case "favorite":
+			handleToFavorite(card.id, !isFavorite);
+			break;
+		case "locateInPage":
+			const dom = card.source.dom;
+			if (!dom) return;
+			dom.scrollIntoView({
+				behavior: "smooth",
+				inline: "center",
+				block: "center",
+			});
+			globalStore.openWindow = false;
+			break;
+		case "openSource":
+			GM_openInTab(card.source.url, {
+				active: true,
+				insert: true,
+				setParent: true,
+			});
+			break;
+		case "openPreview":
+			GM_openInTab(card.preview.url, {
+				active: true,
+				insert: true,
+				setParent: true,
+			});
+			break;
+		case "copySource":
+		case "copyCard":
+			const { copy } = useClipboard();
+			copy(
+				result === "copySource"
+					? card.source.url
+					: JSON.stringify(card, null, 2),
+			)
+				.then(() => {
+					notification.success({
+						title: "复制成功",
+						content:
+							result === "copySource"
+								? card.source.url
+								: `卡片数据：${card.description.content}`,
+						duration: 3000,
 					});
-				break;
-			case "download":
-				if (selectionCard.length > 1) {
-					await handleDownloadCards(selectionCard);
-				} else if (selectionCard.length === 1) {
-					await handleDownloadCard(selectionCard[0].id);
-				}
-				break;
-			case "remove":
-				const ids = selectionCard.map((c) => c.id);
-				removeCard(ids);
-				break;
-		}
+				})
+				.catch(() => {
+					notification.error({
+						title: "复制失败",
+						duration: 3000,
+					});
+				});
+			break;
+		case "download":
+			if (selectionCard.length > 1) {
+				await handleDownloadCards(selectionCard);
+			} else if (selectionCard.length === 1) {
+				await handleDownloadCard(selectionCard[0].id);
+			}
+			break;
+		case "remove":
+			const ids = selectionCard.map((c) => c.id);
+			removeCard(ids);
+			break;
 	}
 }
 
@@ -594,8 +597,8 @@ function clearSelection() {
 	cardStore.data.selectedCardIdSet.clear();
 }
 
-// f 处理选中
-function handleSelect(id: string, e: PointerEvent) {
+// f 处理点击事件
+function handleClick(id: string, e: PointerEvent) {
 	if (!e.ctrlKey) {
 		cardStore.data.selectedCardIdSet.clear();
 	}
@@ -631,28 +634,18 @@ function onKeyDown(e: KeyboardEvent) {
 </script>
 
 <style lang="scss" scoped>
-/* 修改卡片样式 */
-:deep(.base-virtual-grid__wrap),
-:deep(.base-virtual-masonry__wrap) {
+// 修正卡片样式
+:deep(.base-virtual-grid__wrapper),
+:deep(.base-virtual-masonry__wrapper) {
 	.base-card {
 		height: 100%;
 		overflow: hidden;
-
-		.base-card__content {
-			flex-grow: 1;
-		}
 
 		.base-img {
 			height: 100%;
 
 			& > .base-img__wrapper {
 				height: 100%;
-
-				img {
-					width: 100%;
-					height: 100%;
-					object-fit: cover;
-				}
 			}
 
 			&__error > .base-img__wrapper {
@@ -675,12 +668,6 @@ function onKeyDown(e: KeyboardEvent) {
 
 			& > .base-video__wrapper {
 				height: 100%;
-
-				video {
-					width: 100%;
-					height: 100%;
-					object-fit: cover;
-				}
 			}
 
 			&__error > .base-video__wrapper {

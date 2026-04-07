@@ -1,25 +1,22 @@
 <template>
-	<div class="pattern-edit__container">
+	<BaseFlex class="re-pattern-edit" :gap="4">
 		<!-- 规则侧栏 -->
-		<aside class="pattern-tree">
+		<aside class="re-pattern-tree">
 			<Tree />
 		</aside>
 		<!-- 规则表单 -->
-		<main class="pattern-form">
-			<BaseScrollbar>
-				<Form />
-			</BaseScrollbar>
+		<main class="re-pattern-form">
+			<Form />
 		</main>
-	</div>
+	</BaseFlex>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue";
-import Tree from "./pattern-tree.vue";
-import Form from "./pattern-form.vue";
-import { BaseScrollbar } from "base-ui";
 import { usePatternStore } from "@/stores";
-import { onActivated } from "vue";
+import { BaseFlex } from "base-ui";
+import { onActivated, onMounted } from "vue";
+import Form from "./pattern-form.vue";
+import Tree from "./pattern-tree.vue";
 
 const patternStore = usePatternStore();
 const { getUserPatternInfo } = patternStore;
@@ -33,18 +30,22 @@ onActivated(() => {
 </script>
 
 <style lang="scss" scoped>
-.pattern-edit__container {
+* {
 	box-sizing: border-box;
+}
+
+.re-pattern-edit {
 	position: relative;
-	display: flex;
-	flex-flow: row nowrap;
-	gap: 4px;
 	height: 100%;
 	padding: 4px;
 	overflow-y: hidden;
 	overflow-x: auto;
 
-	.pattern-tree {
+	scrollbar-color: rgb(85, 170, 255) transparent;
+	overscroll-behavior: contain;
+	pointer-events: all;
+
+	.re-pattern-tree {
 		position: relative;
 		box-sizing: border-box;
 		min-width: 230px;
@@ -56,7 +57,7 @@ onActivated(() => {
 		z-index: 1;
 	}
 
-	.pattern-form {
+	.re-pattern-form {
 		flex: auto;
 		min-width: 425px;
 		max-width: 800px;

@@ -1,9 +1,8 @@
 <template>
-	<n-flex ref="containerDOM" class="favorite__container" vertical :size="0">
-		<!-- s 工具栏 -->
+	<BaseFlex ref="containerDOM" class="re-favorite" direction="column">
+		<!-- 工具栏 -->
 		<FavoriteToolbar />
-		<!-- s 内容区 -->
-		<n-flex class="favorite__content-wrap" :size="4">
+		<BaseFlex class="re-favorite__content-wrapper">
 			<BaseTabs
 				style="width: 100%; height: 100%"
 				content-style="overflow:hidden;"
@@ -125,14 +124,14 @@
 					/>
 				</BaseTabPane>
 			</BaseTabs>
-		</n-flex>
-	</n-flex>
+		</BaseFlex>
+	</BaseFlex>
 </template>
 
 <script setup lang="ts">
 import FavoriteToolbar from "./favorite-toolbar.vue";
 import FavoriteBaseCardList from "./favorite-base-card-list.vue";
-import { BaseTabs, BaseTabPane } from "base-ui";
+import { BaseFlex, BaseTabs, BaseTabPane } from "base-ui";
 
 import { storeToRefs } from "pinia";
 import { useGlobalStore, useFavoriteStore } from "@/stores";
@@ -145,14 +144,14 @@ const { filterCardList, nowType, filters } = storeToRefs(favoriteStore);
 </script>
 
 <style lang="scss" scoped>
-.favorite__container {
+.re-favorite {
 	box-sizing: border-box;
 	width: 100%;
 	height: 100%;
 	overflow: hidden;
 }
 
-.favorite__content-wrap {
+.re-favorite__content-wrapper {
 	flex: 1; // 必须设置用来撑满容器
 	padding: 4px;
 	overflow: hidden; // 必须要设置溢出隐藏

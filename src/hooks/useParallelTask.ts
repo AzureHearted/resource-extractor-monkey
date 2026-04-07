@@ -1,4 +1,4 @@
-export interface Task<T> {
+export interface Task<T = unknown> {
 	/** 任务执行函数 */
 	handle: () => Promise<T>;
 	/** 当任务执行完成后，空位补任务延迟 @default undefined (默认受 options.refillDelay 控制) */

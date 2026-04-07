@@ -1,6 +1,15 @@
 <template>
-	<div class="pattern-edit__form" :data-theme="globalStore.theme">
-		<n-card v-if="pattern" class="pattern-edit__form__card" size="small">
+	<BaseFlex
+		class="pattern-edit__form"
+		direction="column"
+		:data-theme="globalStore.theme"
+	>
+		<n-card
+			v-if="pattern"
+			class="pattern-edit__form__card"
+			style="flex-shrink: 0"
+			size="small"
+		>
 			<template #header>
 				<div style="display: flex; align-items: center; gap: 8px; height: 36px">
 					<n-gradient-text size="16" type="primary" style="align-self: center">
@@ -43,7 +52,7 @@
 				</div>
 			</template>
 			<template #header-extra>
-				<n-flex :size="4">
+				<BaseFlex :gap="4">
 					<n-button
 						type="primary"
 						size="small"
@@ -56,7 +65,7 @@
 						<n-button type="primary" @click="savePattern"> 保存 </n-button>
 						<n-button @click="resetPattern"> 重置 </n-button>
 					</n-button-group>
-				</n-flex>
+				</BaseFlex>
 			</template>
 			<!-- 方案表单 -->
 			<n-form label-placement="left" :model="pattern" :disabled="disabled">
@@ -169,7 +178,7 @@
 			</n-form>
 		</n-card>
 		<!-- 规则表单 -->
-		<n-card class="pattern-edit__form__card">
+		<n-card class="pattern-edit__form__card" content-style="overflow:hidden;">
 			<template #header>
 				<div style="display: flex; align-items: center; gap: 4px; height: 36px">
 					<n-input-group style="align-items: center; gap: 8px">
@@ -226,7 +235,7 @@
 				</n-button-group>
 			</template>
 			<template #default>
-				<BaseTabs>
+				<BaseTabs style="overflow: hidden; height: 100%">
 					<BaseTabPane
 						:label="`约束区域${rule?.isChange('region') ? '*' : ''}`"
 						name="region"
@@ -254,7 +263,7 @@
 				</BaseTabs>
 			</template>
 		</n-card>
-	</div>
+	</BaseFlex>
 </template>
 
 <script setup lang="ts">
@@ -263,7 +272,7 @@ import { defaultPattern, Pattern, Rule } from "@/models";
 import { useNotification } from "@/plugin/naive-ui";
 import { useGlobalStore, usePatternStore } from "@/stores";
 import { useClipboard } from "@vueuse/core";
-import { BaseImg, BaseTabPane, BaseTabs } from "base-ui";
+import { BaseFlex, BaseImg, BaseTabPane, BaseTabs } from "base-ui";
 import { saveAs } from "file-saver";
 import { storeToRefs } from "pinia";
 import { computed } from "vue";
@@ -373,9 +382,15 @@ function pasteRule() {
 		.then((dataStr) => {
 			// console.log("剪贴板文本：", dataStr);
 			// 先尝试解析成一个对象
-			let obj: any;
+			let obj: Object;
 			try {
 				obj = JSON.parse(dataStr);
+				if (
+					!obj.hasOwnProperty("source") &&
+					!obj.hasOwnProperty("preview") &&
+					!obj.hasOwnProperty("description")
+				)
+					throw new Error();
 			} catch (e) {
 				notification.error({
 					title: "失败",
@@ -439,8 +454,10 @@ function removeMatchHost(index: number) {
 
 <style lang="scss" scoped>
 .pattern-edit__form {
+	height: 100%;
 	& > &__card {
 		margin-bottom: 4px;
+		overflow: hidden;
 	}
 	& > &__card:last-child {
 		margin-bottom: 0px;

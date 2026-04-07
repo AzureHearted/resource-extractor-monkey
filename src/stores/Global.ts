@@ -37,7 +37,7 @@ export const useGlobalStore = defineStore("Global", () => {
 	const isDark = useDark();
 
 	/** 当前主题 */
-	const theme = computed<Omit<Theme, "auto">>(() => {
+	const theme = computed<"dark" | "light">(() => {
 		if (galleryState.theme === "auto") {
 			return isDark.value ? "dark" : "light";
 		} else {

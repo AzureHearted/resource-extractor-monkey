@@ -30,8 +30,6 @@ export const useCardStore = defineStore("CardStore", () => {
 		typeMap: new Map<string, number>(),
 		// 扩展名与数量的映射表
 		extensionMap: new Map<string, number>(),
-		// 记录所有链接与Blob的映射表
-		urlBlobMap: new Map<string, Blob>(),
 		// 已经加载的卡片id集合
 		loadedCardIdSet: new Set<Card["id"]>(),
 		// 选中的卡片id集合
@@ -473,11 +471,6 @@ export const useCardStore = defineStore("CardStore", () => {
 							}
 						}
 
-						// 如果blob存在则记录到 url 和 blob 的 Map 对象中 (减少后续不必要的请求)
-						if (card.source.blob) {
-							data.urlBlobMap.set(card.source.url, card.source.blob);
-						}
-
 						// 记录卡片
 						newCardList[index] = card;
 						totalNewCardCount++;
@@ -522,7 +515,6 @@ export const useCardStore = defineStore("CardStore", () => {
 	async function clearCardList() {
 		data.typeMap.clear(); // 清空类型映射表
 		data.extensionMap.clear(); // 清空扩展名映射表
-		data.urlBlobMap.clear(); // 清空url和blob的Map对象
 		data.cardList = []; // 清空卡片列表
 		data.removedCardFingerprintSet.clear();
 		data.loadedCardIdSet.clear();

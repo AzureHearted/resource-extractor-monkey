@@ -387,7 +387,6 @@ const checkedTotalSizeTip = computed(() => {
 	}
 });
 
-// 控制相关
 // 方案选项
 const patternSelectOptions = computed<SelectOption[]>(() => {
 	return patternStore.list.map((p) => {
