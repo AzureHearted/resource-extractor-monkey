@@ -492,7 +492,12 @@ const onBeforeMoveNode: InstanceType<
 
 // 使用自定义右键菜单
 const { showContextMenu } = useContextMenu({
-	root: () => containerRef.value,
+	root() {
+		return containerRef.value;
+	},
+	theme() {
+		return globalStore.theme;
+	},
 	fontSize: 14,
 });
 
