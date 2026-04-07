@@ -1,5 +1,6 @@
 import { isUrl, isBase64Img, getHostByUrl } from "../common";
 import { GMRequest } from "../GMapi";
+import { fetchWithProgress } from "./fetchWithProgress";
 
 /**
  * 通过链接获取blob(自动)
@@ -16,42 +17,76 @@ export async function getBlobByUrlAuto(
 
 	// 尝试获取blob
 	const blob = await tryGetBlob(url, [
-		// Fetch请求
-		{
-			mode: "Fetch",
-			retray,
-			// message: `Fetch请求:${url}`
-		},
 		// GM请求1
 		{
 			mode: "GM",
 			retray,
-			// message: `GM请求:${url}`
+			onProgress(loaded, total) {
+				console.log(
+					`GM请求 (${((loaded / total) * 100).toFixed(2)}%) ：${url}`,
+				);
+			},
+			onError(_error, attempt, maxRetry) {
+				console.warn(`GM请求失败 (${attempt}/${maxRetry}) ：${url}`);
+			},
 		},
 		// GM请求2 (referer为当前域名)
 		{
 			mode: "GM",
 			referer: location.origin + "/",
 			retray,
-			// message: `GM请求(referer为当前域名):${url}`,
+			onProgress(loaded, total) {
+				console.log(
+					`GM请求(referer为当前域名) (${((loaded / total) * 100).toFixed(2)}%) ：${url}`,
+				);
+			},
+			onError(_error, attempt, maxRetry) {
+				console.warn(
+					`GM请求(referer为当前域名)失败 (${attempt}/${maxRetry}) ：${url}`,
+				);
+			},
 		},
 		// GM请求3 (referer为链接域名)
 		{
 			mode: "GM",
 			referer: getHostByUrl(url) + "/",
 			retray,
-			// message: `GM请求(referer为链接域名):${url}`,
+			onProgress(loaded, total) {
+				console.log(
+					`GM请求(referer为链接域名) (${((loaded / total) * 100).toFixed(2)}%) ：${url}`,
+				);
+			},
+			onError(_error, attempt, maxRetry) {
+				console.warn(
+					`GM请求(referer为链接域名)失败 (${attempt}/${maxRetry}) ：${url}`,
+				);
+			},
+		},
+		// Fetch请求
+		{
+			mode: "Fetch",
+			retray,
+			onProgress(loaded, total) {
+				console.log(
+					`Fetch请求 (${((loaded / total) * 100).toFixed(2)}%) ：${url}`,
+				);
+			},
+			onError(_error, attempt, maxRetry) {
+				console.warn(`Fetch请求失败 (${attempt}/${maxRetry}) ：${url}`);
+			},
 		},
 	]);
 	return blob;
 }
 
+// t 请求尝试队列
 export interface TryGetBlobRequest {
 	mode: "Fetch" | "GM";
 	referer?: string;
-	message?: string;
 	// 重试次数
 	retray?: number;
+	onProgress?: (loaded: number, total: number) => void;
+	onError?: (error: any, attempt: number, maxRetry: number) => void;
 }
 
 /**
@@ -74,51 +109,47 @@ async function tryGetBlob(
 		let attempt = 0;
 		const maxRetry = request.retray ?? 0;
 
-		while (attempt <= maxRetry) {
+		while (attempt < maxRetry) {
 			try {
-				// 日志
-				if (request.message?.trim()) {
-					console.log(
-						"[日志]Resource Extractor Monkey:",
-						`${request.message}: ${url}`,
-					);
-				}
-
 				// 1️⃣ 主请求
-				blob = await getBlobByUrl(url, request.mode, request.referer).catch(
-					() => null,
-				);
+				blob = await getBlobByUrl(url, {
+					mode: request.mode,
+					referer: request.referer,
+					onProgress: request.onProgress,
+				}).catch(() => null);
 
 				// 2️⃣ fallback：去 query 再试一次（只做一次）
 				if (!blob && url !== urlUnSearch) {
-					blob = await getBlobByUrl(
-						urlUnSearch,
-						request.mode,
-						request.referer,
-					).catch(() => null);
+					blob = await getBlobByUrl(urlUnSearch, {
+						mode: request.mode,
+						referer: request.referer,
+						onProgress: request.onProgress,
+					}).catch(() => null);
 				}
-
-				// console.log(`${url} (${request.mode}) 请求结果blob:`, blob);
 
 				// 成功
 				if (blob) {
-					// console.log("请求结果blob:", blob);
 					return blob;
 				}
 
 				// 失败 → 准备重试
 				attempt++;
-
-				console.warn(`请求失败(${attempt}/${maxRetry})`, url);
+				request.onError?.(null, attempt, maxRetry);
 			} catch (err) {
 				attempt++;
-
-				console.warn(`请求失败(${attempt}/${maxRetry})`, url, err);
+				request.onError?.(null, attempt, maxRetry);
 			}
 		}
 	}
 
 	return null;
+}
+
+// t 配置选项
+interface GetBlobByUrlOptions {
+	mode: "Fetch" | "GM";
+	referer?: string;
+	onProgress?: (loaded: number, total: number) => void;
 }
 
 /**
@@ -128,67 +159,62 @@ async function tryGetBlob(
  * @param referer
  * @returns
  */
-export function getBlobByUrl(
-	url: string,
-	mode: "Fetch" | "GM" = "Fetch",
-	referer?: string,
-): Promise<Blob | null> {
-	if (!url || !url.trim().length) return Promise.resolve(null);
+export async function getBlobByUrl(url: string, options?: GetBlobByUrlOptions) {
+	if (!url || !url.trim().length) return null;
+
+	const { mode = "Fetch", referer, onProgress } = options ?? {};
 
 	switch (mode) {
 		case "Fetch":
-			return new Promise<Blob | null>((resolve, reject) => {
-				(async () => {
-					try {
-						// ===== 第一次尝试 =====
-						let res = await fetch(url).catch(() => null);
-						if (res && res.ok) {
-							const blob = await res.blob().catch(() => null);
-							if (blob && blob.size) {
-								// console.count("Fetch请求成功!");
-								// console.log(res.headers.get("content-type"));
-								return resolve(blob);
-							}
-						}
+			try {
+				// Fetch 第一次尝试
+				let res = await fetchWithProgress(url, {
+					onProgress(info) {
+						onProgress?.(info.loaded, info.total);
+					},
+				}).catch(() => null);
 
-						// ===== 第二次尝试（no-cache）=====
-						res = await fetch(url, { cache: "no-cache" }).catch(() => null);
-						if (res && res.ok) {
-							const blob = await res.blob().catch(() => null);
-							if (blob && blob.size) {
-								// console.count("Fetch请求成功(no-cache)!");
-								// console.log(res.headers.get("content-type"));
-								return resolve(blob);
-							}
-						}
-
-						// ===== 全部失败 =====
-						// console.count("[error] Fetch请求失败");
-						reject(null);
-					} catch (e) {
-						reject(null);
+				if (res && res.ok) {
+					const blob = await res.blob().catch(() => null);
+					if (blob && blob.size) {
+						return blob;
 					}
-				})();
-			});
+				}
+
+				// Fetch 第二次尝试（no-cache）
+				res = await fetchWithProgress(url, {
+					cache: "no-cache",
+					onProgress(info) {
+						onProgress?.(info.loaded, info.total);
+					},
+				}).catch(() => null);
+				if (res && res.ok) {
+					const blob = await res.blob().catch(() => null);
+					if (blob && blob.size) {
+						return blob;
+					}
+				}
+
+				// 全部失败
+				return null;
+			} catch (e) {
+				return null;
+			}
 		case "GM":
-			// ===== GM 分支 =====
-			return new Promise<Blob | null>((resolve, reject) => {
-				GMRequest({ url, referer, responseType: "blob" })
-					.then((blob) => {
-						if (blob && blob.size) {
-							// console.count(`GM 请求成功${referer ? `(${referer})` : ""}!`);
-							console.log(blob.type);
-							resolve(blob);
-						} else {
-							// console.count(`GM 请求失败${referer ? `(${referer})` : ""}`);
-							// console.log(blob.type);
-							reject(null);
-						}
-					})
-					.catch(() => {
-						// console.count(`GM 请求失败${referer ? `(${referer})` : ""}`);
-						reject(null);
-					});
+			const res = await GMRequest({
+				method: "GET",
+				url,
+				referer,
+				responseType: "blob",
+				anonymous: true,
+				onprogress(event) {
+					onProgress?.(event.loaded, event.total);
+				},
 			});
+			if (res.data != null) {
+				return res.data;
+			} else {
+				return null;
+			}
 	}
 }
